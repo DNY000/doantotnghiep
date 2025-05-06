@@ -1,0 +1,15 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+- You can @ files here
+- You can use markdown but dont have to
+- Dự án của tôi sử dụng mô hình mvvm 
+- Đây là dự án gọi món online 
+- Đối với thư mục repositories chỉ làm nhiệm vụ lấy data từ firebase, crud dữ liệu
+- Thư mục viewmodels sẽ xử lí các logic liên quan đến dự án như: tính khoảng cách giữa người dùng và nhà hàng...
+- Tách biệt logic giữa các phần, dễ sửa chữa baoro trì 

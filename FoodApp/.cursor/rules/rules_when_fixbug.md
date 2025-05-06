@@ -1,0 +1,11 @@
+- Phân tích các file
+- Phân tích lỗi
+- Đưa ra đánh ra mức độ lỗi
+- Đưa ra giải pháp sửa lỗi
+- Đối với các thuộc tính của model( không được tự xóa)
+- khi thêm các thuộc tính trong model phải hỏi lại người dùng
+- Thứ tự kiểm tra khi phát sinh lỗi
+- Model-> repository-viewmodel-UI
+- Chỉ sửa những đoạn bị lỗi ( không cần viết lại các dòng code bị trùng lặp)
+- Khi sửa lưu ý đến những rủi ro liên quan đến hiệu suất
+- Khi sửa Phải đảm bảo đúng cấu trúc của firebase ( database)

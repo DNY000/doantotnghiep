@@ -1,0 +1,2 @@
+D:/doantotnghiep/FoodApp/android/app/.cxx/Debug/291u3iy1/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/doantotnghiep/FoodApp/android/app/.cxx/Debug/291u3iy1/armeabi-v7a/CMakeFiles/rebuild_cache.dir
