@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:foodapp/ultils/const/color_extension.dart';
 import 'package:foodapp/view/restaurant/single_food_detail.dart';
 import 'package:foodapp/viewmodels/food_viewmodel.dart';
+import 'package:foodapp/viewmodels/order_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:foodapp/common_widget/add_cart_button.dart';
 import 'package:foodapp/viewmodels/cart_viewmodel.dart';
 import 'package:foodapp/data/models/cart_item_model.dart';
 import 'package:foodapp/viewmodels/restaurant_viewmodel.dart';
+import 'package:foodapp/common_widget/food_order_controller.dart';
+import 'package:foodapp/view/order/order_screen.dart';
 
 class RestaurantFoodsScreen extends StatefulWidget {
   final String restaurantId;
@@ -77,39 +81,110 @@ class _RestaurantFoodsScreenState extends State<RestaurantFoodsScreen>
       );
     }
 
-    return Column(
-      children: [
-        Container(
-          height: 48, // Chiều cao cố định cho TabBar
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: Colors.grey[300]!,
-                width: 1,
+    return Scaffold(
+      body: Column(
+        children: [
+          Container(
+            height: 48, // Chiều cao cố định cho TabBar
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: Colors.grey[300]!,
+                  width: 1,
+                ),
               ),
             ),
+            child: TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              labelColor: Colors.red,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: Colors.red,
+              indicatorWeight: 2,
+              tabs: widget.categories.map((category) {
+                return Tab(
+                  text: category.toUpperCase(),
+                );
+              }).toList(),
+            ),
           ),
-          child: TabBar(
-            controller: _tabController,
-            isScrollable: true,
-            labelColor: Colors.red,
-            unselectedLabelColor: Colors.grey,
-            indicatorColor: Colors.red,
-            indicatorWeight: 2,
-            tabs: widget.categories.map((category) {
-              return Tab(
-                text: category.toUpperCase(),
-              );
-            }).toList(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: widget.categories.map(_buildTabContent).toList(),
+            ),
           ),
-        ),
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: widget.categories.map(_buildTabContent).toList(),
-          ),
-        ),
-      ],
+        ],
+      ),
+      floatingActionButton: Consumer<CartViewModel>(
+        builder: (context, cartVM, child) {
+          final totalAmount =
+              cartVM.getTotalAmountByRestaurant(widget.restaurantId);
+          final cartItems =
+              cartVM.getCartItemsByRestaurant(widget.restaurantId);
+
+          if (cartItems.isEmpty) return const SizedBox.shrink();
+
+          return Container(
+            width: double.infinity,
+            height: 56,
+            margin: const EdgeInsets.only(left: 28, right: 28, bottom: 16),
+            child: FloatingActionButton.extended(
+              backgroundColor: const Color.fromARGB(255, 223, 151, 57),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MultiProvider(
+                      providers: [
+                        ChangeNotifierProvider.value(
+                          value: Provider.of<OrderViewModel>(context,
+                              listen: false),
+                        ),
+                        ChangeNotifierProvider.value(
+                          value: Provider.of<CartViewModel>(context,
+                              listen: false),
+                        ),
+                      ],
+                      child: OrderScreen(
+                        cartItems: cartItems,
+                        restaurantId: widget.restaurantId,
+                        totalAmount: totalAmount,
+                      ),
+                    ),
+                  ),
+                );
+              },
+              label: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    "${totalAmount.toStringAsFixed(0)}đ",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 64),
+                  const Text(
+                    "Giao hàng",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          );
+        },
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -136,11 +211,11 @@ class _RestaurantFoodsScreenState extends State<RestaurantFoodsScreen>
             Padding(
               padding: const EdgeInsets.only(left: 15, top: 15, bottom: 10),
               child: Text(
-                "Món phổ biến",
+                "Danh sách món ăn",
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.red[700],
+                  color: TColor.color3,
                 ),
               ),
             ),
@@ -193,9 +268,9 @@ class _RestaurantFoodsScreenState extends State<RestaurantFoodsScreen>
                                           horizontal: 8,
                                           vertical: 4,
                                         ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.5),
-                                          borderRadius: const BorderRadius.only(
+                                        decoration: const BoxDecoration(
+                                          color: Colors.black,
+                                          borderRadius: BorderRadius.only(
                                             bottomRight: Radius.circular(8),
                                           ),
                                         ),
@@ -226,7 +301,7 @@ class _RestaurantFoodsScreenState extends State<RestaurantFoodsScreen>
                                       food.name,
                                       style: const TextStyle(
                                         fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: FontWeight.normal,
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -249,7 +324,7 @@ class _RestaurantFoodsScreenState extends State<RestaurantFoodsScreen>
                                           style: TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.red[700],
+                                            color: TColor.color3,
                                           ),
                                         ),
                                         const SizedBox(width: 8),
@@ -269,33 +344,10 @@ class _RestaurantFoodsScreenState extends State<RestaurantFoodsScreen>
                             ),
 
                             // Nút thêm vào giỏ hàng
-                            AddCartButton(
-                              onPressed: () {
-                                // Thêm vào giỏ hàng
-                                final cartViewModel =
-                                    context.read<CartViewModel>();
-                                final cartItem = CartItemModel(
-                                  id: DateTime.now().toString(),
-                                  foodId: food.id,
-                                  foodName: food.name,
-                                  quantity: 1,
-                                  price: food.price,
-                                  image: food.images.isNotEmpty
-                                      ? food.images[0]
-                                      : 'assets/img/placeholder_food.png',
-                                );
-
-                                cartViewModel.addToCart(cartItem);
-
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        'Đã thêm ${food.name} vào giỏ hàng'),
-                                    duration: const Duration(seconds: 2),
-                                  ),
-                                );
-                              },
-                              size: 36,
+                            FoodOrderController(
+                              food: food,
+                              restaurantId: widget.restaurantId,
+                              showQuantitySelector: true,
                             ),
                           ],
                         ),

@@ -104,4 +104,16 @@ class CartViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  // Lấy danh sách các món trong giỏ hàng theo restaurantId
+  List<CartItemModel> getCartItemsByRestaurant(String restaurantId) {
+    return _items.where((item) => item.restaurantId == restaurantId).toList();
+  }
+
+  // Tính tổng tiền các món trong giỏ hàng theo restaurantId
+  double getTotalAmountByRestaurant(String restaurantId) {
+    return _items
+        .where((item) => item.restaurantId == restaurantId)
+        .fold(0, (sum, item) => sum + item.price * item.quantity);
+  }
 }

@@ -86,159 +86,163 @@ class _OnBoardingViewState extends State<OnBoardingView>
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context).size;
-    final primaryOrange = const Color(0xFFFF8C00);
-    final lightOrange = const Color(0xFFFFAB40);
+    const primaryOrange = Color(0xFFFF8C00);
+    const lightOrange = Color(0xFFFFAB40);
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Stack(
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+              ),
             ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                if (selectPage < infoArr.length - 1)
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: TextButton(
-                      onPressed: () {
-                        carouselController.animateToPage(infoArr.length - 1);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                          "Bỏ qua",
-                          style: TextStyle(
-                            color: primaryOrange,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+            SafeArea(
+              child: Column(
+                children: [
+                  if (selectPage < infoArr.length - 1)
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: TextButton(
+                        onPressed: () {
+                          carouselController.animateToPage(infoArr.length - 1);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            "Bỏ qua",
+                            style: TextStyle(
+                              color: primaryOrange,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  )
-                else
-                  const SizedBox(height: 56),
-                Expanded(
-                  child: CarouselSlider(
-                    carouselController: carouselController,
-                    options: CarouselOptions(
-                      height: media.height,
-                      viewportFraction: 1.0,
-                      enableInfiniteScroll: false,
-                      onPageChanged: (index, reason) {
-                        setState(() {
-                          selectPage = index;
-                        });
-                        _animationController.reset();
-                        _animationController.forward();
-                      },
-                    ),
-                    items: infoArr.map((iObj) {
-                      return Builder(
-                        builder: (BuildContext context) {
-                          return AnimatedBuilder(
-                            animation: _animationController,
-                            builder: (context, child) {
-                              return FadeTransition(
-                                opacity: _fadeAnimation,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 24.0),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Hero(
-                                        tag:
-                                            'onboarding_image_${infoArr.indexOf(iObj)}',
-                                        child: Image.asset(
-                                          iObj["icon"]!,
-                                          width: media.width * 0.7,
-                                          height: media.width * 0.7,
-                                          fit: BoxFit.contain,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 40),
-                                      Text(
-                                        iObj["title"]!,
-                                        style: TextStyle(
-                                          color: primaryOrange,
-                                          fontSize: 28,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        iObj["sub_title"]!,
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: Colors.grey[700],
-                                          fontSize: 16,
-                                          height: 1.4,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      );
-                    }).toList(),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    children: [
-                      SmoothPageIndicator(
-                        controller: PageController(initialPage: selectPage),
-                        count: infoArr.length,
-                        effect: ExpandingDotsEffect(
-                          activeDotColor: primaryOrange,
-                          dotColor: lightOrange.withOpacity(0.3),
-                          dotHeight: 8,
-                          dotWidth: 8,
-                          spacing: 8,
-                          expansionFactor: 3,
-                        ),
-                        onDotClicked: (index) {
-                          carouselController.animateToPage(index);
+                    )
+                  else
+                    const SizedBox(height: 56),
+                  Expanded(
+                    child: CarouselSlider(
+                      carouselController: carouselController,
+                      options: CarouselOptions(
+                        height: media.height,
+                        viewportFraction: 1.0,
+                        enableInfiniteScroll: false,
+                        onPageChanged: (index, reason) {
+                          setState(() {
+                            selectPage = index;
+                          });
+                          _animationController.reset();
+                          _animationController.forward();
                         },
                       ),
-                      const SizedBox(height: 32),
-                      SizedBox(
-                        width: double.infinity,
-                        child: RoundButton(
-                          title: selectPage == infoArr.length - 1
-                              ? "Bắt đầu"
-                              : "Tiếp theo",
-                          backgroundColor: primaryOrange,
-                          onPressed: () {
-                            if (selectPage < infoArr.length - 1) {
-                              carouselController.animateToPage(selectPage + 1);
-                            } else {
-                              storage.saveData("isFirstTime", false);
-                              if (context.mounted) {
-                                context.go('/login');
-                              }
-                            }
+                      items: infoArr.map((iObj) {
+                        return Builder(
+                          builder: (BuildContext context) {
+                            return AnimatedBuilder(
+                              animation: _animationController,
+                              builder: (context, child) {
+                                return FadeTransition(
+                                  opacity: _fadeAnimation,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Hero(
+                                          tag:
+                                              'onboarding_image_${infoArr.indexOf(iObj)}',
+                                          child: Image.asset(
+                                            iObj["icon"]!,
+                                            width: media.width * 0.7,
+                                            height: media.width * 0.7,
+                                            fit: BoxFit.contain,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 40),
+                                        Text(
+                                          iObj["title"]!,
+                                          style: TextStyle(
+                                            color: primaryOrange,
+                                            fontSize: 28,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          iObj["sub_title"]!,
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: Colors.grey[700],
+                                            fontSize: 16,
+                                            height: 1.4,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      children: [
+                        SmoothPageIndicator(
+                          controller: PageController(initialPage: selectPage),
+                          count: infoArr.length,
+                          effect: ExpandingDotsEffect(
+                            activeDotColor: primaryOrange,
+                            dotColor: lightOrange.withOpacity(0.3),
+                            dotHeight: 8,
+                            dotWidth: 8,
+                            spacing: 8,
+                            expansionFactor: 3,
+                          ),
+                          onDotClicked: (index) {
+                            carouselController.animateToPage(index);
                           },
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 32),
+                        SizedBox(
+                          width: double.infinity,
+                          child: RoundButton(
+                            title: selectPage == infoArr.length - 1
+                                ? "Bắt đầu"
+                                : "Tiếp theo",
+                            backgroundColor: primaryOrange,
+                            onPressed: () {
+                              if (selectPage < infoArr.length - 1) {
+                                carouselController
+                                    .animateToPage(selectPage + 1);
+                              } else {
+                                storage.saveData("isFirstTime", false);
+                                if (context.mounted) {
+                                  context.go('/login');
+                                }
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

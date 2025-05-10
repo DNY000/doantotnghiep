@@ -235,7 +235,7 @@ class _InformationUserViewState extends State<InformationUserView> {
                         icon: const Icon(Icons.edit_outlined),
                         label: const Text('Cập nhật thông tin'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: TColor.primary,
+                          backgroundColor: TColor.color3,
                           foregroundColor: Colors.white,
                           minimumSize: const Size(double.infinity, 50),
                           shape: RoundedRectangleBorder(

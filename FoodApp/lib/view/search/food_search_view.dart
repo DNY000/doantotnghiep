@@ -73,7 +73,7 @@ class _FoodSearchViewState extends State<FoodSearchView> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 48, color: TColor.primary),
+                  Icon(Icons.error_outline, size: 48, color: TColor.color3),
                   const SizedBox(height: 16),
                   Text(
                     viewModel.error!,
@@ -134,6 +134,8 @@ class _FoodSearchViewState extends State<FoodSearchView> {
   Widget _buildFoodItem(FoodModel food) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      color: Colors.white,
+      elevation: 1,
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -159,7 +161,7 @@ class _FoodSearchViewState extends State<FoodSearchView> {
                     width: 80,
                     height: 80,
                     color: Colors.grey[200],
-                    child: Icon(Icons.fastfood, color: TColor.primary),
+                    child: Icon(Icons.fastfood, color: TColor.color3),
                   ),
                 ),
               ),
@@ -192,16 +194,16 @@ class _FoodSearchViewState extends State<FoodSearchView> {
                         Text(
                           '${food.price.toStringAsFixed(0)}đ',
                           style: TextStyle(
-                            color: TColor.primary,
+                            color: TColor.color3,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const Spacer(),
-                        Icon(Icons.star, size: 16, color: TColor.primary),
+                        const Icon(Icons.star, size: 16, color: Colors.yellow),
                         const SizedBox(width: 4),
                         Text(
                           food.rating.toStringAsFixed(1),
-                          style: TextStyle(color: TColor.primary),
+                          style: TextStyle(color: TColor.color3),
                         ),
                       ],
                     ),

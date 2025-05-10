@@ -7,6 +7,7 @@ class CartItemModel {
   final String image;
   final String? note;
   final Map<String, dynamic>? options;
+  final String restaurantId;
 
   CartItemModel({
     required this.id,
@@ -15,6 +16,7 @@ class CartItemModel {
     required this.quantity,
     required this.price,
     required this.image,
+    required this.restaurantId,
     this.note,
     this.options,
   });
@@ -31,6 +33,7 @@ class CartItemModel {
     String? image,
     String? note,
     Map<String, dynamic>? options,
+    String? restaurantId,
   }) {
     return CartItemModel(
       id: id ?? this.id,
@@ -39,6 +42,7 @@ class CartItemModel {
       quantity: quantity ?? this.quantity,
       price: price ?? this.price,
       image: image ?? this.image,
+      restaurantId: restaurantId ?? this.restaurantId,
       note: note ?? this.note,
       options: options ?? this.options,
     );
@@ -52,6 +56,7 @@ class CartItemModel {
       'quantity': quantity,
       'price': price,
       'image': image,
+      'restaurantId': restaurantId,
       'note': note,
       'options': options,
     };
@@ -69,6 +74,7 @@ class CartItemModel {
           ? (map['price'] as num).toDouble()
           : double.tryParse(map['price']?.toString() ?? '0') ?? 0.0,
       image: (map['image'] ?? '').toString(),
+      restaurantId: (map['restaurantId'] ?? '').toString(),
       note: map['note']?.toString(),
       options: map['options'] as Map<String, dynamic>?,
     );

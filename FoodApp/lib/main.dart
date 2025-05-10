@@ -23,21 +23,26 @@ Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
+  // Load .env file first
   await dotenv.load(fileName: ".env");
-  await TLocalStorage.init('food_app');
 
-  await Firebase.initializeApp(
-    options: kIsWeb
-        ? FirebaseOptions(
-            apiKey: dotenv.env["API_KEY"] ?? "",
-            authDomain: "foodapp-daade.firebaseapp.com",
-            projectId: "foodapp-daade",
-            storageBucket: "foodapp-daade.appspot.com",
-            messagingSenderId: "44206956684",
-            appId: dotenv.env['APP_ID'] ?? "",
-            measurementId: "G-ZCRF80FGZ6")
-        : DefaultFirebaseOptions.currentPlatform,
-  );
+  // Then initialize other services
+  await Future.wait<void>([
+    TLocalStorage.init('food_app'),
+    Firebase.initializeApp(
+      options: kIsWeb
+          ? FirebaseOptions(
+              apiKey: dotenv.env["API_KEY"] ?? "",
+              authDomain: "foodapp-daade.firebaseapp.com",
+              projectId: "foodapp-daade",
+              storageBucket: "foodapp-daade.appspot.com",
+              messagingSenderId: "44206956684",
+              appId: dotenv.env['APP_ID'] ?? "",
+              measurementId: "G-ZCRF80FGZ6")
+          : DefaultFirebaseOptions.currentPlatform,
+    ),
+  ]);
+
   FlutterNativeSplash.remove();
   runApp(
     MultiProvider(

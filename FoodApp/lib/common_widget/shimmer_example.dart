@@ -17,7 +17,7 @@ class _ShimmerExampleScreenState extends State<ShimmerExampleScreen> {
   void initState() {
     super.initState();
     // Mô phỏng việc tải dữ liệu
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 5), () {
       if (mounted) {
         setState(() {
           _isLoading = false;

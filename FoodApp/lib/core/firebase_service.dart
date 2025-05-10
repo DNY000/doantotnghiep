@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:foodapp/data/models/address_model.dart';
 import 'package:foodapp/data/models/category_model.dart';
 import 'package:foodapp/data/models/food_model.dart';
 import 'package:foodapp/data/models/notification_model.dart';

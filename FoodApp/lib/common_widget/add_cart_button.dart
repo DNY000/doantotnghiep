@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foodapp/ultils/const/color_extension.dart';
 
 class AddCartButton extends StatelessWidget {
   final Function onPressed;
@@ -21,7 +22,7 @@ class AddCartButton extends StatelessWidget {
           width: size ?? 40,
           height: size ?? 40,
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.5),
+            color: TColor.color3,
             borderRadius: BorderRadius.circular(size ?? 20),
           ),
           child: const Icon(
