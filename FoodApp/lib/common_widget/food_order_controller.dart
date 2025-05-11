@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:foodapp/data/models/food_model.dart';
 import 'package:foodapp/data/models/cart_item_model.dart';
+import 'package:foodapp/data/models/draft_order_model.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
 import 'package:provider/provider.dart';
 import 'package:foodapp/viewmodels/cart_viewmodel.dart';
+import 'package:foodapp/ultils/local_storage/storage_utilly.dart';
+import 'dart:convert';
 
 class FoodOrderController extends StatefulWidget {
   final FoodModel food;
@@ -32,25 +35,16 @@ class FoodOrderController extends StatefulWidget {
 class _FoodOrderControllerState extends State<FoodOrderController> {
   int qty = 0;
   bool isAddedToCart = false;
+  bool _isOrderConfirmed = false;
+  final _storage = TLocalStorage.instance();
 
   double get totalPrice => widget.food.price * qty;
 
   @override
   void initState() {
     super.initState();
-    _checkExistingCartItem();
-  }
-
-  void _checkExistingCartItem() {
-    final cartVM = Provider.of<CartViewModel>(context, listen: false);
-    final existingItem = cartVM.getCartItemByFoodId(widget.food.id);
-    if (existingItem != null) {
-      setState(() {
-        isAddedToCart = true;
-        qty = existingItem.quantity;
-      });
-      _notifyQuantityChanged();
-    }
+    qty = 0;
+    isAddedToCart = false;
   }
 
   void _notifyQuantityChanged() {
@@ -81,6 +75,7 @@ class _FoodOrderControllerState extends State<FoodOrderController> {
     });
 
     if (widget.onOrderComplete != null) {
+      _isOrderConfirmed = true;
       widget.onOrderComplete!();
     }
 
@@ -137,6 +132,56 @@ class _FoodOrderControllerState extends State<FoodOrderController> {
     final cartViewModel = Provider.of<CartViewModel>(context, listen: false);
     cartViewModel.removeFromCart(widget.food.id);
     _notifyQuantityChanged();
+  }
+
+  void _saveDraftOrder() {
+    if (qty > 0) {
+      final draftOrder = DraftOrderModel(
+        id: DateTime.now().toString(),
+        restaurantId: widget.restaurantId,
+        items: [
+          CartItemModel(
+            id: DateTime.now().toString(),
+            foodId: widget.food.id,
+            foodName: widget.food.name,
+            quantity: qty,
+            restaurantId: widget.restaurantId,
+            price: widget.food.price,
+            image: widget.food.images.isNotEmpty
+                ? widget.food.images[0]
+                : 'assets/img/placeholder_food.png',
+            note: '',
+            options: {},
+          )
+        ],
+        totalAmount: totalPrice,
+        createdAt: DateTime.now(),
+      );
+
+      // Get existing draft orders
+      final draftOrdersJson = _storage.readData<String>('draft_orders') ?? '[]';
+      final List<dynamic> draftOrdersList = json.decode(draftOrdersJson);
+      final draftOrders = draftOrdersList
+          .map((json) => DraftOrderModel.fromJson(json))
+          .toList();
+
+      // Add new draft order
+      draftOrders.add(draftOrder);
+
+      // Save back to storage
+      _storage.saveData(
+        'draft_orders',
+        json.encode(draftOrders.map((order) => order.toJson()).toList()),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    if (!_isOrderConfirmed) {
+      _saveDraftOrder();
+    }
+    super.dispose();
   }
 
   @override

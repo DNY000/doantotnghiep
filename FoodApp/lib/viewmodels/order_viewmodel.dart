@@ -115,20 +115,25 @@ class OrderViewModel extends ChangeNotifier {
   }
 
   // Lấy danh sách đơn hàng của user
-  Future<void> loadUserOrders(String userId) async {
+  Future<bool> loadUserOrders(String userId) async {
+    _isLoading = true;
+    _error = null;
+    _orders = []; // Xoá dữ liệu cũ để tránh hiển thị nhầm
+    notifyListeners();
+
     try {
-      _isLoading = true;
-      _error = null;
-      notifyListeners();
-
-      _orders = await _repository.getUserOrders(userId);
-
+      final orders = await _repository.getUserOrders(userId);
+      _orders = orders ?? [];
       _isLoading = false;
       notifyListeners();
-    } catch (e) {
+      return true;
+    } catch (e, stack) {
+      _orders = [];
       _error = e.toString();
       _isLoading = false;
+      debugPrint('Lỗi loadUserOrders: $e\n$stack');
       notifyListeners();
+      return false;
     }
   }
 

@@ -65,9 +65,10 @@ class _FarvoriteViewState extends State<FarvoriteView> {
                   padding: const EdgeInsets.all(16),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 0.8,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+                    // childAspectRatio: 0.8,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    mainAxisExtent: 180,
                   ),
                   itemCount: favoriteViewModel.favorites.length,
                   itemBuilder: (context, index) {

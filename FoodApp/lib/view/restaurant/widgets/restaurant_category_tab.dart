@@ -4,9 +4,7 @@ import 'package:foodapp/view/restaurant/single_food_detail.dart';
 import 'package:foodapp/viewmodels/food_viewmodel.dart';
 import 'package:foodapp/viewmodels/order_viewmodel.dart';
 import 'package:provider/provider.dart';
-import 'package:foodapp/common_widget/add_cart_button.dart';
 import 'package:foodapp/viewmodels/cart_viewmodel.dart';
-import 'package:foodapp/data/models/cart_item_model.dart';
 import 'package:foodapp/viewmodels/restaurant_viewmodel.dart';
 import 'package:foodapp/common_widget/food_order_controller.dart';
 import 'package:foodapp/view/order/order_screen.dart';
@@ -27,10 +25,23 @@ class RestaurantFoodsScreen extends StatefulWidget {
 class _RestaurantFoodsScreenState extends State<RestaurantFoodsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late CartViewModel cartViewModel;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    cartViewModel = Provider.of<CartViewModel>(context, listen: false);
+  }
 
   @override
   void initState() {
     super.initState();
+    // Xóa các món ăn của nhà hàng này khỏi giỏ hàng khi vào lại màn hình
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        cartViewModel.removeItemsByRestaurant(widget.restaurantId);
+      }
+    });
     Future.microtask(() {
       Provider.of<FoodViewModel>(context, listen: false)
           .fetchFoodsByRestaurant(widget.restaurantId);
@@ -66,6 +77,7 @@ class _RestaurantFoodsScreenState extends State<RestaurantFoodsScreen>
 
   @override
   void dispose() {
+    cartViewModel.removeItemsByRestaurant(widget.restaurantId);
     _tabController.dispose();
     super.dispose();
   }
@@ -235,12 +247,15 @@ class _RestaurantFoodsScreenState extends State<RestaurantFoodsScreen>
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                SingleFoodDetail(foodItem: food),
+                            builder: (context) => SingleFoodDetail(
+                              foodItem: food,
+                              restaurantId: widget.restaurantId,
+                            ),
                           ));
                     },
                     child: Card(
                       elevation: 0.5,
+                      color: Colors.orange.shade50,
                       margin: const EdgeInsets.only(bottom: 12),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),

@@ -30,9 +30,8 @@ class OrderRepository {
     final snapshot = await _firestore
         .collection(_collection)
         .where('userId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
         .get();
-
+    print("Lấy đơn hàng của người dùng: ${snapshot.docs.length}");
     return snapshot.docs
         .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
         .toList();

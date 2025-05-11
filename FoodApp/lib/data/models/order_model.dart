@@ -51,32 +51,33 @@ class OrderModel {
   // Alias cho createdAt để tương thích với code cũ
   DateTime get orderTime => createdAt;
 
-  factory OrderModel.fromMap(Map<String, dynamic> map, [String? docId]) {
+  factory OrderModel.fromMap(Map<String, dynamic> map, String id) {
+    final statusStr = map['status']?.toString() ?? '';
+    print("Parse trạng thái: $statusStr");
     return OrderModel(
-      id: docId ?? map['id'] as String,
-      userId: map['userId'] as String,
-      restaurantId: map['restaurantId'] as String,
-      items: (map['items'] as List<dynamic>).map((item) {
-        final itemMap = item as Map<String, dynamic>;
-        itemMap['id'] = itemMap['id'] ?? DateTime.now().toString();
-        return CartItemModel.fromMap(itemMap);
-      }).toList(),
-      totalAmount: (map['totalAmount'] as num).toDouble(),
-      address: map['address'] as String,
+      id: id,
+      userId: map['userId'] ?? '',
+      restaurantId: map['restaurantId'] ?? '',
+      restaurantName: map['restaurantName'] ?? '',
+      items: (map['items'] as List<dynamic>?)
+              ?.map((e) => CartItemModel.fromMap(e))
+              .toList() ??
+          [],
+      totalAmount: map['totalAmount'] ?? 0.0,
+      address: map['address'] ?? '',
       paymentMethod: PaymentMethod.values.firstWhere(
-        (e) => e.toString() == 'PaymentMethod.${map['paymentMethod']}',
+        (e) => e.toString() == map['paymentMethod'],
+        orElse: () => PaymentMethod.thanhtoankhinhanhang,
       ),
       status: OrderState.values.firstWhere(
-        (e) => e.toString() == 'OrderState.${map['status']}',
+        (e) => e.toString().split('.').last == statusStr,
+        orElse: () => OrderState.pending,
       ),
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
-      note: map['note'] as String?,
-      cancelReason: map['cancelReason'] as String?,
-      delivery: map['delivery'] as Map<String, dynamic>?,
-      metadata: map['metadata'] as Map<String, dynamic>?,
-      idShipper: map['idShipper'] as String? ?? "",
+      createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      note: map['note'] ?? '',
+      idShipper: map['idShipper'] ?? '',
+      metadata: map['metadata'] ?? {},
       restaurantLocation: map['restaurantLocation'] as GeoPoint?,
-      restaurantName: map['restaurantName'] as String,
     );
   }
 

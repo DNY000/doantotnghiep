@@ -1,10 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:foodapp/ultils/const/enum.dart';
 import 'package:foodapp/data/models/user_model.dart';
 import 'package:foodapp/data/repositories/user_repository.dart';
 import 'package:foodapp/ultils/exception/firebase_exception.dart';
-import 'package:foodapp/ultils/exception/firebase_auth_exception.dart';
 import 'package:foodapp/ultils/exception/format_exception.dart';
 import 'package:flutter/foundation.dart';
 

@@ -42,7 +42,7 @@ class _ListRestaurantNewState extends State<ListRestaurantNew> {
 
   @override
   Widget build(BuildContext context) {
-    final sizeContainer = MediaQuery.of(context).size.width * 0.42;
+    final sizeContainer = MediaQuery.of(context).size.width * 0.32;
     return SizedBox(
       height: sizeContainer,
       child: Consumer<RestaurantViewModel>(
@@ -102,9 +102,10 @@ class _ListRestaurantNewState extends State<ListRestaurantNew> {
           return TGrid<RestaurantModel>(
             items: restaurants,
             crossAxisCount: 1,
-            childAspectRatio: 1.5,
+            // childAspectRatio: 1.4,
             mainAxisSpacing: 10,
             crossAxisSpacing: 10,
+            showHeight: true,
             shrinkWrap: true,
             scrollable: true,
             scrollDirection: Axis.horizontal,

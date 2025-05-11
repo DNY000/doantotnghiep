@@ -12,8 +12,8 @@ import 'package:foodapp/ultils/exception/firebase_auth_exception.dart';
 import 'package:foodapp/ultils/exception/platform_exception.dart';
 import 'package:foodapp/ultils/exception/format_exception.dart';
 import 'package:foodapp/data/models/user_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:foodapp/ultils/const/enum.dart';
+import 'package:provider/provider.dart';
 
 // GlobalKey cho navigation
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -45,7 +45,7 @@ class LoginViewModel extends ChangeNotifier {
   static const String KEY_USER_EMAIL = 'user_email';
   // ignore: constant_identifier_names
   static const String KEY_PASSWORD_USER = 'password_user';
-
+  late UserModel? currentUser;
   bool get isLoading => _isLoading;
   String get error => _error;
   bool get autoLogin => _autoLogin;
@@ -94,6 +94,8 @@ class LoginViewModel extends ChangeNotifier {
         await _localStorage.saveData(KEY_USER_EMAIL, txtEmail.text);
         await _localStorage.saveData(KEY_PASSWORD_USER, txtPassword.text);
         await _localStorage.saveData("AUTO_LOGIN", true);
+        currentUser =
+            await _userViewModel.getUserById(userCredential.user!.uid);
       }
 
       _isLoading = false;

@@ -8,6 +8,7 @@ class TGrid<T> extends StatelessWidget {
   final double crossAxisSpacing;
   final bool shrinkWrap;
   final bool scrollable;
+  final bool showHeight;
   final Axis scrollDirection;
   final EdgeInsetsGeometry? padding;
   final Widget Function(T item) itemBuilder;
@@ -22,6 +23,7 @@ class TGrid<T> extends StatelessWidget {
     this.crossAxisSpacing = 10,
     this.shrinkWrap = false,
     this.scrollable = true,
+    this.showHeight = false,
     this.scrollDirection = Axis.vertical,
     this.padding,
     required this.itemBuilder,
@@ -42,6 +44,7 @@ class TGrid<T> extends StatelessWidget {
         childAspectRatio: childAspectRatio,
         mainAxisSpacing: mainAxisSpacing,
         crossAxisSpacing: crossAxisSpacing,
+        mainAxisExtent: showHeight ? 120 : null,
       ),
       itemCount: items.length,
       itemBuilder: (context, index) {

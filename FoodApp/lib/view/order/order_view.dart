@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:foodapp/data/models/order_model.dart';
 import 'package:foodapp/ultils/const/enum.dart';
+import 'package:foodapp/view/restaurant/single_food_detail.dart';
 import 'package:foodapp/viewmodels/user_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:foodapp/common_widget/grid/food_grid_item.dart';
 import 'package:foodapp/viewmodels/order_viewmodel.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
+import 'dart:convert';
+import 'package:foodapp/data/models/cart_item_model.dart';
+import 'package:foodapp/ultils/local_storage/storage_utilly.dart';
 
 class OrderView extends StatefulWidget {
   const OrderView({super.key});
@@ -21,29 +25,24 @@ class _OrderViewState extends State<OrderView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
 
-    // Tải dữ liệu đơn hàng
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final orderViewModel = context.read<OrderViewModel>();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final userViewModel = context.read<UserViewModel>();
+      final orderViewModel = context.read<OrderViewModel>();
 
-      // Tải danh sách món ăn được đề xuất
-      orderViewModel.loadRecommendedFoods();
-      orderViewModel.loadUserOrders(userViewModel.currentUser!.id);
-      // Nếu người dùng đã đăng nhập, tải đơn hàng
+      // Đảm bảo user đã load xong
+      if (userViewModel.currentUser == null) {
+        await userViewModel.loadCurrentUser();
+      }
       if (userViewModel.currentUser != null) {
-        try {
-          print(
-              "Bắt đầu tải đơn hàng cho user: ${userViewModel.currentUser!.id}");
-          // Sử dụng phương thức Future để lấy tất cả đơn hàng
-          orderViewModel.loadUserOrders(userViewModel.currentUser!.id);
-        } catch (e) {
-          print("Lỗi khi tải đơn hàng: $e");
-        }
+        print(
+            "Bắt đầu tải đơn hàng cho user: ${userViewModel.currentUser!.id}");
+        orderViewModel.loadUserOrders(userViewModel.currentUser!.id);
       } else {
         print("Chưa đăng nhập, không thể tải đơn hàng");
       }
+      orderViewModel.loadRecommendedFoods();
     });
   }
 
@@ -79,7 +78,7 @@ class _OrderViewState extends State<OrderView>
           tabs: const [
             Tab(text: "Đang đến"),
             Tab(text: "Lịch sử"),
-            Tab(text: "Đánh giá"),
+            // Tab(text: "Đánh giá"),
             Tab(text: "Đơn nháp"),
           ],
         ),
@@ -89,7 +88,7 @@ class _OrderViewState extends State<OrderView>
         children: [
           _buildOngoingOrdersView(),
           _buildOrderHistoryView(),
-          _buildEmptyOrderView(),
+          // _buildEmptyOrderView(),
           _buildEmptyOrderView(),
         ],
       ),
@@ -102,13 +101,37 @@ class _OrderViewState extends State<OrderView>
 
     // Lọc các đơn hàng đang giao (chưa hoàn thành)
     final ongoingOrders = orderViewModel.orders
-        .where((order) =>
-            order.status != OrderState.delivered &&
-            order.status != OrderState.cancelled)
+        .where((order) => order.status != OrderState.delivered)
         .toList();
-
+    print("Đơn hàng đang giao: ${ongoingOrders.length}");
+    for (var order in ongoingOrders) {
+      print("Đơn hàng ${order.id}:");
+      print("  - Thời gian: ${order.createdAt}");
+      print("  - Trạng thái: ${order.status}");
+      print("  - Tổng tiền: ${order.totalAmount}đ");
+      print("  - Món:");
+    }
     if (ongoingOrders.isEmpty) {
-      return _buildEmptyOrderView();
+      return SingleChildScrollView(
+        child: Column(
+          children: [
+            Icon(
+              Icons.receipt_long,
+              size: 120,
+              color: TColor.color3,
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "Chưa có đơn hàng nào đang giao",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            _buildRecommendationSection(orderViewModel),
+          ],
+        ),
+      );
     }
 
     return ListView.builder(
@@ -131,15 +154,13 @@ class _OrderViewState extends State<OrderView>
 
     // In log để debug
     print("Tổng số đơn hàng: ${orderViewModel.orders.length}");
-    orderViewModel.orders.forEach((order) {
+    for (var order in orderViewModel.orders) {
       print("Đơn hàng ${order.id}: trạng thái ${order.status}");
-    });
+    }
 
     // Lọc đơn hàng đã hoàn thành - kiểm tra cả enum và chuỗi
     final completedOrders = orderViewModel.orders
-        .where((order) =>
-            order.status == OrderState.delivered ||
-            order.status.toString().toLowerCase() == "delivered")
+        .where((order) => order.status == OrderState.delivered)
         .toList();
 
     print("Số đơn hàng đã hoàn thành: ${completedOrders.length}");
@@ -322,52 +343,81 @@ class _OrderViewState extends State<OrderView>
   Widget _buildEmptyOrderView() {
     final orderViewModel = context.watch<OrderViewModel>();
 
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 40),
-                Icon(
-                  Icons.receipt_long,
-                  size: 120,
-                  color: TColor.color3,
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  "Quên chưa đặt món rồi nè bạn ơi?",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 40),
-                  child: Text(
-                    "Bạn sẽ nhìn thấy các món đang được chuẩn bị hoặc giao đi tại đây để kiểm tra đơn hàng nhanh hơn!",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          FutureBuilder<List<String>>(
+            future: getDraftOrderIds(),
+            builder: (context, idSnapshot) {
+              if (!idSnapshot.hasData) {
+                return Column(
+                  children: [
+                    Icon(
+                      Icons.receipt_long,
+                      size: 120,
+                      color: TColor.color3,
                     ),
-                  ),
-                ),
-                const SizedBox(height: 40),
-              ],
-            ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      "Quên chưa đặt món rồi nè bạn ơi?",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                );
+              }
+              final ids = idSnapshot.data!;
+              return FutureBuilder<Map<String, List<CartItemModel>>>(
+                future: loadAllDraftOrders(ids),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  }
+                  if (snapshot.hasData &&
+                      snapshot.data!.values.any((list) => list.isNotEmpty)) {
+                    return Column(
+                      children: snapshot.data!.entries
+                          .where((entry) => entry.value.isNotEmpty)
+                          .map((entry) {
+                        final restaurantId = entry.key;
+                        final items = entry.value;
+                        return Card(
+                          child: ListTile(
+                            title: Text('Đơn nháp nhà hàng $restaurantId'),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: items
+                                  .map((item) => Text(
+                                      '${item.foodName} x${item.quantity}'))
+                                  .toList(),
+                            ),
+                            trailing: Text(
+                              '${items.fold<double>(0, (sum, item) => sum + item.price * item.quantity).toInt()}đ',
+                              style: TextStyle(color: Colors.orange),
+                            ),
+                            onTap: () {
+                              // Xử lý: load lại đơn nháp này vào giỏ hàng để tiếp tục đặt
+                            },
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  }
+                  return const Text('Không có đơn nháp nào');
+                },
+              );
+            },
           ),
-        ),
-        _buildRecommendationSection(orderViewModel),
-      ],
+          _buildRecommendationSection(orderViewModel),
+        ],
+      ),
     );
   }
 
   Widget _buildRecommendationSection(OrderViewModel orderViewModel) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
         const Divider(),
         Padding(
@@ -381,34 +431,72 @@ class _OrderViewState extends State<OrderView>
             ),
           ),
         ),
-        SizedBox(
-          height: 230,
-          child: orderViewModel.isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : orderViewModel.recommendedFoods.isEmpty
-                  ? const Center(
-                      child: Text(
-                        "Không có món ăn nào được đề xuất",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: orderViewModel.recommendedFoods.length,
-                      itemBuilder: (context, index) {
-                        final food = orderViewModel.recommendedFoods[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 15),
-                          child: FoodGridItem(
-                            food: food,
-                            showButtonAddToCart: true,
-                          ),
-                        );
-                      },
+        orderViewModel.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : orderViewModel.recommendedFoods.isEmpty
+                ? const Center(
+                    child: Text(
+                      "Không có món ăn nào được đề xuất",
+                      style: TextStyle(color: Colors.grey),
                     ),
-        ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    scrollDirection: Axis.vertical,
+                    // physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: orderViewModel.recommendedFoods.length,
+                    itemBuilder: (context, index) {
+                      final food = orderViewModel.recommendedFoods[index];
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SingleFoodDetail(
+                                foodItem: food,
+                                restaurantId: food.restaurantId,
+                              ),
+                            ),
+                          );
+                        },
+                        child: FoodListItem(
+                          food: food,
+                          showButtonAddToCart: true,
+                        ),
+                      );
+                    },
+                  ),
       ],
     );
+  }
+
+  Future<List<String>> getDraftOrderIds() async {
+    final storage = TLocalStorage.instance();
+    return storage.readData<List<dynamic>>('cart_backup_ids')?.cast<String>() ??
+        [];
+  }
+
+  Future<Map<String, List<CartItemModel>>> loadAllDraftOrders(
+      List<String> restaurantIds) async {
+    final storage = TLocalStorage.instance();
+    Map<String, List<CartItemModel>> draftOrders = {};
+
+    for (final id in restaurantIds) {
+      final cartJson = storage.readData('cart_backup_$id');
+      if (cartJson != null) {
+        List<dynamic> cartList;
+        if (cartJson is String) {
+          cartList = jsonDecode(cartJson);
+        } else if (cartJson is List) {
+          cartList = cartJson;
+        } else {
+          continue;
+        }
+        draftOrders[id] =
+            cartList.map((e) => CartItemModel.fromMap(e)).toList();
+      }
+    }
+    return draftOrders;
   }
 }

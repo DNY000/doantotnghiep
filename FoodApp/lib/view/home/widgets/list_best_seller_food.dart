@@ -10,7 +10,7 @@ class ListFoodYouMaybeLike extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sizeContainer = MediaQuery.of(context).size.width * 0.45;
+    final sizeContainer = MediaQuery.of(context).size.width * 0.35;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -58,6 +58,8 @@ class ListFoodYouMaybeLike extends StatelessWidget {
 
               return ListView.builder(
                 scrollDirection: Axis.horizontal,
+                clipBehavior: Clip.hardEdge,
+                shrinkWrap: true,
                 padding: const EdgeInsets.symmetric(horizontal: 7),
                 itemCount: viewModel.fetchFoodsForYou.length,
                 itemBuilder: (context, index) {

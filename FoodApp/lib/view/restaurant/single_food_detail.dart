@@ -32,20 +32,24 @@ class _SingleFoodDetailState extends State<SingleFoodDetail> {
   @override
   void initState() {
     super.initState();
-    _checkExistingCartItem();
+    // _checkExistingCartItem();
     totalAmount = widget.foodItem?.price ?? 0;
   }
 
-  void _checkExistingCartItem() {
-    final cartVM = Provider.of<CartViewModel>(context, listen: false);
-    final existingItem = cartVM.getCartItemByFoodId(widget.foodItem!.id);
-    if (existingItem != null) {
-      setState(() {
-        isAddedToCart = true;
-        totalAmount = widget.foodItem!.price * existingItem.quantity;
-      });
-    }
-  }
+  // void _checkExistingCartItem() {
+  //   final cartVM = Provider.of<CartViewModel>(context, listen: false);
+  //   final existingItem = cartVM.getCartItemByFoodId(widget.foodItem!.id);
+  //   if (existingItem != null) {
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       if (mounted) {
+  //         setState(() {
+  //           isAddedToCart = true;
+  //           totalAmount = widget.foodItem!.price * existingItem.quantity;
+  //         });
+  //       }
+  //     });
+  //   }
+  // }
 
   void _onOrderComplete() {
     setState(() {
@@ -54,13 +58,19 @@ class _SingleFoodDetailState extends State<SingleFoodDetail> {
   }
 
   void _onQuantityChanged(int qty, double totalPrice) {
-    setState(() {
-      totalAmount = totalPrice;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          totalAmount = totalPrice;
+        });
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final cartVM = Provider.of<CartViewModel>(context, listen: false);
+    final existingItem = cartVM.getCartItemByFoodId(widget.foodItem!.id);
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -231,7 +241,9 @@ class _SingleFoodDetailState extends State<SingleFoodDetail> {
           ],
         ),
       ),
-      floatingActionButton: isAddedToCart
+      floatingActionButton: (isAddedToCart &&
+              existingItem != null &&
+              existingItem.quantity > 0)
           ? Container(
               width: double.infinity,
               height: 56,

@@ -126,15 +126,11 @@ class RestaurantRepository {
           final rawLocation = data['location'];
 
           // Debug log for location data
-          debugPrint('Restaurant ${doc.id} location data: $rawLocation');
 
           // Convert location to proper format
           final location = _ensureGeoPoint(rawLocation);
 
           if (location != null) {
-            debugPrint(
-                'Converted location: ${location.latitude}, ${location.longitude}');
-
             if (location.latitude >= minLat &&
                 location.latitude <= maxLat &&
                 location.longitude >= minLon &&
@@ -146,26 +142,17 @@ class RestaurantRepository {
                 location.longitude,
               );
 
-              debugPrint('Restaurant ${doc.id} distance: ${distance}km');
-
               if (distance <= radiusInKm) {
                 final restaurant = RestaurantModel.fromMap(data, doc.id);
                 restaurantsWithDistances.add(MapEntry(restaurant, distance));
-                debugPrint(
-                    'Added restaurant ${doc.id} at distance ${distance}km');
               } else {
                 outsideRadiusCount++;
-                debugPrint(
-                    'Restaurant ${doc.id} outside radius: ${distance}km > ${radiusInKm}km');
               }
             } else {
               outsideBoundingBoxCount++;
-              debugPrint('Restaurant ${doc.id} outside bounding box');
             }
           } else {
             invalidLocationCount++;
-            debugPrint(
-                'Invalid location format for restaurant ${doc.id}: $rawLocation');
           }
         } catch (e) {
           debugPrint('Error processing restaurant: ${doc.id}, error: $e');
@@ -176,11 +163,6 @@ class RestaurantRepository {
       // Sort by distance and take limit
       restaurantsWithDistances.sort((a, b) => a.value.compareTo(b.value));
       final limitedRestaurants = restaurantsWithDistances.take(limit);
-
-      debugPrint(
-          'Found ${restaurantsWithDistances.length} restaurants within ${radiusInKm}km radius');
-      debugPrint(
-          'Invalid locations: $invalidLocationCount, Outside bounding box: $outsideBoundingBoxCount, Outside radius: $outsideRadiusCount');
 
       return limitedRestaurants.map((entry) => entry.key).toList();
     } catch (e) {
