@@ -24,4 +24,31 @@ class CategoryRepository {
       throw Exception('Không thể lấy danh mục theo id: $e');
     }
   }
+
+  Future<void> deleteCategory(String id) async {
+    try {
+      await _firestore.collection("categories").doc(id).delete();
+    } catch (e) {
+      throw Exception('Không thể xóa danh mục: $e');
+    }
+  }
+
+  Future<void> updateCategory(String id, CategoryModel category) async {
+    try {
+      await _firestore
+          .collection("categories")
+          .doc(id)
+          .update(category.toMap());
+    } catch (e) {
+      throw Exception('Không thể cập nhật danh mục: $e');
+    }
+  }
+
+  Future<void> addCategory(CategoryModel category) async {
+    try {
+      await _firestore.collection("categories").add(category.toMap());
+    } catch (e) {
+      throw Exception('Không thể thêm danh mục: $e');
+    }
+  }
 }

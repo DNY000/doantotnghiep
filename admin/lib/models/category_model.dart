@@ -21,10 +21,6 @@ class CategoryModel {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'image': image,
-      'isActive': isActive,
-    };
+    return {'name': name, 'image': image, 'isActive': isActive};
   }
 }

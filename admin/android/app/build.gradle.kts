@@ -46,12 +46,14 @@ flutter {
 dependencies {
   // Import the Firebase BoM
   implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
-
-
-  // TODO: Add the dependencies for Firebase products you want to use
-  // When using the BoM, don't specify versions in Firebase dependencies
+  implementation 'com.google.android.gms:play-services-base:18.2.0'
+    implementation 'com.google.android.gms:play-services-basement:18.2.0'
+    implementation 'com.google.android.gms:play-services-safetynet:18.0.1'
+    implementation 'com.google.android.gms:play-services-tasks:18.0.2'  // When using the BoM, don't specify versions in Firebase dependencies
   implementation("com.google.firebase:firebase-analytics")
-
+implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'com.facebook.android:facebook-android-sdk:15.2.0'
+      implementation("com.google.firebase:firebase-auth")
 
   // Add the dependencies for any other desired Firebase products
   // https://firebase.google.com/docs/android/setup#available-libraries

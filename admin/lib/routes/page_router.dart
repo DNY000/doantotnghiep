@@ -1,6 +1,8 @@
 import 'package:admin/dashborad_view.dart';
 import 'package:admin/main.dart';
 import 'package:admin/routes/name_router.dart';
+import 'package:admin/screens/authentication/srceen/login_screen.dart';
+import 'package:admin/screens/authentication/srceen/register_screen.dart';
 import 'package:admin/screens/category/category_screen.dart';
 import 'package:admin/screens/notifications/notification_screen.dart';
 import 'package:admin/screens/restaurant/restaurant_scree.dart';
@@ -17,7 +19,7 @@ final GoRouter goRouter = GoRouter(
   // if (loggedIn && isLogin) return '/';
   // return null;
   // },
-  initialLocation: NameRouter.dashboard,
+  initialLocation: NameRouter.login,
   routes: [
     // Màn hình onboarding
     GoRoute(
@@ -25,17 +27,17 @@ final GoRouter goRouter = GoRouter(
       builder: (context, state) => const DashboardView(),
     ),
 
-    // Màn hình login
-    // GoRoute(
-    //   path: NameRouter.login,
-    //   builder: (context, state) => const LoginView(),
-    // ),
+    //  Màn hình login
+    GoRoute(
+      path: NameRouter.login,
+      builder: (context, state) => const LoginScreen(),
+    ),
 
-    // // Màn hình đăng ký
-    // GoRoute(
-    //   path: NameRouter.register,
-    //   builder: (context, state) => const SignUpView(),
-    // ),
+    // Màn hình đăng ký
+    GoRoute(
+      path: NameRouter.register,
+      builder: (context, state) => const RegisterScreen(),
+    ),
 
     // // Màn hình quên mật khẩu
     // GoRoute(
