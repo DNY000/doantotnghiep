@@ -126,14 +126,13 @@ class _CategoryContentState extends State<CategoryContent> {
 
               // Apply search filter
               if (_searchController.text.isNotEmpty) {
-                filteredCategories =
-                    filteredCategories
-                        .where(
-                          (category) => category.name.toLowerCase().contains(
+                filteredCategories = filteredCategories
+                    .where(
+                      (category) => category.name.toLowerCase().contains(
                             _searchController.text.toLowerCase(),
                           ),
-                        )
-                        .toList();
+                    )
+                    .toList();
               }
 
               if (filteredCategories.isEmpty) {
@@ -159,71 +158,73 @@ class _CategoryContentState extends State<CategoryContent> {
         columns: const [
           DataColumn(label: Text('Hình ảnh')),
           DataColumn(label: Text('Tên')),
-          DataColumn(label: Text('Mô tả')),
+          DataColumn(label: Text('Trạng thái')),
           DataColumn(label: Text('Thao tác')),
         ],
-        rows:
-            categories.map((category) {
-              return DataRow(
-                cells: [
-                  DataCell(
-                    category.image.isNotEmpty
-                        ? Image.network(
-                          category.image,
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        )
-                        : const Icon(Icons.image_not_supported),
-                  ),
-                  DataCell(Text(category.name)),
-                  DataCell(
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () {
-                            // TODO: Navigate to edit screen
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
-                            final confirmed = await showDialog<bool>(
-                              context: context,
-                              builder:
-                                  (context) => AlertDialog(
-                                    title: const Text('Xác nhận xóa'),
-                                    content: Text(
-                                      'Bạn có chắc muốn xóa danh mục ${category.name}?',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.pop(context, false),
-                                        child: const Text('Hủy'),
-                                      ),
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.pop(context, true),
-                                        child: const Text('Xóa'),
-                                      ),
-                                    ],
-                                  ),
-                            );
-
-                            if (confirmed == true) {
-                              await viewModel.deleteCategory(category.id);
-                            }
-                          },
-                        ),
-                      ],
+        rows: categories.map((category) {
+          return DataRow(
+            cells: [
+              DataCell(
+                category.image.isNotEmpty
+                    ? Image.network(
+                        category.image,
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
+                      )
+                    : const Icon(Icons.image_not_supported),
+              ),
+              DataCell(Text(category.name)),
+              DataCell(
+                category.isActive
+                    ? const Text('Hoạt động',
+                        style: TextStyle(color: Colors.green))
+                    : const Text('Ẩn', style: TextStyle(color: Colors.red)),
+              ),
+              DataCell(
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () {
+                        // TODO: Navigate to edit screen
+                      },
                     ),
-                  ),
-                ],
-              );
-            }).toList(),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Xác nhận xóa'),
+                            content: Text(
+                              'Bạn có chắc muốn xóa danh mục ${category.name}?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Hủy'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('Xóa'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirmed == true) {
+                          await viewModel.deleteCategory(category.id);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }).toList(),
       ),
     );
   }
@@ -301,25 +302,22 @@ class _CategoryContentState extends State<CategoryContent> {
                       onPressed: () async {
                         final confirmed = await showDialog<bool>(
                           context: context,
-                          builder:
-                              (context) => AlertDialog(
-                                title: const Text('Xác nhận xóa'),
-                                content: Text(
-                                  'Bạn có chắc muốn xóa danh mục ${category.name}?',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed:
-                                        () => Navigator.pop(context, false),
-                                    child: const Text('Hủy'),
-                                  ),
-                                  TextButton(
-                                    onPressed:
-                                        () => Navigator.pop(context, true),
-                                    child: const Text('Xóa'),
-                                  ),
-                                ],
+                          builder: (context) => AlertDialog(
+                            title: const Text('Xác nhận xóa'),
+                            content: Text(
+                              'Bạn có chắc muốn xóa danh mục ${category.name}?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Hủy'),
                               ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('Xóa'),
+                              ),
+                            ],
+                          ),
                         );
 
                         if (confirmed == true) {

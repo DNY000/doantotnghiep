@@ -6,7 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
   // final FacebookAuth _facebookAuth = FacebookAuth.instance;
 
   // Get current user
@@ -27,53 +27,6 @@ class AuthService {
       );
     } catch (e) {
       throw Exception('Đăng nhập thất bại: $e');
-    }
-  }
-
-  // Sign in with Google
-  Future<UserCredential> signInWithGoogle() async {
-    try {
-      // Trigger the authentication flow
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
-      if (googleUser == null) {
-        throw Exception('Đăng nhập Google bị hủy');
-      }
-
-      // Obtain the auth details from the request
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
-      // Create a new credential
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      // Sign in to Firebase with the Google credential
-      final userCredential = await _auth.signInWithCredential(credential);
-
-      // Check if user document exists
-      final userDoc = await _firestore
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .get();
-
-      if (!userDoc.exists) {
-        // Create user document if it doesn't exist
-        await _firestore.collection('users').doc(userCredential.user!.uid).set({
-          'name': userCredential.user!.displayName,
-          'email': userCredential.user!.email,
-          'photoURL': userCredential.user!.photoURL,
-          'role': 'admin',
-          'createdAt': FieldValue.serverTimestamp(),
-          'provider': 'google',
-        });
-      }
-
-      return userCredential;
-    } catch (e) {
-      throw Exception('Đăng nhập Google thất bại: $e');
     }
   }
 
@@ -154,18 +107,6 @@ class AuthService {
   // Sign out
   Future<void> signOut() async {
     try {
-      // Sign out from Google if signed in with Google
-      if (await _googleSignIn.isSignedIn()) {
-        await _googleSignIn.signOut();
-      }
-
-      // Sign out from Facebook if signed in with Facebook
-      // final accessToken = await _facebookAuth.accessToken;
-      // if (accessToken != null) {
-      //   await _facebookAuth.logOut();
-      // }
-
-      // Sign out from Firebase
       await _auth.signOut();
     } catch (e) {
       throw Exception('Đăng xuất thất bại: $e');

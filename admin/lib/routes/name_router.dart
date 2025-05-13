@@ -26,4 +26,5 @@ class NameRouter {
   static const String detailRestaurants = '/detail_restaurants';
   static const String notificationDetail = '/notification_detail';
   static const String users = '/users';
+  static const String restaurantDetail = '/restaurant/:id';
 }

@@ -1,30 +1,38 @@
-import 'package:admin/dashborad_view.dart';
 import 'package:admin/main.dart';
 import 'package:admin/routes/name_router.dart';
 import 'package:admin/screens/authentication/srceen/login_screen.dart';
 import 'package:admin/screens/authentication/srceen/register_screen.dart';
 import 'package:admin/screens/category/category_screen.dart';
+import 'package:admin/screens/main/main_screen.dart';
 import 'package:admin/screens/notifications/notification_screen.dart';
-import 'package:admin/screens/restaurant/restaurant_scree.dart';
+import 'package:admin/screens/restaurant/restaurant_screen.dart';
+import 'package:admin/screens/restaurant/widget/restaurant_detail_screen.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 final GoRouter goRouter = GoRouter(
   navigatorKey: navigatorKey,
-  //     redirect: (context, state) {
-  // final authViewModel = Provider.of<LoginViewModel>(context, listen: false);
-  // final loggedIn = authViewModel.isLoggedIn;
-  // final isLogin = state.matchedLocation == '/login';
-
-  // if (!loggedIn && !isLogin) return '/login';
-  // if (loggedIn && isLogin) return '/';
-  // return null;
-  // },
   initialLocation: NameRouter.login,
+  redirect: (context, state) {
+    // Lấy trạng thái đăng nhập từ AuthViewModel hoặc FirebaseAuth
+    final isLoggedIn = FirebaseAuth.instance.currentUser != null;
+    final isLoginPage = state.uri.toString() == NameRouter.login;
+
+    if (isLoggedIn && isLoginPage) {
+      // Nếu đã đăng nhập mà vào trang login thì chuyển sang dashboard
+      return NameRouter.dashboard;
+    }
+    if (!isLoggedIn && !isLoginPage) {
+      // Nếu chưa đăng nhập mà vào trang khác login thì chuyển về login
+      return NameRouter.login;
+    }
+    return null;
+  },
   routes: [
     // Màn hình onboarding
     GoRoute(
       path: NameRouter.dashboard,
-      builder: (context, state) => const DashboardView(),
+      builder: (context, state) => const MainScreen(),
     ),
 
     //  Màn hình login
@@ -79,6 +87,14 @@ final GoRouter goRouter = GoRouter(
       path: NameRouter.restaurant,
       builder: (context, state) => const RestaurantScreen(),
     ),
+    // GoRoute(
+    //   path: NameRouter.restaurantDetail,
+    //   name: 'restaurantDetail',
+    //   builder: (context, state) {
+    //     final restaurantId = state.pathParameters['id'] ?? '';
+    //     return RestaurantDetailScreen(restaurantId: restaurantId);
+    //   },
+    // ),
     GoRoute(
       path: NameRouter.notifications,
       builder: (context, state) => const NotificationScreen(),

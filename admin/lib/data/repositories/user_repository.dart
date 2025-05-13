@@ -13,42 +13,7 @@ class UserRepository {
 
   Future<void> saveUser(UserModel user) async {
     try {
-      if (kDebugMode) {
-        print("Gọi đến Firestore để lưu user: ${user.id}");
-      }
-
-      Map<String, dynamic> userData = user.toMap();
-
-      // Kiểm tra và đảm bảo không có giá trị null trong userData
-      userData.forEach((key, value) {
-        if (value == null) {
-          if (kDebugMode) {
-            print("Cảnh báo: Trường '$key' có giá trị null");
-          }
-          if (key == 'addresses') {
-            userData[key] = [];
-          }
-        }
-      });
-
-      if (kDebugMode) {
-        print("Dữ liệu sẽ lưu vào Firestore: $userData");
-      }
-
-      await _firestore
-          .collection(_collection)
-          .doc(user.id)
-          .set(userData, SetOptions(merge: true));
-
-      if (kDebugMode) {
-        print("Đã lưu dữ liệu user thành công!");
-        final docSnapshot =
-            await _firestore.collection(_collection).doc(user.id).get();
-        print("User tồn tại trong database: ${docSnapshot.exists}");
-        if (docSnapshot.exists) {
-          print("Dữ liệu user hiện tại: ${docSnapshot.data()}");
-        }
-      }
+      await _firestore.collection(_collection).doc(user.id).set(user.toMap());
     } on FirebaseException catch (e) {
       if (kDebugMode) {
         print("FirebaseException khi lưu user: ${e.code} - ${e.message}");

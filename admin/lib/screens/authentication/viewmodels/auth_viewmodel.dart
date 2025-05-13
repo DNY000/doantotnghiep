@@ -1,8 +1,12 @@
+import 'package:admin/data/repositories/user_repository.dart';
 import 'package:admin/main.dart';
+import 'package:admin/models/user_model.dart';
 import 'package:admin/routes/name_router.dart';
+import 'package:admin/ultils/const/enum.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import 'package:go_router/go_router.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -33,13 +37,13 @@ class AuthViewModel extends ChangeNotifier {
   User? get currentUser => _authService.currentUser;
 
   // Sign in with email and password
-  Future<void> signInWithEmailAndPassword() async {
+  Future<String?> signInWithEmailAndPassword(BuildContext context) async {
     try {
       _isLoading = true;
       notifyListeners();
 
       if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-        throw Exception('Vui lòng nhập đầy đủ thông tin');
+        return 'Vui lòng nhập đầy đủ thông tin';
       }
 
       final userCredential = await _authService.signInWithEmailAndPassword(
@@ -48,60 +52,22 @@ class AuthViewModel extends ChangeNotifier {
       );
 
       if (userCredential.user != null) {
-        navigatorKey.currentState?.pushReplacementNamed(NameRouter.dashboard);
+        GoRouter.of(context).go(NameRouter.dashboard);
+        return null; // Thành công
       } else {
-        throw Exception('Đăng nhập thất bại');
+        return 'Đăng nhập thất bại';
       }
     } catch (e) {
-      rethrow;
+      debugPrint('Đăng nhập lỗi: $e');
+      return e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
-
-  // Sign in with Google
-  Future<void> signInWithGoogle() async {
-    try {
-      _isLoading = true;
-      notifyListeners();
-
-      final userCredential = await _authService.signInWithGoogle();
-      if (userCredential.user != null) {
-        navigatorKey.currentState?.pushReplacementNamed(NameRouter.dashboard);
-      } else {
-        throw Exception('Đăng nhập thất bại');
-      }
-    } catch (e) {
-      rethrow;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  // Sign in with Facebook
-  // Future<void> signInWithFacebook() async {
-  //   try {
-  //     _isLoading = true;
-  //     notifyListeners();
-
-  //     final userCredential = await _authService.signInWithFacebook();
-  //     if (userCredential.user != null) {
-  //       navigatorKey.currentState?.pushReplacementNamed(NameRouter.dashboard);
-  //     } else {
-  //       throw Exception('Đăng nhập thất bại');
-  //     }
-  //   } catch (e) {
-  //     rethrow;
-  //   } finally {
-  //     _isLoading = false;
-  //     notifyListeners();
-  //   }
-  // }
 
   // Register with email and password
-  Future<void> registerWithEmailAndPassword() async {
+  Future<void> registerWithEmailAndPassword(BuildContext context) async {
     try {
       _isLoading = true;
       notifyListeners();
@@ -117,13 +83,32 @@ class AuthViewModel extends ChangeNotifier {
         throw Exception('Mật khẩu không khớp');
       }
 
-      await _authService.registerWithEmailAndPassword(
+      final userCredential = await _authService.registerWithEmailAndPassword(
         emailController.text.trim(),
         passwordController.text,
         usernameController.text.trim(),
       );
-
-      navigatorKey.currentState?.pushReplacementNamed(NameRouter.dashboard);
+      if (userCredential.user != null) {
+        final user = UserModel(
+          id: userCredential.user!.uid,
+          email: emailController.text.trim(),
+          name: usernameController.text.trim(),
+          avatarUrl: '',
+          createdAt: DateTime.now(),
+          dateOfBirth: null,
+          gender: '',
+          favorites: [],
+          role: Role.admin,
+          phoneNumber: '',
+          profilePicture: '',
+          token: userCredential.user!.uid,
+          addresses: [],
+        );
+        await UserRepository().saveUser(user);
+        GoRouter.of(context).go(NameRouter.dashboard);
+      } else {
+        throw Exception('Đăng ký thất bại');
+      }
     } catch (e) {
       rethrow;
     } finally {

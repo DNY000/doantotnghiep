@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+import '../../../routes/name_router.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -83,9 +85,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   ElevatedButton(
                     onPressed: viewModel.isLoading
                         ? null
-                        : () {
+                        : () async {
                             if (_formKey.currentState!.validate()) {
-                              viewModel.signInWithEmailAndPassword();
+                              final result = await viewModel
+                                  .signInWithEmailAndPassword(context);
+                              if (result == null) {
+                                // Thành công
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text('Đăng nhập thành công!')),
+                                  );
+                                }
+                              } else {
+                                // Thất bại hoặc lỗi
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(result)),
+                                  );
+                                }
+                              }
                             }
                           },
                     style: ElevatedButton.styleFrom(
@@ -98,46 +117,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: TextStyle(fontSize: 16),
                           ),
                   ),
-                  const SizedBox(height: 16),
-                  const Row(
-                    children: [
-                      Expanded(child: Divider()),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text('Hoặc'),
-                      ),
-                      Expanded(child: Divider()),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed:
-                        viewModel.isLoading ? null : viewModel.signInWithGoogle,
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    icon: Image.network(
-                      'https://www.google.com/favicon.ico',
-                      height: 24,
-                    ),
-                    label: const Text('Đăng nhập với Google'),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: () {},
-                    // viewModel.isLoading
-                    //     ? null
-                    //     : viewModel.signInWithFacebook,
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    icon: const Icon(Icons.facebook, color: Colors.blue),
-                    label: const Text('Đăng nhập với Facebook'),
-                  ),
                   const SizedBox(height: 24),
                   TextButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, '/register');
+                      context.go(NameRouter.register);
                     },
                     child: const Text('Chưa có tài khoản? Đăng ký ngay'),
                   ),

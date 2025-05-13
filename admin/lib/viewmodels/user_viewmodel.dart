@@ -58,7 +58,6 @@ class UserViewModel extends ChangeNotifier {
       _isLoading = true;
       _error = null;
       notifyListeners();
-
       await _userRepository.saveUser(user);
       await getAllUsers(); // Refresh the list
       return true;

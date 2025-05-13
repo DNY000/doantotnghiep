@@ -1,4 +1,6 @@
+import 'package:admin/routes/name_router.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
@@ -127,7 +129,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ? null
                         : () {
                             if (_formKey.currentState!.validate()) {
-                              viewModel.registerWithEmailAndPassword();
+                              viewModel.registerWithEmailAndPassword(context);
                             }
                           },
                     style: ElevatedButton.styleFrom(
@@ -140,46 +142,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             style: TextStyle(fontSize: 16),
                           ),
                   ),
-                  const SizedBox(height: 16),
-                  const Row(
-                    children: [
-                      Expanded(child: Divider()),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text('Hoặc'),
-                      ),
-                      Expanded(child: Divider()),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed:
-                        viewModel.isLoading ? null : viewModel.signInWithGoogle,
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    icon: Image.network(
-                      'https://www.google.com/favicon.ico',
-                      height: 24,
-                    ),
-                    label: const Text('Đăng ký với Google'),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: () {},
-                    // viewModel.isLoading
-                    //     ? null
-                    //     : viewModel.signInWithFacebook,
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    icon: const Icon(Icons.facebook, color: Colors.blue),
-                    label: const Text('Đăng ký với Facebook'),
-                  ),
+                  // const SizedBox(height: 16),
+                  // const Row(
+                  //   children: [
+                  //     Expanded(child: Divider()),
+                  //     Padding(
+                  //       padding: EdgeInsets.symmetric(horizontal: 16),
+                  //       child: Text('Hoặc'),
+                  //     ),
+                  //     Expanded(child: Divider()),
+                  //   ],
+                  // ),
+                  // const SizedBox(height: 16),
+                  // OutlinedButton.icon(
+                  //   onPressed:
+                  //       viewModel.isLoading ? null : viewModel.signInWithGoogle,
+                  //   style: OutlinedButton.styleFrom(
+                  //     padding: const EdgeInsets.symmetric(vertical: 16),
+                  //   ),
+                  //   icon: Image.network(
+                  //     'https://www.google.com/favicon.ico',
+                  //     height: 24,
+                  //   ),
+                  //   label: const Text('Đăng ký với Google'),
+                  // ),
+                  // const SizedBox(height: 12),
+                  // OutlinedButton.icon(
+                  //   onPressed: () {},
+                  //   // viewModel.isLoading
+                  //   //     ? null
+                  //   //     : viewModel.signInWithFacebook,
+                  //   style: OutlinedButton.styleFrom(
+                  //     padding: const EdgeInsets.symmetric(vertical: 16),
+                  //   ),
+                  //   icon: const Icon(Icons.facebook, color: Colors.blue),
+                  //   label: const Text('Đăng ký với Facebook'),
+                  // ),
                   const SizedBox(height: 24),
                   TextButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, '/login');
+                      context.go(NameRouter.login);
                     },
                     child: const Text('Đã có tài khoản? Đăng nhập ngay'),
                   ),
