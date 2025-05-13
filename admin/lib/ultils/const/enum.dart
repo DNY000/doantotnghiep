@@ -1,4 +1,4 @@
-enum Role { user, sellers, managment, shipper }
+enum Role { user, sellers, managment, shipper, admin }
 
 enum PaymentMethod {
   qr, // QR code
@@ -20,16 +20,10 @@ enum OrderState {
   ready, // Đơn hàng đã bị hủy
 }
 
-enum CategoryFood {
-  pho,
-  banhmi,
-  mi,
-  bun,
-  com,
-  garan,
-  other,
-}
+enum CategoryFood { pho, banhmi, mi, bun, com, garan, other }
 
 enum PaymentState { pending, confirmed, delivering, cancelled, failed }
 
 enum ShipperStatus { available, busy, inactive }
+
+enum NotificationType { order, promotion, system }
