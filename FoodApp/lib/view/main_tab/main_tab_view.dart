@@ -100,7 +100,7 @@ class _MainTabViewState extends State<MainTabView>
               HomeView(),
               OrderView(),
               FarvoriteView(),
-              TopFoodieView(),
+              NotificationsView(),
               MyProfileView()
             ]),
             bottomNavigationBar: ClipRect(

@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:foodapp/view/profile/widget/edit_user_view.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
 import 'package:foodapp/viewmodels/user_viewmodel.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class InformationUserView extends StatefulWidget {
   const InformationUserView({super.key});
@@ -13,6 +16,9 @@ class InformationUserView extends StatefulWidget {
 }
 
 class _InformationUserViewState extends State<InformationUserView> {
+  File? _avatarImage;
+  bool _isUploading = false;
+
   @override
   void initState() {
     super.initState();
@@ -99,38 +105,85 @@ class _InformationUserViewState extends State<InformationUserView> {
                             height: 110,
                             width: 110,
                             decoration: BoxDecoration(
-                              // color: TColor.primary.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(55),
                               border:
                                   Border.all(color: TColor.color3, width: 2),
                             ),
                             alignment: Alignment.center,
-                            child: Text(
-                              user.name.isNotEmpty
-                                  ? user.name[0].toUpperCase()
-                                  : '?',
-                              style: const TextStyle(
-                                fontSize: 40,
-                                color: Colors.grey,
-                              ),
-                            ),
+                            child: _isUploading
+                                ? const CircularProgressIndicator()
+                                : _avatarImage != null
+                                    ? ClipOval(
+                                        child: Image.file(
+                                          _avatarImage!,
+                                          width: 110,
+                                          height: 110,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      )
+                                    : (user.avatarUrl.isNotEmpty
+                                        ? ClipOval(
+                                            child: Image.network(
+                                              user.avatarUrl,
+                                              width: 110,
+                                              height: 110,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          )
+                                        : Text(
+                                            user.name.isNotEmpty
+                                                ? user.name[0].toUpperCase()
+                                                : '?',
+                                            style: const TextStyle(
+                                                fontSize: 40,
+                                                color: Colors.grey),
+                                          )),
                           ),
                           Positioned(
                             bottom: 0,
                             right: 0,
-                            child: Container(
-                              height: 32,
-                              width: 32,
-                              decoration: BoxDecoration(
-                                color: TColor.color3,
-                                borderRadius: BorderRadius.circular(16),
-                                border:
-                                    Border.all(color: Colors.white, width: 2),
-                              ),
-                              child: const Icon(
-                                Icons.camera_alt,
-                                size: 16,
-                                color: Colors.white,
+                            child: GestureDetector(
+                              onTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  builder: (context) => SafeArea(
+                                    child: Wrap(
+                                      children: [
+                                        ListTile(
+                                          leading: Icon(Icons.photo_library),
+                                          title: Text('Chọn từ thư viện'),
+                                          onTap: () {
+                                            Navigator.pop(context);
+                                            _pickImage(ImageSource.gallery);
+                                          },
+                                        ),
+                                        ListTile(
+                                          leading: Icon(Icons.camera_alt),
+                                          title: Text('Chụp ảnh'),
+                                          onTap: () {
+                                            Navigator.pop(context);
+                                            _pickImage(ImageSource.camera);
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                height: 32,
+                                width: 32,
+                                decoration: BoxDecoration(
+                                  color: TColor.color3,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border:
+                                      Border.all(color: Colors.white, width: 2),
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           )
@@ -372,5 +425,63 @@ class _InformationUserViewState extends State<InformationUserView> {
         ],
       ),
     );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: source, imageQuality: 80);
+
+    if (pickedFile != null) {
+      setState(() {
+        _avatarImage = File(pickedFile.path);
+      });
+      await _uploadAvatarToFirebase();
+      if (mounted) {
+        await context.read<UserViewModel>().loadCurrentUser();
+        setState(() {
+          _avatarImage = null;
+        });
+      }
+    }
+  }
+
+  Future<void> _uploadAvatarToFirebase() async {
+    if (_avatarImage == null) return;
+    if (!mounted) return;
+    setState(() {
+      _isUploading = true;
+    });
+    try {
+      final userId = context.read<UserViewModel>().currentUser?.id ?? "default";
+      final storageRef =
+          FirebaseStorage.instance.ref().child('avatars').child('$userId.jpg');
+      await storageRef.putFile(_avatarImage!);
+      final downloadUrl = await storageRef.getDownloadURL();
+
+      // Cập nhật đúng trường avatarUrl
+      await context.read<UserViewModel>().updateAvatar(userId, downloadUrl);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Cập nhật ảnh đại diện thành công!')),
+        );
+        // Load lại user data để cập nhật UI
+        await context.read<UserViewModel>().loadCurrentUser();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi khi tải ảnh: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+          _avatarImage =
+              null; // Reset _avatarImage sau khi đã cập nhật thành công
+        });
+      }
+    }
   }
 }

@@ -1,3 +1,5 @@
+import 'package:foodapp/core/services/notifications_service.dart';
+import 'package:foodapp/data/models/notification_model.dart';
 import 'package:foodapp/data/models/order_model.dart';
 import 'package:foodapp/data/models/shipper_model.dart';
 import 'package:foodapp/data/repositories/order_repository.dart';
@@ -9,6 +11,7 @@ import 'package:foodapp/data/models/cart_item_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:foodapp/data/models/user_model.dart';
 import 'package:foodapp/data/repositories/user_repository.dart';
+import 'package:foodapp/viewmodels/notification_viewmodel.dart';
 
 class OrderViewModel extends ChangeNotifier {
   final OrderRepository _repository;
@@ -44,6 +47,7 @@ class OrderViewModel extends ChangeNotifier {
     UserModel? currentUser,
   }) async {
     try {
+      final _notificationViewModel = NotificationViewModel();
       _isLoading = true;
       _error = null;
       notifyListeners();
@@ -104,6 +108,23 @@ class OrderViewModel extends ChangeNotifier {
 
       await _repository.createOrder(order);
 
+      final notification = NotificationModel(
+        id: '',
+        userId: userId,
+        title: 'Đặt đơn thành công',
+        content:
+            'Đơn hàng của bạn đã được đặt thành công! Cảm ơn bạn đã sử dụng dịch vụ.',
+        type: NotificationType.order,
+        createdAt: DateTime.now(),
+        isRead: false,
+        data: {},
+      );
+      await _notificationViewModel.createNotification(notification);
+      await NotificationsService.showLocalNotification(
+        title: 'Đặt đơn thành công',
+        body:
+            'Đơn hàng của bạn đã được đặt thành công! Cảm ơn bạn đã sử dụng dịch vụ.',
+      );
       _isLoading = false;
       notifyListeners();
     } catch (e) {

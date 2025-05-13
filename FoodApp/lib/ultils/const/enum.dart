@@ -33,3 +33,5 @@ enum CategoryFood {
 enum PaymentState { pending, confirmed, delivering, cancelled, failed }
 
 enum ShipperStatus { available, busy, inactive }
+
+enum NotificationType { order, promotion, system }

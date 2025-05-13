@@ -199,4 +199,14 @@ class UserRepository {
       throw TFormatException('Lỗi khi query users: $e');
     }
   }
+
+  Future<void> updateAvatar(String userId, String avatarUrl) async {
+    try {
+      await _firestore.collection(_collection).doc(userId).update({
+        'avatarUrl': avatarUrl,
+      });
+    } catch (e) {
+      throw TFormatException('Lỗi khi cập nhật ảnh đại diện: $e');
+    }
+  }
 }

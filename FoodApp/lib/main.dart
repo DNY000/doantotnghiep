@@ -18,6 +18,15 @@ import 'package:foodapp/data/repositories/user_repository.dart';
 import 'package:foodapp/core/firebase_options.dart'
     if (kIsWeb) 'package:foodapp/core/firebase_web_options.dart';
 import 'package:foodapp/viewmodels/simple_providers.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'core/services/notifications_service.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  // Xử lý message ở đây nếu muốn
+}
 
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +35,7 @@ Future<void> main() async {
   // Load .env file first
   await dotenv.load(fileName: ".env");
 
-  // Then initialize other services
+  // Khởi tạo Firebase
   await Future.wait<void>([
     TLocalStorage.init('food_app'),
     Firebase.initializeApp(
@@ -42,6 +51,9 @@ Future<void> main() async {
           : DefaultFirebaseOptions.currentPlatform,
     ),
   ]);
+
+  // Đăng ký background handler (nếu dùng)
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   FlutterNativeSplash.remove();
   runApp(
@@ -69,6 +81,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Khởi tạo notification service
+    NotificationsService.initialize(context);
+
     return MaterialApp.router(
       title: 'Food App',
       debugShowCheckedModeBanner: false,

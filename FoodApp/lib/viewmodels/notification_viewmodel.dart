@@ -1,13 +1,14 @@
 import 'package:flutter/foundation.dart';
+import 'package:foodapp/data/models/notification_model.dart';
 import '../data/repositories/notification_repository.dart';
 
 class NotificationViewModel extends ChangeNotifier {
   final NotificationRepository _repository = NotificationRepository();
-  List<Map<String, dynamic>> _notifications = [];
+  List<NotificationModel> _notifications = [];
   bool _isLoading = false;
   String? _error;
 
-  List<Map<String, dynamic>> get notifications => _notifications;
+  List<NotificationModel> get notifications => _notifications;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -31,9 +32,9 @@ class NotificationViewModel extends ChangeNotifier {
     try {
       await _repository.markAsRead(notificationId);
       // Update local state
-      final index = _notifications.indexWhere((n) => n['id'] == notificationId);
+      final index = _notifications.indexWhere((n) => n.id == notificationId);
       if (index != -1) {
-        _notifications[index]['isRead'] = true;
+        _notifications[index].isRead = true;
         notifyListeners();
       }
     } catch (e) {
@@ -45,10 +46,25 @@ class NotificationViewModel extends ChangeNotifier {
     try {
       await _repository.deleteNotification(notificationId);
       // Update local state
-      _notifications.removeWhere((n) => n['id'] == notificationId);
+      _notifications.removeWhere((n) => n.id == notificationId);
       notifyListeners();
     } catch (e) {
       print('Error deleting notification: $e');
+    }
+  }
+
+  Future<void> createNotification(NotificationModel notification) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+      await _repository.createNotification(notification);
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      _error = 'Failed to create notification';
+      notifyListeners();
     }
   }
 }

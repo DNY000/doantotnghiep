@@ -213,4 +213,17 @@ class UserViewModel extends ChangeNotifier {
         : b.createdAt.compareTo(a.createdAt));
     notifyListeners();
   }
+
+  Future<void> updateAvatar(String userId, String avatarUrl) async {
+    try {
+      await _repository.updateAvatar(userId, avatarUrl);
+      _currentUser = await _repository.getUser(userId);
+      _error = null;
+    } catch (e) {
+      _error = 'Không thể cập nhật ảnh đại diện: $e';
+      if (kDebugMode) {
+        print(_error);
+      }
+    }
+  }
 }

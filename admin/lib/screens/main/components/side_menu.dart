@@ -1,3 +1,9 @@
+import 'package:admin/screens/category/category_screen.dart';
+import 'package:admin/screens/notifications/notification_screen.dart';
+import 'package:admin/screens/restaurant/restaurant_scree.dart';
+import 'package:admin/screens/setting/setting_screen.dart';
+import 'package:admin/screens/shipper/shipper_screen.dart';
+import 'package:admin/screens/users/users_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -18,27 +24,55 @@ class SideMenu extends StatelessWidget {
           DrawerListTile(
             title: "Category",
             svgSrc: "assets/icons/menu_tran.svg",
-            press: () {},
+            press:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CategoryScreen(),
+                  ),
+                ),
           ),
           DrawerListTile(
             title: "Restaurant",
             svgSrc: "assets/icons/menu_task.svg",
-            press: () {},
+            press:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RestaurantScreen(),
+                  ),
+                ),
           ),
           DrawerListTile(
             title: "Shipper",
             svgSrc: "assets/icons/menu_doc.svg",
-            press: () {},
+            press:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ShipperScreen(),
+                  ),
+                ),
           ),
           DrawerListTile(
             title: "User",
             svgSrc: "assets/icons/menu_store.svg",
-            press: () {},
+            press:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const UsersScreen()),
+                ),
           ),
           DrawerListTile(
             title: "Notifications",
             svgSrc: "assets/icons/menu_notification.svg",
-            press: () {},
+            press:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationScreen(),
+                  ),
+                ),
           ),
           DrawerListTile(
             title: "Profile",
@@ -48,7 +82,13 @@ class SideMenu extends StatelessWidget {
           DrawerListTile(
             title: "Settings",
             svgSrc: "assets/icons/menu_setting.svg",
-            press: () {},
+            press:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SettingScreen(),
+                  ),
+                ),
           ),
           DrawerListTile(
             title: "Logout",

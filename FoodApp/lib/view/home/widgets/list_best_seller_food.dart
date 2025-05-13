@@ -10,7 +10,7 @@ class ListFoodYouMaybeLike extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sizeContainer = MediaQuery.of(context).size.width * 0.35;
+    final sizeContainer = MediaQuery.of(context).size.width * 0.43;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

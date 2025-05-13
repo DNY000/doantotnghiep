@@ -1,164 +1,161 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
 
 class ShipperModel {
   final String id;
-  final Map<String, String> profile; // Thông tin cá nhân
-  final Map<String, dynamic> vehicle; // Thông tin phương tiện
-  final Map<String, dynamic> stats; // Thống kê
-  final Map<String, dynamic> location; // Vị trí
-  final Map<String, dynamic> metadata; // Thông tin bổ sung
-
-  // Getters cho profile
-  String get userId => profile['userId'] ?? '';
-  String get name => profile['name'] ?? '';
-  String get phoneNumber => profile['phoneNumber'] ?? '';
-  String get avatarUrl => profile['avatarUrl'] ?? '';
-
-  // Getters cho vehicle
-  String get vehicleType => vehicle['type'] ?? '';
-  String get licensePlate => vehicle['licensePlate'] ?? '';
-
-  // Getters cho stats
-  double get rating => (stats['rating'] ?? 0).toDouble();
-  int get totalDeliveries => stats['totalDeliveries'] ?? 0;
-  bool get isAvailable => stats['isAvailable'] ?? false;
-
-  // Getters cho location
-  double? get currentLatitude => location['latitude']?.toDouble();
-  double? get currentLongitude => location['longitude']?.toDouble();
-  GeoPoint? get currentLocation =>
-      currentLatitude != null && currentLongitude != null
-          ? GeoPoint(currentLatitude!, currentLongitude!)
-          : null;
-
-  // Getters cho metadata
-  DateTime get createdAt =>
-      (metadata['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
-  DateTime? get lastUpdated =>
-      (metadata['lastUpdated'] as Timestamp?)?.toDate();
-  bool get isActive => metadata['isActive'] ?? true;
-
-  const ShipperModel({
+  final String name;
+  final String phoneNumber;
+  final DateTime birthDate;
+  final String avatarUrl;
+  final String vehicleType;
+  final String email;
+  final String address;
+  final String status;
+  final DateTime createdAt;
+  ShipperModel({
     required this.id,
-    required this.profile,
-    required this.vehicle,
-    required this.stats,
-    required this.location,
-    required this.metadata,
+    required this.name,
+    required this.phoneNumber,
+    required this.birthDate,
+    required this.avatarUrl,
+    required this.vehicleType,
+    required this.email,
+    required this.address,
+    required this.status,
+    required this.createdAt,
   });
 
-  factory ShipperModel.fromMap(Map<String, dynamic> data, String id) {
+  // Factory constructor để tạo một shipper rỗng
+  factory ShipperModel.empty() {
     return ShipperModel(
-      id: id,
-      profile: Map<String, String>.from(data['profile'] ??
-          {
-            'userId': '',
-            'name': '',
-            'phoneNumber': '',
-            'avatarUrl': '',
-          }),
-      vehicle: Map<String, dynamic>.from(data['vehicle'] ??
-          {
-            'type': '',
-            'licensePlate': '',
-          }),
-      stats: Map<String, dynamic>.from(data['stats'] ??
-          {
-            'rating': 0.0,
-            'totalDeliveries': 0,
-            'isAvailable': false,
-          }),
-      location: Map<String, dynamic>.from(data['location'] ?? {}),
-      metadata: Map<String, dynamic>.from(data['metadata'] ??
-          {
-            'createdAt': Timestamp.now(),
-            'lastUpdated': Timestamp.now(),
-            'isActive': true,
-          }),
+      id: '',
+      name: '',
+      phoneNumber: '',
+      birthDate: DateTime.now(),
+      avatarUrl: '',
+      vehicleType: '',
+      email: '',
+      address: '',
+      status: 'inactive',
+      createdAt: DateTime.now(),
     );
   }
 
+  // Chuyển đổi model thành Map
   Map<String, dynamic> toMap() {
-    return {
-      'profile': profile,
-      'vehicle': vehicle,
-      'stats': stats,
-      'location': {
-        ...location,
-        'latitude': currentLatitude,
-        'longitude': currentLongitude,
-        'lastUpdated': Timestamp.now(),
-      },
-      'metadata': {
-        ...metadata,
-        'lastUpdated': Timestamp.now(),
-      },
-    };
-  }
-
-  // Helper method cho hiển thị trong danh sách
-  Map<String, dynamic> toListView() {
     return {
       'id': id,
       'name': name,
-      'avatar': avatarUrl,
-      'rating': rating,
-      'isAvailable': isAvailable,
-      'totalDeliveries': totalDeliveries,
-      'vehicleInfo': '$vehicleType - $licensePlate',
+      'phoneNumber': phoneNumber,
+      'birthDate': birthDate.millisecondsSinceEpoch,
+      'avatarUrl': avatarUrl,
+      'vehicleType': vehicleType,
+      'email': email,
+      'address': address,
+      'status': status,
+      'createdAt': createdAt.millisecondsSinceEpoch,
     };
   }
 
-  // Helper method cho hiển thị chi tiết
-  Map<String, dynamic> toDetailView() {
+  // Chuyển đổi model thành JSON string
+  String toJson() => json.encode(toMap());
+
+  // Factory constructor để tạo model từ Map
+  factory ShipperModel.fromMap(Map<String, dynamic> map, String id) {
+    return ShipperModel(
+      id: id,
+      name: map['name'] ?? '',
+      phoneNumber: map['phoneNumber'] ?? '',
+      birthDate: DateTime.fromMillisecondsSinceEpoch(map['birthDate'] ?? 0),
+      avatarUrl: map['avatarUrl'] ?? '',
+      vehicleType: map['vehicleType'] ?? '',
+      email: map['email'] ?? '',
+      address: map['address'] ?? '',
+      status: map['status'] ?? 'inactive',
+      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] ?? 0),
+    );
+  }
+
+  // Factory constructor để tạo model từ JSON string
+  factory ShipperModel.fromJson(String source, String id) =>
+      ShipperModel.fromMap(json.decode(source), id);
+}
+
+// Model để quản lý vị trí realtime của shipper
+class ShipperLocationModel {
+  final String shipperId;
+  final double latitude;
+  final double longitude;
+  final DateTime timestamp;
+  final bool isOnline;
+  final String? currentOrderId; // ID của đơn hàng đang giao (nếu có)
+
+  ShipperLocationModel({
+    required this.shipperId,
+    required this.latitude,
+    required this.longitude,
+    required this.timestamp,
+    required this.isOnline,
+    this.currentOrderId,
+  });
+
+  // Factory constructor để tạo location model rỗng
+  factory ShipperLocationModel.empty() {
+    return ShipperLocationModel(
+      shipperId: '',
+      latitude: 0.0,
+      longitude: 0.0,
+      timestamp: DateTime.now(),
+      isOnline: false,
+    );
+  }
+
+  // Chuyển đổi model thành Map
+  Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'profile': {
-        'name': name,
-        'phone': phoneNumber,
-        'avatar': avatarUrl,
-      },
-      'vehicle': {
-        'type': vehicleType,
-        'licensePlate': licensePlate,
-      },
-      'stats': {
-        'rating': rating,
-        'totalDeliveries': totalDeliveries,
-        'isAvailable': isAvailable,
-      },
-      'location': currentLocation != null
-          ? {
-              'latitude': currentLatitude,
-              'longitude': currentLongitude,
-              'lastUpdated': metadata['lastUpdated'],
-            }
-          : null,
+      'shipperId': shipperId,
+      'latitude': latitude,
+      'longitude': longitude,
+      'timestamp': timestamp.millisecondsSinceEpoch,
+      'isOnline': isOnline,
+      'currentOrderId': currentOrderId,
     };
   }
 
-  factory ShipperModel.empty() => ShipperModel(
-        id: '',
-        profile: {
-          'userId': '',
-          'name': '',
-          'phoneNumber': '',
-          'avatarUrl': '',
-        },
-        vehicle: {
-          'type': '',
-          'licensePlate': '',
-        },
-        stats: {
-          'rating': 0.0,
-          'totalDeliveries': 0,
-          'isAvailable': false,
-        },
-        location: {},
-        metadata: {
-          'createdAt': Timestamp.now(),
-          'lastUpdated': Timestamp.now(),
-          'isActive': true,
-        },
-      );
+  // Chuyển đổi model thành JSON string
+  String toJson() => json.encode(toMap());
+
+  // Factory constructor để tạo model từ Map
+  factory ShipperLocationModel.fromMap(Map<String, dynamic> map) {
+    return ShipperLocationModel(
+      shipperId: map['shipperId'] ?? '',
+      latitude: (map['latitude'] ?? 0.0).toDouble(),
+      longitude: (map['longitude'] ?? 0.0).toDouble(),
+      timestamp: DateTime.fromMillisecondsSinceEpoch(map['timestamp'] ?? 0),
+      isOnline: map['isOnline'] ?? false,
+      currentOrderId: map['currentOrderId'],
+    );
+  }
+
+  // Factory constructor để tạo model từ JSON string
+  factory ShipperLocationModel.fromJson(String source) =>
+      ShipperLocationModel.fromMap(json.decode(source));
+
+  // Tạo bản sao với các thay đổi
+  ShipperLocationModel copyWith({
+    String? shipperId,
+    double? latitude,
+    double? longitude,
+    DateTime? timestamp,
+    bool? isOnline,
+    String? currentOrderId,
+  }) {
+    return ShipperLocationModel(
+      shipperId: shipperId ?? this.shipperId,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      timestamp: timestamp ?? this.timestamp,
+      isOnline: isOnline ?? this.isOnline,
+      currentOrderId: currentOrderId ?? this.currentOrderId,
+    );
+  }
 }

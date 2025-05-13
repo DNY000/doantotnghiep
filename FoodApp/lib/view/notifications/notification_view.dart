@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:foodapp/data/models/notification_model.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/notification_viewmodel.dart';
 
-class TopFoodieView extends StatefulWidget {
-  const TopFoodieView({super.key});
+class NotificationsView extends StatefulWidget {
+  const NotificationsView({super.key});
 
   @override
-  State<TopFoodieView> createState() => _TopFoodieViewState();
+  State<NotificationsView> createState() => _NotificationsViewState();
 }
 
-class _TopFoodieViewState extends State<TopFoodieView> {
+class _NotificationsViewState extends State<NotificationsView> {
   @override
   void initState() {
     super.initState();
@@ -74,9 +75,8 @@ class _TopFoodieViewState extends State<TopFoodieView> {
               final notification = viewModel.notifications[index];
               return NotificationItem(
                 notification: notification,
-                onMarkAsRead: () => viewModel.markAsRead(notification['id']),
-                onDelete: () =>
-                    viewModel.deleteNotification(notification['id']),
+                onMarkAsRead: () => viewModel.markAsRead(notification.id),
+                onDelete: () => viewModel.deleteNotification(notification.id),
               );
             },
           );
@@ -87,7 +87,7 @@ class _TopFoodieViewState extends State<TopFoodieView> {
 }
 
 class NotificationItem extends StatelessWidget {
-  final Map<String, dynamic> notification;
+  final NotificationModel notification;
   final VoidCallback onMarkAsRead;
   final VoidCallback onDelete;
 
@@ -101,7 +101,7 @@ class NotificationItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: Key(notification['id']),
+      key: Key(notification.id),
       direction: DismissDirection.endToStart,
       onDismissed: (_) => onDelete(),
       background: Container(
@@ -117,25 +117,17 @@ class NotificationItem extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  notification["image"] ?? "assets/img/u1.png",
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 60,
-                      height: 60,
-                      color: Colors.orange.withOpacity(0.2),
-                      child: const Icon(
-                        Icons.notifications,
-                        color: Colors.orange,
-                        size: 30,
-                      ),
-                    );
-                  },
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.notifications,
+                  color: Colors.orange,
+                  size: 30,
                 ),
               ),
               const SizedBox(width: 12),
@@ -144,44 +136,24 @@ class NotificationItem extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      notification["title"],
+                      notification.title,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: notification['isRead'] == true
-                            ? Colors.grey
-                            : Colors.black,
+                        color: notification.isRead ? Colors.grey : Colors.black,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    ...List.generate(
-                      (notification["details"] as List?)?.length ?? 0,
-                      (index) => Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              notification["details"][index]["icon"],
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                notification["details"][index]["text"],
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                    Text(
+                      notification.content,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      notification["time"],
+                      _formatTime(notification.createdAt),
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey[400],
@@ -195,5 +167,9 @@ class NotificationItem extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatTime(DateTime time) {
+    return "${time.hour}:${time.minute} ${time.day}/${time.month}/${time.year}";
   }
 }

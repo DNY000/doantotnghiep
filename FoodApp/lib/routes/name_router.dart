@@ -22,4 +22,5 @@ class NameRouter {
   static const String methodPayment = '/method_payment';
   static const String signleFood = '/signle_food';
   static const String detailRestaurants = '/detail_restaurants';
+  static const String notificationDetail = '/notification_detail';
 }

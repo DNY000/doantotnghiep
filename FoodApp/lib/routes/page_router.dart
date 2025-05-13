@@ -6,14 +6,17 @@ import 'package:foodapp/view/authentication/screen/signup_view.dart';
 import 'package:foodapp/view/authentication/screen/forgot_password_view.dart';
 import 'package:foodapp/view/home/home_view.dart';
 import 'package:foodapp/view/main_tab/main_tab_view.dart';
+import 'package:foodapp/view/notifications/notification_view.dart';
 import 'package:foodapp/view/on_boarding/on_boarding_view.dart';
 import 'package:foodapp/view/order/order_view.dart';
 import 'package:foodapp/view/profile/my_profile_view.dart';
 import 'package:foodapp/view/restaurant/restaurant_detail_view.dart';
 import 'package:foodapp/view/restaurant/single_food_detail.dart';
 import 'package:go_router/go_router.dart';
+import 'package:foodapp/main.dart';
 
 final GoRouter goRouter = GoRouter(
+    navigatorKey: navigatorKey,
     //     redirect: (context, state) {
     // final authViewModel = Provider.of<LoginViewModel>(context, listen: false);
     // final loggedIn = authViewModel.isLoggedIn;
@@ -91,5 +94,9 @@ final GoRouter goRouter = GoRouter(
           final restaurant = state.extra as RestaurantModel;
           return RestaurantDetailView(restaurant: restaurant);
         },
+      ),
+      GoRoute(
+        path: NameRouter.notifications,
+        builder: (context, state) => const NotificationsView(),
       ),
     ]);

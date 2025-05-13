@@ -42,7 +42,7 @@ class _ListRestaurantNewState extends State<ListRestaurantNew> {
 
   @override
   Widget build(BuildContext context) {
-    final sizeContainer = MediaQuery.of(context).size.width * 0.32;
+    final sizeContainer = MediaQuery.of(context).size.width * 0.4;
     return SizedBox(
       height: sizeContainer,
       child: Consumer<RestaurantViewModel>(
