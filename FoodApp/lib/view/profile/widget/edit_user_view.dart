@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:foodapp/data/models/address_model.dart';
 import 'package:foodapp/data/models/user_model.dart';
 import 'package:provider/provider.dart';
@@ -125,223 +126,427 @@ class _EditUserViewState extends State<EditUserView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           'Cập nhật thông tin',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.normal),
         ),
         backgroundColor: Colors.white,
         elevation: 0.5,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.black),
+        // iconTheme: const IconThemeData(color: Colors.black),
         titleTextStyle: const TextStyle(
           color: Colors.black,
-          fontSize: 18,
+          fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionTitle('Thông tin cá nhân'),
-              const SizedBox(height: 16),
-              _buildPersonalInfoSection(),
-              const SizedBox(height: 24),
-              _buildSectionTitle('Thông tin liên hệ'),
-              const SizedBox(height: 16),
-              _buildContactInfoSection(),
-              const SizedBox(height: 32),
-              _buildSaveButton(),
-            ],
-          ),
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
         ),
       ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Colors.black,
-      ),
-    );
-  }
-
-  Widget _buildPersonalInfoSection() {
-    return Column(
-      children: [
-        _buildTextField(
-          controller: _fullNameController,
-          label: 'Họ và tên',
-          validator: (value) =>
-              value?.isEmpty ?? true ? 'Vui lòng nhập họ và tên' : null,
-        ),
-        const SizedBox(height: 16),
-        _buildGenderDropdown(),
-        const SizedBox(height: 16),
-        _buildDatePicker(),
-      ],
-    );
-  }
-
-  Widget _buildContactInfoSection() {
-    return Column(
-      children: [
-        _buildTextField(
-          controller: _phoneController,
-          label: 'Số điện thoại',
-          keyboardType: TextInputType.phone,
-          validator: (value) =>
-              value?.isEmpty ?? true ? 'Vui lòng nhập số điện thoại' : null,
-        ),
-        const SizedBox(height: 16),
-        _buildTextField(
-          controller: _emailController,
-          label: 'Email',
-          keyboardType: TextInputType.emailAddress,
-          validator: (value) {
-            if (value?.isEmpty ?? true) return 'Vui lòng nhập email';
-            if (!value!.contains('@')) return 'Email không hợp lệ';
-            return null;
-          },
-        ),
-        const SizedBox(height: 16),
-        _buildTextField(
-          controller: _addressController,
-          label: 'Địa chỉ',
-          maxLines: 2,
-          validator: (value) =>
-              value?.isEmpty ?? true ? 'Vui lòng nhập địa chỉ' : null,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    TextInputType? keyboardType,
-    int maxLines = 1,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.black),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.black),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.black),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.black),
-        ),
-        filled: true,
-        fillColor: Colors.grey[50],
-      ),
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      validator: validator,
-    );
-  }
-
-  Widget _buildGenderDropdown() {
-    return DropdownButtonFormField<String>(
-      value: _selectedGender,
-      decoration: InputDecoration(
-        labelText: 'Giới tính',
-        labelStyle: const TextStyle(color: Colors.black),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.black),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.black),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.black),
-        ),
-        filled: true,
-        fillColor: Colors.grey[50],
-      ),
-      items: const [
-        DropdownMenuItem(value: 'Nam', child: Text('Nam')),
-        DropdownMenuItem(value: 'Nữ', child: Text('Nữ')),
-        DropdownMenuItem(value: 'Khác', child: Text('Khác')),
-      ],
-      onChanged: (value) => setState(() => _selectedGender = value!),
-      validator: (value) =>
-          value?.isEmpty ?? true ? 'Vui lòng chọn giới tính' : null,
-      dropdownColor: Colors.white,
-      icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
-    );
-  }
-
-  Widget _buildDatePicker() {
-    return InkWell(
-      onTap: () => _selectDate(context),
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: 'Ngày sinh',
-          labelStyle: const TextStyle(color: Colors.black),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Colors.black),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Colors.black),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Colors.black),
-          ),
-          filled: true,
-          fillColor: Colors.grey[50],
-          suffixIcon: const Icon(Icons.calendar_today, color: Colors.black),
-        ),
-        child: Text(
-          _selectedDate != null
-              ? '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'
-              : 'Chọn ngày sinh',
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSaveButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        onPressed: _saveProfile,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: TColor.color3,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          elevation: 2,
-        ),
-        child: const Text(
-          'Lưu thông tin',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+      body: Container(
+        color: Colors.white,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Card(
+                  color: Colors.white,
+                  elevation: 0.5,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    side: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: TextFormField(
+                            controller: _fullNameController,
+                            decoration: InputDecoration(
+                              labelText: 'Họ và tên',
+                              labelStyle: const TextStyle(
+                                color: Colors.black54,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              prefixIcon: const Icon(
+                                Icons.person,
+                                color: Colors.black54,
+                                size: 22,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(
+                                    color: Colors.grey.shade300, width: 1),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(
+                                    color: Colors.grey.shade300, width: 1),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide:
+                                    BorderSide(color: Colors.grey, width: 1.5),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: const BorderSide(
+                                    color: Colors.redAccent, width: 1),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: const BorderSide(
+                                    color: Colors.redAccent, width: 1.5),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 16),
+                              hintStyle: const TextStyle(color: Colors.black38),
+                            ),
+                            validator: (value) => value?.isEmpty ?? true
+                                ? 'Vui lòng nhập họ và tên'
+                                : null,
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.black87),
+                            cursorColor: Colors.black,
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: DropdownButtonFormField<String>(
+                            value: _selectedGender,
+                            decoration: InputDecoration(
+                              labelText: 'Giới tính',
+                              labelStyle: const TextStyle(
+                                color: Colors.black54,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              prefixIcon: const Icon(
+                                Icons.person_outline,
+                                color: Colors.black54,
+                                size: 22,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(
+                                    color: Colors.grey.shade300, width: 1),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(
+                                    color: Colors.grey.shade300, width: 1),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide:
+                                    BorderSide(color: Colors.grey, width: 1.5),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 16),
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                  value: 'Nam', child: Text('Nam')),
+                              DropdownMenuItem(value: 'Nữ', child: Text('Nữ')),
+                              DropdownMenuItem(
+                                  value: 'Khác', child: Text('Khác')),
+                            ],
+                            onChanged: (value) =>
+                                setState(() => _selectedGender = value!),
+                            validator: (value) => value?.isEmpty ?? true
+                                ? 'Vui lòng chọn giới tính'
+                                : null,
+                            dropdownColor: Colors.white,
+                            icon: const Icon(Icons.arrow_drop_down,
+                                color: Colors.black54),
+                            iconSize: 30,
+                            isExpanded: true,
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.black87),
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: InkWell(
+                            onTap: () => _selectDate(context),
+                            borderRadius: BorderRadius.circular(15),
+                            child: InputDecorator(
+                              decoration: InputDecoration(
+                                labelText: 'Ngày sinh',
+                                labelStyle: const TextStyle(
+                                  color: Colors.black54,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                prefixIcon: const Icon(
+                                  Icons.calendar_month_outlined,
+                                  color: Colors.black54,
+                                  size: 22,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                  borderSide: BorderSide(
+                                      color: Colors.grey.shade300, width: 1),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                  borderSide: BorderSide(
+                                      color: Colors.grey.shade300, width: 1),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                  borderSide: BorderSide(
+                                      color: Colors.black, width: 1.5),
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 16),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _selectedDate != null
+                                        ? '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'
+                                        : 'Chọn ngày sinh',
+                                    style: const TextStyle(
+                                        fontSize: 16, color: Colors.black87),
+                                  ),
+                                  const Icon(Icons.arrow_drop_down,
+                                      color: Colors.black54),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Card(
+                  color: Colors.white,
+                  elevation: 0.5,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    side: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: TextFormField(
+                            controller: _phoneController,
+                            decoration: InputDecoration(
+                              labelText: 'Số điện thoại',
+                              labelStyle: const TextStyle(
+                                color: Colors.black54,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              prefixIcon: const Icon(
+                                Icons.phone,
+                                color: Colors.black54,
+                                size: 22,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(
+                                    color: Colors.grey.shade300, width: 1),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(
+                                    color: Colors.grey.shade300, width: 1),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide:
+                                    BorderSide(color: Colors.grey, width: 1.5),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: const BorderSide(
+                                    color: Colors.redAccent, width: 1),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: const BorderSide(
+                                    color: Colors.redAccent, width: 1.5),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 16),
+                              hintStyle: const TextStyle(color: Colors.black38),
+                            ),
+                            keyboardType: TextInputType.phone,
+                            validator: (value) => value?.isEmpty ?? true
+                                ? 'Vui lòng nhập số điện thoại'
+                                : null,
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.black87),
+                            cursorColor: Colors.black,
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: TextFormField(
+                            controller: _emailController,
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              labelStyle: const TextStyle(
+                                color: Colors.black54,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              prefixIcon: const Icon(
+                                Icons.email,
+                                color: Colors.black54,
+                                size: 22,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(
+                                    color: Colors.grey.shade300, width: 1),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(
+                                    color: Colors.grey.shade300, width: 1),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide:
+                                    BorderSide(color: Colors.grey, width: 1.5),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: const BorderSide(
+                                    color: Colors.redAccent, width: 1),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: const BorderSide(
+                                    color: Colors.redAccent, width: 1.5),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 16),
+                              hintStyle: const TextStyle(color: Colors.black38),
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value?.isEmpty ?? true)
+                                return 'Vui lòng nhập email';
+                              if (!value!.contains('@'))
+                                return 'Email không hợp lệ';
+                              return null;
+                            },
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.black87),
+                            cursorColor: Colors.black,
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: TextFormField(
+                            controller: _addressController,
+                            decoration: InputDecoration(
+                              labelText: 'Địa chỉ',
+                              labelStyle: const TextStyle(
+                                color: Colors.black54,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              prefixIcon: const Icon(
+                                Icons.location_on,
+                                color: Colors.black54,
+                                size: 22,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(
+                                    color: Colors.grey.shade300, width: 1),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(
+                                    color: Colors.grey.shade300, width: 1),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide:
+                                    BorderSide(color: Colors.grey, width: 1.5),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: const BorderSide(
+                                    color: Colors.redAccent, width: 1),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: const BorderSide(
+                                    color: Colors.redAccent, width: 1.5),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 16),
+                              hintStyle: const TextStyle(color: Colors.black38),
+                            ),
+                            maxLines: 2,
+                            validator: (value) => value?.isEmpty ?? true
+                                ? 'Vui lòng nhập địa chỉ'
+                                : null,
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.black87),
+                            cursorColor: Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Container(
+                  width: double.infinity,
+                  height: 54,
+                  margin: const EdgeInsets.symmetric(vertical: 16),
+                  child: ElevatedButton(
+                    onPressed: _saveProfile,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: TColor.color3,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
+                    ),
+                    child: const Text(
+                      'LƯU THÔNG TIN',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

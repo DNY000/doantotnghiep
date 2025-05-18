@@ -94,21 +94,21 @@ class _MainTabViewState extends State<MainTabView>
         }
 
         // Nếu đã tải xong, hiển thị nội dung thật
-        return SafeArea(
-          child: Scaffold(
-            body: TabBarView(controller: controller, children: const [
-              HomeView(),
-              OrderView(),
-              FarvoriteView(),
-              NotificationsView(),
-              MyProfileView()
-            ]),
-            bottomNavigationBar: ClipRect(
+        return Scaffold(
+          body: TabBarView(controller: controller, children: const [
+            HomeView(),
+            OrderView(),
+            FarvoriteView(),
+            NotificationsView(),
+            MyProfileView()
+          ]),
+          bottomNavigationBar: SafeArea(
+            top: false,
+            child: ClipRect(
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
                   decoration: BoxDecoration(
-                    // ignore: deprecated_member_use
                     color: Colors.white.withOpacity(0.1),
                   ),
                   child: TabBar(
@@ -124,39 +124,24 @@ class _MainTabViewState extends State<MainTabView>
                     padding: EdgeInsets.zero,
                     tabs: [
                       Tab(
-                        icon: Image.asset(
-                          "assets/img/home_tab.png",
-                          width: 25,
-                          height: 25,
-                          fit: BoxFit.contain,
-                          color: controller?.index == 0
-                              ? Colors.orange
-                              : TColor.gray,
-                        ),
+                        icon: Icon(Icons.home_outlined,
+                            color: controller?.index == 0
+                                ? Colors.orange
+                                : TColor.gray),
                         text: "Trang chủ",
                       ),
                       Tab(
-                        icon: Image.asset(
-                          "assets/img/discovery_tab.png",
-                          width: 25,
-                          height: 25,
-                          fit: BoxFit.contain,
-                          color: controller?.index == 1
-                              ? Colors.orange
-                              : TColor.gray,
-                        ),
+                        icon: Icon(Icons.receipt_long_outlined,
+                            color: controller?.index == 1
+                                ? Colors.orange
+                                : TColor.gray),
                         text: "Đơn hàng",
                       ),
                       Tab(
-                        icon: Image.asset(
-                          "assets/img/bookmark_tab.png",
-                          width: 25,
-                          height: 25,
-                          fit: BoxFit.contain,
-                          color: controller?.index == 2
-                              ? Colors.orange
-                              : TColor.gray,
-                        ),
+                        icon: Icon(Icons.favorite_border_outlined,
+                            color: controller?.index == 2
+                                ? Colors.orange
+                                : TColor.gray),
                         text: "Yêu thích",
                       ),
                       Tab(
@@ -169,11 +154,8 @@ class _MainTabViewState extends State<MainTabView>
                         text: "Thông báo",
                       ),
                       Tab(
-                        icon: Image.asset(
-                          "assets/img/my_profile_tab.png",
-                          width: 25,
-                          height: 25,
-                          fit: BoxFit.contain,
+                        icon: Icon(
+                          Icons.person_outline,
                           color: controller?.index == 4
                               ? Colors.orange
                               : TColor.gray,
@@ -185,9 +167,9 @@ class _MainTabViewState extends State<MainTabView>
                 ),
               ),
             ),
-            backgroundColor: Colors.white,
-            // Thêm nút refresh (tuỳ chọn)
           ),
+          backgroundColor: Colors.white,
+          // Thêm nút refresh (tuỳ chọn)
         );
       },
     );

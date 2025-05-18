@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foodapp/data/models/order_model.dart';
 import 'package:foodapp/ultils/const/enum.dart';
+import 'package:foodapp/view/order/order_screen.dart';
 import 'package:foodapp/view/restaurant/single_food_detail.dart';
 import 'package:foodapp/viewmodels/user_viewmodel.dart';
 import 'package:provider/provider.dart';
@@ -103,14 +104,6 @@ class _OrderViewState extends State<OrderView>
     final ongoingOrders = orderViewModel.orders
         .where((order) => order.status != OrderState.delivered)
         .toList();
-    print("Đơn hàng đang giao: ${ongoingOrders.length}");
-    for (var order in ongoingOrders) {
-      print("Đơn hàng ${order.id}:");
-      print("  - Thời gian: ${order.createdAt}");
-      print("  - Trạng thái: ${order.status}");
-      print("  - Tổng tiền: ${order.totalAmount}đ");
-      print("  - Món:");
-    }
     if (ongoingOrders.isEmpty) {
       return SingleChildScrollView(
         child: Column(
@@ -213,7 +206,7 @@ class _OrderViewState extends State<OrderView>
   Widget _buildOrderCard(OrderModel order) {
     // Lấy thông tin nhà hàng từ đơn hàng
     final restaurantName =
-        "Nhà hàng #${order.restaurantId}"; // Có thể thay bằng tên thật từ DB
+        "Nhà hàng #${order.restaurantName}"; // Có thể thay bằng tên thật từ DB
 
     // Tạo mô tả các món trong đơn hàng
     final itemsDescription = order.items.isNotEmpty
@@ -225,7 +218,7 @@ class _OrderViewState extends State<OrderView>
       color: Colors.white,
       elevation: 5,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -235,7 +228,7 @@ class _OrderViewState extends State<OrderView>
                 Text(
                   restaurantName,
                   style: const TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.normal,
                     fontSize: 16,
                   ),
                 ),
@@ -244,27 +237,68 @@ class _OrderViewState extends State<OrderView>
             ),
             const Divider(),
             const SizedBox(height: 8),
-            Text(
-              "Món: $itemsDescription",
-              style: const TextStyle(fontSize: 14),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Expanded(
+                    flex: 1,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                      child: Image.asset(
+                        order.items.first.image,
+                        fit: BoxFit.cover,
+                      ),
+                    )),
+                Expanded(
+                    flex: 2,
+                    child: Column(
+                      children: [
+                        Text(
+                          "Món: $itemsDescription",
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Tổng tiền: ${order.totalAmount.toStringAsFixed(0)}đ",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.orange,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Ngày đặt: ${_formatDateTime(order.createdAt)}",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ))
+              ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              "Tổng tiền: ${order.totalAmount.toStringAsFixed(0)}đ",
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: Colors.orange,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Ngày đặt: ${_formatDateTime(order.createdAt)}",
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
+            // Text(
+            //   "Món: $itemsDescription",
+            //   style: const TextStyle(fontSize: 14),
+            // ),
+            // const SizedBox(height: 8),
+            // Text(
+            //   "Tổng tiền: ${order.totalAmount.toStringAsFixed(0)}đ",
+            //   style: const TextStyle(
+            //     fontWeight: FontWeight.bold,
+            //     fontSize: 16,
+            //     color: Colors.orange,
+            //   ),
+            // ),
+            // const SizedBox(height: 8),
+            // Text(
+            //   "Ngày đặt: ${_formatDateTime(order.createdAt)}",
+            //   style: TextStyle(
+            //     fontSize: 14,
+            //     color: Colors.grey[600],
+            //   ),
+            // ),
             const SizedBox(height: 12),
             if (order.status == OrderState.delivered ||
                 order.status.toString().toLowerCase() == "delivered")
@@ -318,11 +352,13 @@ class _OrderViewState extends State<OrderView>
     }
 
     return Container(
+      margin: const EdgeInsets.all(4),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
+        // ignore: deprecated_member_use
         color: color.withOpacity(0.2),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Text(
         label,
@@ -384,7 +420,9 @@ class _OrderViewState extends State<OrderView>
                         final restaurantId = entry.key;
                         final items = entry.value;
                         return Card(
+                          color: Colors.white,
                           child: ListTile(
+                            leading: Image.asset(items.first.image),
                             title: Text('Đơn nháp nhà hàng $restaurantId'),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -398,7 +436,19 @@ class _OrderViewState extends State<OrderView>
                               style: TextStyle(color: Colors.orange),
                             ),
                             onTap: () {
-                              // Xử lý: load lại đơn nháp này vào giỏ hàng để tiếp tục đặt
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => OrderScreen(
+                                    restaurantId: restaurantId,
+                                    cartItems: items,
+                                    totalAmount: items.fold<double>(
+                                        0,
+                                        (sum, item) =>
+                                            sum + item.price * item.quantity),
+                                  ),
+                                ),
+                              );
                             },
                           ),
                         );
@@ -462,7 +512,7 @@ class _OrderViewState extends State<OrderView>
                         },
                         child: FoodListItem(
                           food: food,
-                          showButtonAddToCart: true,
+                          showButtonAddToCart: false,
                         ),
                       );
                     },

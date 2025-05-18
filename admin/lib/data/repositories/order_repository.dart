@@ -12,7 +12,7 @@ class OrderRepository {
   final String _collection = 'orders';
 
   OrderRepository({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   // Tạo đơn hàng mới
   Future<String> createOrder(OrderModel order) async {
@@ -28,11 +28,10 @@ class OrderRepository {
 
   // Lấy danh sách đơn hàng của người dùng
   Future<List<OrderModel>> getUserOrders(String userId) async {
-    final snapshot =
-        await _firestore
-            .collection(_collection)
-            .where('userId', isEqualTo: userId)
-            .get();
+    final snapshot = await _firestore
+        .collection(_collection)
+        .where('userId', isEqualTo: userId)
+        .get();
     print("Lấy đơn hàng của người dùng: ${snapshot.docs.length}");
     return snapshot.docs
         .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
@@ -81,23 +80,21 @@ class OrderRepository {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map(
-          (snapshot) =>
-              snapshot.docs
-                  .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
-                  .toList(),
+          (snapshot) => snapshot.docs
+              .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
+              .toList(),
         );
   }
 
   // Lấy số lượng đơn hàng theo trạng thái
   Future<int> getOrderCountByStatus(String userId, OrderState status) async {
     try {
-      final snapshot =
-          await _firestore
-              .collection(_collection)
-              .where('userId', isEqualTo: userId)
-              .where('status', isEqualTo: status.toString().split('.').last)
-              .count()
-              .get();
+      final snapshot = await _firestore
+          .collection(_collection)
+          .where('userId', isEqualTo: userId)
+          .where('status', isEqualTo: status.toString().split('.').last)
+          .count()
+          .get();
       return snapshot.count ?? 0;
     } catch (e) {
       throw Exception('Không thể lấy số lượng đơn hàng: $e');
@@ -147,9 +144,8 @@ class OrderRepository {
         query = query.where('metadata.status', isEqualTo: status.name);
       }
 
-      query = query
-          .orderBy('metadata.orderTime', descending: true)
-          .limit(limit);
+      query =
+          query.orderBy('metadata.orderTime', descending: true).limit(limit);
 
       final snapshot = await query.get();
       return snapshot.docs
@@ -178,9 +174,8 @@ class OrderRepository {
         query = query.where('metadata.status', isEqualTo: status.name);
       }
 
-      query = query
-          .orderBy('metadata.orderTime', descending: true)
-          .limit(limit);
+      query =
+          query.orderBy('metadata.orderTime', descending: true).limit(limit);
 
       final snapshot = await query.get();
       return snapshot.docs
@@ -203,15 +198,8 @@ class OrderRepository {
     try {
       Query query = _firestore
           .collection(_collection)
-          .where('participants.restaurantId', isEqualTo: restaurantId);
-
-      if (status != null) {
-        query = query.where('metadata.status', isEqualTo: status.name);
-      }
-
-      query = query
-          .orderBy('metadata.orderTime', descending: true)
-          .limit(limit);
+          .where('restaurantId', isEqualTo: restaurantId);
+      // query = query.orderBy('createdAt', descending: true).limit(limit);
 
       final snapshot = await query.get();
       return snapshot.docs
@@ -253,9 +241,8 @@ class OrderRepository {
       }
 
       // Sắp xếp theo số lần xuất hiện giảm dần
-      var sortedFoodIds =
-          foodCount.entries.toList()
-            ..sort((a, b) => b.value.compareTo(a.value));
+      var sortedFoodIds = foodCount.entries.toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
       final topFoodIds = sortedFoodIds.take(limit).map((e) => e.key).toList();
 
       // Lấy chi tiết từng món ăn
@@ -346,10 +333,9 @@ class OrderRepository {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map(
-          (snapshot) =>
-              snapshot.docs
-                  .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
-                  .toList(),
+          (snapshot) => snapshot.docs
+              .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
+              .toList(),
         );
   }
 
@@ -373,10 +359,9 @@ class OrderRepository {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map(
-          (snapshot) =>
-              snapshot.docs
-                  .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
-                  .toList(),
+          (snapshot) => snapshot.docs
+              .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
+              .toList(),
         );
   }
 

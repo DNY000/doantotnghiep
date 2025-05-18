@@ -1,10 +1,12 @@
 import 'package:admin/constants.dart';
 import 'package:admin/controllers/menu_app_controller.dart';
 import 'package:admin/data/repositories/food_repository.dart';
+import 'package:admin/data/repositories/order_repository.dart';
 import 'package:admin/firebase_options.dart';
 import 'package:admin/screens/authentication/viewmodels/auth_viewmodel.dart';
 import 'package:admin/viewmodels/category_viewmodel.dart';
 import 'package:admin/viewmodels/food_viewmodel.dart';
+import 'package:admin/viewmodels/order_viewmodel.dart';
 import 'package:admin/viewmodels/user_viewmodel.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +46,8 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (context) => AuthViewModel()),
         ChangeNotifierProvider(create: (context) => UserViewModel()),
         ChangeNotifierProvider(create: (context) => CategoryViewModel()),
+        ChangeNotifierProvider(
+            create: (context) => OrderViewModel(OrderRepository())),
       ],
       child: const MyApp(),
     ),

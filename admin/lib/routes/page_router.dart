@@ -5,8 +5,8 @@ import 'package:admin/screens/authentication/srceen/register_screen.dart';
 import 'package:admin/screens/category/category_screen.dart';
 import 'package:admin/screens/main/main_screen.dart';
 import 'package:admin/screens/notifications/notification_screen.dart';
+import 'package:admin/screens/restaurant/restaurant_detail_screen.dart';
 import 'package:admin/screens/restaurant/restaurant_screen.dart';
-import 'package:admin/screens/restaurant/widget/restaurant_detail_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -87,14 +87,14 @@ final GoRouter goRouter = GoRouter(
       path: NameRouter.restaurant,
       builder: (context, state) => const RestaurantScreen(),
     ),
-    // GoRoute(
-    //   path: NameRouter.restaurantDetail,
-    //   name: 'restaurantDetail',
-    //   builder: (context, state) {
-    //     final restaurantId = state.pathParameters['id'] ?? '';
-    //     return RestaurantDetailScreen(restaurantId: restaurantId);
-    //   },
-    // ),
+    GoRoute(
+      path: NameRouter.restaurantDetail,
+      name: 'restaurantDetail',
+      builder: (context, state) {
+        final restaurantId = state.pathParameters['id'] ?? '';
+        return RestaurantDetailScreen(restaurantId: restaurantId);
+      },
+    ),
     GoRoute(
       path: NameRouter.notifications,
       builder: (context, state) => const NotificationScreen(),

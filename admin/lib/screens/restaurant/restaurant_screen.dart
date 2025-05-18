@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:admin/viewmodels/restaurant_viewmodel.dart';
@@ -6,6 +7,9 @@ import 'package:admin/models/restaurant_model.dart';
 import 'package:admin/reponsive.dart';
 import 'package:admin/screens/main/components/side_menu.dart';
 import 'package:admin/screens/restaurant/restaurant_detail_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:typed_data';
 
 class RestaurantScreen extends StatelessWidget {
   const RestaurantScreen({super.key});
@@ -43,6 +47,7 @@ class RestaurantContent extends StatefulWidget {
 class _RestaurantContentState extends State<RestaurantContent> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedStatus = 'all';
+  Uint8List? imageBytes;
 
   @override
   void initState() {
@@ -73,7 +78,7 @@ class _RestaurantContentState extends State<RestaurantContent> {
             ),
             ElevatedButton.icon(
               onPressed: () {
-                // TODO: Navigate to add restaurant screen
+                _showAddRestaurantDialog(context);
               },
               icon: const Icon(Icons.add),
               label: const Text('Thêm Nhà hàng'),
@@ -215,7 +220,7 @@ class _RestaurantContentState extends State<RestaurantContent> {
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () {
-                        // TODO: Navigate to edit screen
+                        _showEditRestaurantDialog(context, restaurant);
                       },
                     ),
                     IconButton(
@@ -343,7 +348,7 @@ class _RestaurantContentState extends State<RestaurantContent> {
                           IconButton(
                             icon: const Icon(Icons.edit),
                             onPressed: () {
-                              // TODO: Navigate to edit screen
+                              _showEditRestaurantDialog(context, restaurant);
                             },
                           ),
                           IconButton(
@@ -384,5 +389,490 @@ class _RestaurantContentState extends State<RestaurantContent> {
         );
       },
     );
+  }
+
+  void _showAddRestaurantDialog(BuildContext context) {
+    final nameController = TextEditingController();
+    final addressController = TextEditingController();
+    final descriptionController = TextEditingController();
+    TimeOfDay openTime = const TimeOfDay(hour: 0, minute: 0);
+    TimeOfDay closeTime = const TimeOfDay(hour: 0, minute: 0);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                width: 500,
+                padding: const EdgeInsets.all(20),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Thêm Nhà Hàng Mới',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      // Tên nhà hàng
+                      TextField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Tên nhà hàng *',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Địa chỉ
+                      TextField(
+                        controller: addressController,
+                        decoration: const InputDecoration(
+                          labelText: 'Địa chỉ *',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Mô tả
+                      TextField(
+                        controller: descriptionController,
+                        maxLines: 3,
+                        decoration: const InputDecoration(
+                          labelText: 'Mô tả',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Ảnh
+                      Row(
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              FilePickerResult? result =
+                                  await FilePicker.platform.pickFiles(
+                                type: FileType.image,
+                                withData: true,
+                              );
+                              if (result != null &&
+                                  result.files.single.bytes != null) {
+                                setState(() {
+                                  imageBytes = result.files.single.bytes;
+                                });
+                              }
+                            },
+                            icon: const Icon(Icons.image),
+                            label: const Text('Chọn ảnh'),
+                          ),
+                          const SizedBox(width: 12),
+                          imageBytes != null
+                              ? Image.memory(
+                                  imageBytes!,
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                )
+                              : const Text('Chưa chọn ảnh'),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      // Giờ mở cửa
+                      const Text('Giờ mở cửa',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      TimePickerSpinner(
+                        is24HourMode: true,
+                        normalTextStyle:
+                            const TextStyle(fontSize: 18, color: Colors.grey),
+                        highlightedTextStyle:
+                            const TextStyle(fontSize: 22, color: Colors.blue),
+                        spacing: 30,
+                        itemHeight: 40,
+                        isForce2Digits: true,
+                        time: DateTime(0, 0, 0, openTime.hour, openTime.minute),
+                        onTimeChange: (time) {
+                          setState(() {
+                            openTime =
+                                TimeOfDay(hour: time.hour, minute: time.minute);
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      // Giờ đóng cửa
+                      const Text('Giờ đóng cửa',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      TimePickerSpinner(
+                        is24HourMode: true,
+                        normalTextStyle:
+                            const TextStyle(fontSize: 18, color: Colors.grey),
+                        highlightedTextStyle:
+                            const TextStyle(fontSize: 22, color: Colors.blue),
+                        spacing: 30,
+                        itemHeight: 40,
+                        isForce2Digits: true,
+                        time:
+                            DateTime(0, 0, 0, closeTime.hour, closeTime.minute),
+                        onTimeChange: (time) {
+                          setState(() {
+                            closeTime =
+                                TimeOfDay(hour: time.hour, minute: time.minute);
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Hủy'),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton(
+                            onPressed: () {
+                              _addRestaurant(
+                                context,
+                                nameController.text,
+                                addressController.text,
+                                descriptionController.text,
+                                imageBytes,
+                                openTime.format(context),
+                                closeTime.format(context),
+                              );
+                            },
+                            child: const Text('Thêm nhà hàng'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _addRestaurant(
+    BuildContext context,
+    String name,
+    String address,
+    String description,
+    Uint8List? imageBytes,
+    String openTime,
+    String closeTime,
+  ) async {
+    if (name.isEmpty || address.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Vui lòng điền đầy đủ thông tin bắt buộc')),
+      );
+      return;
+    }
+
+    final viewModel = Provider.of<RestaurantViewModel>(context, listen: false);
+    String imageUrl = '';
+    // Nếu bạn muốn upload ảnh lên server, hãy upload ở đây và lấy URL
+    // imageUrl = await uploadImageToServer(imageBytes);
+
+    final newRestaurant = RestaurantModel(
+      id: '',
+      name: name,
+      description: description,
+      address: address,
+      location: const GeoPoint(0, 0),
+      operatingHours: {
+        'openTime': openTime,
+        'closeTime': closeTime,
+      },
+      rating: 0.0,
+      images: {
+        'main': imageUrl,
+        'gallery': [],
+      },
+      status: 'open',
+      minOrderAmount: 0.0,
+      createdAt: DateTime.now(),
+      categories: [],
+      metadata: {
+        'isActive': true,
+        'isVerified': false,
+        'lastUpdated': Timestamp.now(),
+      },
+    );
+
+    try {
+      await viewModel.addRestaurant(newRestaurant);
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Thêm nhà hàng thành công')),
+      );
+      viewModel.loadRestaurants();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi: ${e.toString()}')),
+      );
+    }
+  }
+
+  void _showEditRestaurantDialog(
+      BuildContext context, RestaurantModel restaurant) {
+    final nameController = TextEditingController(text: restaurant.name);
+    final addressController = TextEditingController(text: restaurant.address);
+    final descriptionController =
+        TextEditingController(text: restaurant.description);
+    Uint8List? imageBytes;
+    String? imageUrl = restaurant.mainImage;
+    TimeOfDay openTime = _parseTimeOfDay(restaurant.openTime);
+    TimeOfDay closeTime = _parseTimeOfDay(restaurant.closeTime);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                width: 500,
+                padding: const EdgeInsets.all(20),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Sửa Nhà Hàng',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      // Tên nhà hàng
+                      TextField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Tên nhà hàng *',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Địa chỉ
+                      TextField(
+                        controller: addressController,
+                        decoration: const InputDecoration(
+                          labelText: 'Địa chỉ *',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Mô tả
+                      TextField(
+                        controller: descriptionController,
+                        maxLines: 3,
+                        decoration: const InputDecoration(
+                          labelText: 'Mô tả',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Ảnh
+                      Row(
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              FilePickerResult? result =
+                                  await FilePicker.platform.pickFiles(
+                                type: FileType.image,
+                                withData: true,
+                              );
+                              if (result != null &&
+                                  result.files.single.bytes != null) {
+                                setState(() {
+                                  imageBytes = result.files.single.bytes;
+                                  imageUrl = null;
+                                });
+                              }
+                            },
+                            icon: const Icon(Icons.image),
+                            label: const Text('Chọn ảnh'),
+                          ),
+                          const SizedBox(width: 12),
+                          imageBytes != null
+                              ? Image.memory(
+                                  imageBytes!,
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                )
+                              : (imageUrl != null && imageUrl!.isNotEmpty)
+                                  ? Image.network(
+                                      imageUrl!,
+                                      width: 60,
+                                      height: 60,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : const Text('Chưa chọn ảnh'),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      // Giờ mở cửa
+                      const Text('Giờ mở cửa',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      TimePickerSpinner(
+                        is24HourMode: true,
+                        normalTextStyle:
+                            const TextStyle(fontSize: 18, color: Colors.grey),
+                        highlightedTextStyle:
+                            const TextStyle(fontSize: 22, color: Colors.blue),
+                        spacing: 30,
+                        itemHeight: 40,
+                        isForce2Digits: true,
+                        time: DateTime(0, 0, 0, openTime.hour, openTime.minute),
+                        onTimeChange: (time) {
+                          setState(() {
+                            openTime =
+                                TimeOfDay(hour: time.hour, minute: time.minute);
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      // Giờ đóng cửa
+                      const Text('Giờ đóng cửa',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      TimePickerSpinner(
+                        is24HourMode: true,
+                        normalTextStyle:
+                            const TextStyle(fontSize: 18, color: Colors.grey),
+                        highlightedTextStyle:
+                            const TextStyle(fontSize: 22, color: Colors.blue),
+                        spacing: 30,
+                        itemHeight: 40,
+                        isForce2Digits: true,
+                        time:
+                            DateTime(0, 0, 0, closeTime.hour, closeTime.minute),
+                        onTimeChange: (time) {
+                          setState(() {
+                            closeTime =
+                                TimeOfDay(hour: time.hour, minute: time.minute);
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Hủy'),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton(
+                            onPressed: () {
+                              _updateRestaurant(
+                                context,
+                                restaurant,
+                                nameController.text,
+                                addressController.text,
+                                descriptionController.text,
+                                imageBytes,
+                                imageUrl,
+                                openTime.format(context),
+                                closeTime.format(context),
+                              );
+                            },
+                            child: const Text('Cập nhật'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  TimeOfDay _parseTimeOfDay(String time) {
+    final parts = time.split(":");
+    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+  }
+
+  void _updateRestaurant(
+    BuildContext context,
+    RestaurantModel oldRestaurant,
+    String name,
+    String address,
+    String description,
+    Uint8List? imageBytes,
+    String? imageUrl,
+    String openTime,
+    String closeTime,
+  ) async {
+    if (name.isEmpty || address.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Vui lòng điền đầy đủ thông tin bắt buộc')),
+      );
+      return;
+    }
+
+    final viewModel = Provider.of<RestaurantViewModel>(context, listen: false);
+    String mainImage = imageUrl ?? oldRestaurant.mainImage;
+    // Nếu bạn muốn upload ảnh lên server, hãy upload ở đây và lấy URL
+    // mainImage = await uploadImageToServer(imageBytes);
+
+    final updatedRestaurant = oldRestaurant.copyWith(
+      name: name,
+      address: address,
+      description: description,
+      images: {
+        ...oldRestaurant.images,
+        'main': mainImage,
+      },
+      operatingHours: {
+        'openTime': openTime,
+        'closeTime': closeTime,
+      },
+    );
+
+    try {
+      await viewModel.updateRestaurant(updatedRestaurant);
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cập nhật nhà hàng thành công')),
+      );
+      viewModel.loadRestaurants();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi: ${e.toString()}')),
+      );
+    }
   }
 }

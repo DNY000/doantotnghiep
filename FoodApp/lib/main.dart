@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -6,7 +7,6 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:foodapp/data/repositories/food_repository.dart';
 import 'package:foodapp/data/repositories/order_repository.dart';
 import 'package:foodapp/data/repositories/restaurant_repository.dart';
-import 'package:foodapp/ultils/const/color_extension.dart';
 import 'package:foodapp/routes/page_router.dart';
 import 'package:foodapp/ultils/local_storage/storage_utilly.dart';
 import 'package:foodapp/viewmodels/food_viewmodel.dart';
@@ -25,17 +25,26 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  // Xử lý message ở đây nếu muốn
 }
 
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  // Load .env file first
+  // Cấu hình toàn diện hơn cho status bar
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+    systemNavigationBarColor: Colors.white,
+    systemNavigationBarIconBrightness: Brightness.dark,
+  ));
+
+  // Đảm bảo hiển thị status bar nhưng trong suốt
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
   await dotenv.load(fileName: ".env");
 
-  // Khởi tạo Firebase
   await Future.wait<void>([
     TLocalStorage.init('food_app'),
     Firebase.initializeApp(
@@ -52,7 +61,6 @@ Future<void> main() async {
     ),
   ]);
 
-  // Đăng ký background handler (nếu dùng)
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   FlutterNativeSplash.remove();
@@ -81,7 +89,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Khởi tạo notification service
     NotificationsService.initialize(context);
 
     return MaterialApp.router(
@@ -89,15 +96,33 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       routerConfig: goRouter,
       theme: ThemeData(
-        primaryColor: TColor.primary,
+        useMaterial3: true,
+        primaryColor: Colors.white,
         fontFamily: "Quicksand",
         scaffoldBackgroundColor: Colors.white,
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.white,
           elevation: 0,
-          iconTheme: IconThemeData(color: TColor.primary),
+          iconTheme: IconThemeData(color: Colors.black),
+          systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.dark,
+            statusBarBrightness: Brightness.light,
+            systemNavigationBarColor: Colors.transparent,
+          ),
         ),
       ),
+      builder: (context, child) {
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.dark,
+            statusBarBrightness: Brightness.light,
+            systemNavigationBarColor: Colors.transparent,
+          ),
+          child: child!,
+        );
+      },
     );
   }
 }

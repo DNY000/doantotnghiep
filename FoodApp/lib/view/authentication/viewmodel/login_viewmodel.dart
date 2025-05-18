@@ -13,7 +13,6 @@ import 'package:foodapp/ultils/exception/platform_exception.dart';
 import 'package:foodapp/ultils/exception/format_exception.dart';
 import 'package:foodapp/data/models/user_model.dart';
 import 'package:foodapp/ultils/const/enum.dart';
-import 'package:provider/provider.dart';
 
 // GlobalKey cho navigation
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -59,12 +58,6 @@ class LoginViewModel extends ChangeNotifier {
   String? validateEmail(String? value) => Validators.validateEmail(value);
   String? validatePassword(String? value) => Validators.validatePassword(value);
 
-  /// -----------------------------
-  /// Đăng nhập bằng email và mật khẩu
-  /// -----------------------------
-  ///
-  ///
-  ///
   Future<void> resetPassword() async {
     try {
       await _authenticationRepository.resetPassword(txtEmail.text.trim());
@@ -94,8 +87,7 @@ class LoginViewModel extends ChangeNotifier {
         await _localStorage.saveData(KEY_USER_EMAIL, txtEmail.text);
         await _localStorage.saveData(KEY_PASSWORD_USER, txtPassword.text);
         await _localStorage.saveData("AUTO_LOGIN", true);
-        currentUser =
-            await _userViewModel.getUserById(userCredential.user!.uid);
+        await _userViewModel.loadCurrentUser();
       }
 
       _isLoading = false;
@@ -225,6 +217,7 @@ class LoginViewModel extends ChangeNotifier {
         if (_navigationCallback != null) {
           _navigationCallback!('/main_tab');
         }
+        await _userViewModel.loadCurrentUser();
 
         return true;
       } on TFirebaseAuthException catch (e) {
@@ -281,6 +274,7 @@ class LoginViewModel extends ChangeNotifier {
       if (_navigationCallback != null) {
         _navigationCallback!('/main_tab');
       }
+      await _userViewModel.fetchUser(userCredential.user!.uid);
     } catch (e) {
       _isLoading = false;
       _error = e.toString();

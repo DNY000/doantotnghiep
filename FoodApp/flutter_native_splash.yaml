@@ -3,11 +3,11 @@ flutter_native_splash:
   color: "#FFFFFF"
 
   # Image path relative to your project
-  image: "assets/img/logo/logoapp.jpg"
+  image: "assets/images/logo/logoapp.jpg"
 
   # Splash screen background color for Android 12
   android_12:
-    image: "assets/img/logo/logoapp.jpg"
+    image: "assets/images/logo/logoapp.jpg"
     icon_background_color: "#FFFFFF"
 
   # Platform support

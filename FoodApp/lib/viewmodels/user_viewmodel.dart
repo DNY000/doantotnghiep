@@ -3,6 +3,7 @@ import 'package:foodapp/data/repositories/user_repository.dart';
 import 'package:foodapp/ultils/exception/firebase_exception.dart';
 import 'package:foodapp/ultils/exception/format_exception.dart';
 import 'package:flutter/foundation.dart';
+import 'package:geolocator/geolocator.dart';
 
 class UserViewModel extends ChangeNotifier {
   final UserRepository _repository;
@@ -10,6 +11,9 @@ class UserViewModel extends ChangeNotifier {
   List<UserModel> _users = [];
   bool _isLoading = false;
   String? _error;
+  Position? _userPosition;
+  String? _city;
+  String? _address;
 
   UserViewModel(this._repository);
 
@@ -19,6 +23,9 @@ class UserViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get isLoggedIn => _currentUser != null;
+  Position? get userPosition => _userPosition;
+  String? get city => _city;
+  String? get address => _address;
 
   // Lấy thông tin người dùng
   Future<void> fetchUser(String userId) async {
@@ -28,6 +35,7 @@ class UserViewModel extends ChangeNotifier {
       notifyListeners();
 
       _currentUser = await _repository.getUserById(userId);
+      notifyListeners();
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -225,5 +233,34 @@ class UserViewModel extends ChangeNotifier {
         print(_error);
       }
     }
+  }
+
+  Future<void> fetchUserLocation() async {
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          notifyListeners();
+          return;
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        notifyListeners();
+        return;
+      }
+      _userPosition = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      notifyListeners();
+    } catch (e) {
+      notifyListeners();
+    }
+  }
+
+  void setAddressInfo({String? city, String? address}) {
+    _city = city;
+    _address = address;
+    notifyListeners();
   }
 }

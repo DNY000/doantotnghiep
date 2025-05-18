@@ -9,17 +9,17 @@ class ListBanner extends StatelessWidget {
     final sizeContainer = MediaQuery.of(context).size.width * 0.5;
     List bannerArr = [
       {
-        "image": "assets/img/f2.png",
+        "image": "assets/images/f2.png",
         "title": "Special Offer!",
         "subtitle": "Get 20% off on your first order"
       },
       {
-        "image": "assets/img/f3.png",
+        "image": "assets/images/f3.png",
         "title": "New Arrivals",
         "subtitle": "Check out our latest menu items"
       },
       {
-        "image": "assets/img/f4.png",
+        "image": "assets/images/f4.png",
         "title": "Weekend Special",
         "subtitle": "Free delivery on orders above \$50"
       }

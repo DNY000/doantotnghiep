@@ -1,4 +1,8 @@
+import 'package:admin/screens/restaurant/widget/food_by_restaurant.dart';
+import 'package:admin/screens/restaurant/widget/order_by_restaurant.dart';
+import 'package:admin/screens/restaurant/widget/thong_ke.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class RestaurantDetailScreen extends StatefulWidget {
   final String restaurantId;
@@ -29,10 +33,15 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chi tiết nhà hàng'),
+        leading: IconButton(
+          onPressed: () {
+            context.go('/restaurant');
+          },
+          icon: const Icon(Icons.arrow_back),
+        ),
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: 'Tổng quan'),
             Tab(text: 'Món ăn'),
             Tab(text: 'Đơn hàng'),
             Tab(text: 'Doanh thu'),
@@ -43,35 +52,13 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
         controller: _tabController,
         children: [
           // RestaurantView(),
-          // FoodByRestaurantScreen(
-          //   restaurantId: widget.restaurantId,
-          // ),
-          const OrderByRestaurantScreem(),
-          const DoanhThuByRestaurantScreen(),
+          FoodByRestaurantScreen(
+            restaurantId: widget.restaurantId,
+          ),
+          OrderByRestaurantScreem(restaurantId: widget.restaurantId),
+          DoanhThuByRestaurantScreen(restaurantId: widget.restaurantId),
         ],
       ),
-    );
-  }
-}
-
-class OrderByRestaurantScreem extends StatelessWidget {
-  const OrderByRestaurantScreem({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Danh sách đơn hàng')),
-    );
-  }
-}
-
-class DoanhThuByRestaurantScreen extends StatelessWidget {
-  const DoanhThuByRestaurantScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Thống kê doanh thu')),
     );
   }
 }

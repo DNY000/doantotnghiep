@@ -70,4 +70,40 @@ class RestaurantViewModel extends ChangeNotifier {
     _isLoading = loading;
     notifyListeners();
   }
+
+  Future<void> addRestaurant(RestaurantModel restaurant) async {
+    _setLoading(true);
+    try {
+      await _repository.addRestaurant(restaurant);
+      _error = null;
+    } catch (e) {
+      _error = 'Không thể thêm nhà hàng: $e';
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> updateRestaurant(RestaurantModel restaurant) async {
+    _setLoading(true);
+    try {
+      await _repository.updateRestaurant(restaurant);
+      _error = null;
+    } catch (e) {
+      _error = 'Không thể cập nhật nhà hàng: $e';
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> deleteRestaurant(String restaurantId) async {
+    _setLoading(true);
+    try {
+      await _repository.deleteRestaurant(restaurantId);
+      _error = null;
+    } catch (e) {
+      _error = 'Không thể xóa nhà hàng: $e';
+    } finally {
+      _setLoading(false);
+    }
+  }
 }

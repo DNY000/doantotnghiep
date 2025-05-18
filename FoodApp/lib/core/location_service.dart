@@ -1,4 +1,5 @@
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:flutter/material.dart';
 
 class LocationService {
@@ -158,5 +159,32 @@ class LocationService {
   static void clearCache() {
     _lastKnownPosition = null;
     _lastUpdateTime = null;
+  }
+
+  /// Chuyển đổi từ vị trí (Position) thành địa chỉ (String)
+  static Future<String?> getAddressFromPosition(Position position) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        // Ghép các thành phần địa chỉ lại thành 1 chuỗi
+        String address = [
+          place.street,
+          place.subLocality,
+          place.locality,
+          place.subAdministrativeArea,
+          place.administrativeArea,
+          place.country
+        ].where((e) => e != null && e.isNotEmpty).join(', ');
+        return address;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error converting position to address: $e');
+      return null;
+    }
   }
 }

@@ -61,11 +61,14 @@ dependencies:
   shimmer: ^3.0.0
   flutter_dotenv: ^5.2.1
   flutter_local_notifications: ^18.0.1
-  syncfusion_flutter_charts: ^29.1.40
+  syncfusion_flutter_charts: ^29.1.41
   flutter_svg: ^2.0.9
   geocoding: ^3.0.0
   firebase_messaging: ^15.2.5
   firebase_core: ^3.13.0
+  image_picker: ^1.1.2
+  flutter_time_picker_spinner: ^2.0.0
+  file_picker: ^10.1.9
 
 dev_dependencies:
   flutter_test:

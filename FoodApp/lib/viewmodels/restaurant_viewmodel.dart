@@ -278,17 +278,10 @@ class RestaurantViewModel extends ChangeNotifier {
   List<RestaurantModel> getNewRestaurants({int limit = 10}) {
     final sorted = List<RestaurantModel>.from(_restaurants)
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    _newRestaurants = sorted;
+    notifyListeners();
     return sorted.take(limit).toList();
   }
-
-  // Helper methods
-  // void _setLoading(bool value) {
-  //   if (_isLoading == value) return;
-  //   _isLoading = value;
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     notifyListeners();
-  //   });
-  // }
 
   void setSelectedRestaurant(RestaurantModel restaurant) {
     _selectedRestaurant = restaurant;
@@ -358,36 +351,36 @@ class RestaurantViewModel extends ChangeNotifier {
   }
 
   // Lấy danh sách nhà hàng mới đăng ký
-  Future<void> fetchNewRestaurants() async {
-    if (_isLoading) return;
-    // _setLoading(true);
+  // Future<void> fetchNewRestaurants() async {
+  //   if (_isLoading) return;
+  //   // _setLoading(true);
 
-    try {
-      final restaurants = await _repository.getNewRestaurants();
-      _newRestaurants = restaurants.map((restaurant) {
-        // Ensure images are properly handled
-        final images = restaurant.images;
-        if (images.isEmpty ||
-            !images.containsKey('main') ||
-            images['main']?.isEmpty == true) {
-          return restaurant.copyWith(
-            images: {
-              'main': 'assets/images/placeholder_restaurant.png',
-              'gallery': images['gallery'] as List<String>? ?? [],
-            },
-          );
-        }
-        return restaurant;
-      }).toList();
+  //   try {
+  //     final restaurants = await _repository.getNewRestaurants();
+  //     _newRestaurants = restaurants.map((restaurant) {
+  //       // Ensure images are properly handled
+  //       final images = restaurant.images;
+  //       if (images.isEmpty ||
+  //           !images.containsKey('main') ||
+  //           images['main']?.isEmpty == true) {
+  //         return restaurant.copyWith(
+  //           images: {
+  //             'main': 'assets/images/placeholder_restaurant.png',
+  //             'gallery': images['gallery'] as List<String>? ?? [],
+  //           },
+  //         );
+  //       }
+  //       return restaurant;
+  //     }).toList();
 
-      _error = null;
-    } catch (e) {
-      _error = e.toString();
-      _newRestaurants = [];
-    } finally {
-      // _setLoading(false);
-    }
-  }
+  //     _error = null;
+  //   } catch (e) {
+  //     _error = e.toString();
+  //     _newRestaurants = [];
+  //   } finally {
+  //     // _setLoading(false);
+  //   }
+  // }
 
   // Tính khoảng cách từ vị trí người dùng đến nhà hàng
   double calculateDistanceToRestaurant(RestaurantModel restaurant) {

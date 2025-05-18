@@ -147,166 +147,172 @@ class _MyProfileViewState extends State<MyProfileView>
     final userViewModel = context.watch<UserViewModel>();
     final mediaSize = MediaQuery.of(context).size;
 
-    return Scaffold(
-      backgroundColor: TColor.bg,
-      body: userViewModel.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Column(
-                children: [
-                  // Header with user info
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    color: Colors.orange.withOpacity(0.8),
-                    child: SafeArea(
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 30,
-                                backgroundColor: Colors.white,
-                                child: Text(
-                                  (userViewModel.currentUser?.name.isNotEmpty ==
-                                          true)
-                                      ? userViewModel.currentUser!.name
-                                          .substring(0, 1)
-                                          .toUpperCase()
-                                      : 'U',
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green,
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: TColor.bg,
+        body: userViewModel.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // Header with user info
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      color: Colors.orange.withOpacity(0.8),
+                      child: SafeArea(
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 30,
+                                  backgroundColor: Colors.white,
+                                  child: Text(
+                                    (userViewModel
+                                                .currentUser?.name.isNotEmpty ==
+                                            true)
+                                        ? userViewModel.currentUser!.name
+                                            .substring(0, 1)
+                                            .toUpperCase()
+                                        : 'U',
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 15),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      userViewModel.currentUser?.name ?? 'User',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
+                                const SizedBox(width: 15),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        userViewModel.currentUser?.name ??
+                                            'User',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                    Text(
-                                      userViewModel.currentUser?.email ?? '',
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 14,
+                                      Text(
+                                        userViewModel.currentUser?.email ?? '',
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 14,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              // IconButton(
-                              //   icon:
-                              //       const Icon(Icons.edit, color: Colors.white),
-                              //   onPressed: () {
-                              //     // TODO: Navigate to edit profile
-                              //   },
-                              // ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Menu sections
-                  const SizedBox(height: 20),
-                  _buildSection(
-                    'Tài khoản',
-                    [
-                      _buildMenuItem(
-                        icon: Icons.person_outline,
-                        title: 'Thông tin cá nhân',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const InformationUserView(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildMenuItem(
-                        icon: Icons.payment,
-                        title: 'Quản lý phương thức thanh toán',
-                        onTap: () {
-                          // TODO: Navigate to payment methods
-                        },
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  const SizedBox(height: 20),
-                  _buildSection(
-                    'Cài đặt',
-                    [
-                      _buildMenuItem(
-                        icon: Icons.settings_outlined,
-                        title: 'Cài đặt chung',
-                        onTap: () {
-                          // TODO: Navigate to general settings
-                        },
-                      ),
-                      // _buildMenuItem(
-                      //   icon: Icons.notifications_none,
-                      //   title: 'Thông báo',
-                      //   onTap: () {
-                      //     // TODO: Navigate to notifications
-                      //   },
-                      // ),
-                      _buildMenuItem(
-                        icon: Icons.lock_outline,
-                        title: 'Quyền riêng tư',
-                        onTap: () {},
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => _showLogoutConfirmation(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          padding: const EdgeInsets.symmetric(vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.logout, color: Colors.white),
-                            SizedBox(width: 8),
-                            Text(
-                              'Đăng xuất',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                                // IconButton(
+                                //   icon:
+                                //       const Icon(Icons.edit, color: Colors.white),
+                                //   onPressed: () {
+                                //     // TODO: Navigate to edit profile
+                                //   },
+                                // ),
+                              ],
                             ),
                           ],
                         ),
                       ),
                     ),
-                  ),
-                ],
+
+                    // Menu sections
+                    const SizedBox(height: 20),
+                    _buildSection(
+                      'Tài khoản',
+                      [
+                        _buildMenuItem(
+                          icon: Icons.person_outline,
+                          title: 'Thông tin cá nhân',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const InformationUserView(),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildMenuItem(
+                          icon: Icons.payment,
+                          title: 'Quản lý phương thức thanh toán',
+                          onTap: () {
+                            // TODO: Navigate to payment methods
+                          },
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    const SizedBox(height: 20),
+                    _buildSection(
+                      'Cài đặt',
+                      [
+                        _buildMenuItem(
+                          icon: Icons.settings_outlined,
+                          title: 'Cài đặt chung',
+                          onTap: () {
+                            // TODO: Navigate to general settings
+                          },
+                        ),
+                        // _buildMenuItem(
+                        //   icon: Icons.notifications_none,
+                        //   title: 'Thông báo',
+                        //   onTap: () {
+                        //     // TODO: Navigate to notifications
+                        //   },
+                        // ),
+                        _buildMenuItem(
+                          icon: Icons.lock_outline,
+                          title: 'Quyền riêng tư',
+                          onTap: () {},
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => _showLogoutConfirmation(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.logout, color: Colors.white),
+                              SizedBox(width: 8),
+                              Text(
+                                'Đăng xuất',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 

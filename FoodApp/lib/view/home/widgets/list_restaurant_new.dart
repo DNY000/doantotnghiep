@@ -27,7 +27,7 @@ class _ListRestaurantNewState extends State<ListRestaurantNew> {
   Future<void> _fetchData() async {
     if (!mounted) return;
     try {
-      await context.read<RestaurantViewModel>().fetchNewRestaurants();
+      context.read<RestaurantViewModel>().getNewRestaurants();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

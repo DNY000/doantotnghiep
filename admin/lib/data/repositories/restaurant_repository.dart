@@ -7,7 +7,7 @@ class RestaurantRepository {
   final FirebaseFirestore _firestore;
 
   RestaurantRepository({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final String _collection = 'restaurants';
 
@@ -45,12 +45,11 @@ class RestaurantRepository {
     String category,
   ) async {
     try {
-      final snapshot =
-          await _firestore
-              .collection(_collection)
-              .where("categories", arrayContains: category)
-              .where("metadata.isActive", isEqualTo: true)
-              .get();
+      final snapshot = await _firestore
+          .collection(_collection)
+          .where("categories", arrayContains: category)
+          .where("metadata.isActive", isEqualTo: true)
+          .get();
       return snapshot.docs
           .map((doc) => RestaurantModel.fromMap(doc.data(), doc.id))
           .toList();
@@ -74,14 +73,13 @@ class RestaurantRepository {
         return [];
       }
 
-      final restaurants =
-          snapshot.docs.map((doc) {
-            try {
-              return RestaurantModel.fromMap(doc.data(), doc.id);
-            } catch (e) {
-              rethrow;
-            }
-          }).toList();
+      final restaurants = snapshot.docs.map((doc) {
+        try {
+          return RestaurantModel.fromMap(doc.data(), doc.id);
+        } catch (e) {
+          rethrow;
+        }
+      }).toList();
 
       return restaurants;
     } catch (e) {
@@ -182,14 +180,13 @@ class RestaurantRepository {
   double _parseCoordinate(String coordinateStr) {
     try {
       // Remove degree symbol and direction indicators
-      String cleanStr =
-          coordinateStr
-              .replaceAll('°', '')
-              .replaceAll('N', '')
-              .replaceAll('E', '')
-              .replaceAll('S', '')
-              .replaceAll('W', '')
-              .trim();
+      String cleanStr = coordinateStr
+          .replaceAll('°', '')
+          .replaceAll('N', '')
+          .replaceAll('E', '')
+          .replaceAll('S', '')
+          .replaceAll('W', '')
+          .trim();
       return double.parse(cleanStr);
     } catch (e) {
       debugPrint('Invalid coordinate format: $coordinateStr');
@@ -273,8 +270,7 @@ class RestaurantRepository {
     final double deltaPhi = _toRadians(lat2 - lat1);
     final double deltaLambda = _toRadians(lon2 - lon1);
 
-    final double a =
-        sin(deltaPhi / 2) * sin(deltaPhi / 2) +
+    final double a = sin(deltaPhi / 2) * sin(deltaPhi / 2) +
         cos(phi1) * cos(phi2) * sin(deltaLambda / 2) * sin(deltaLambda / 2);
 
     final double c = 2 * atan2(sqrt(a), sqrt(1 - a));
@@ -287,14 +283,39 @@ class RestaurantRepository {
   }
 
   Stream<List<RestaurantModel>> getAllRestaurants() {
-    return _firestore
-        .collection('restaurants')
-        .snapshots()
-        .map(
-          (snapshot) =>
-              snapshot.docs
-                  .map((doc) => RestaurantModel.fromMap(doc.data(), doc.id))
-                  .toList(),
+    return _firestore.collection('restaurants').snapshots().map(
+          (snapshot) => snapshot.docs
+              .map((doc) => RestaurantModel.fromMap(doc.data(), doc.id))
+              .toList(),
         );
+  }
+
+  Future<RestaurantModel> addRestaurant(RestaurantModel restaurant) async {
+    try {
+      final docRef =
+          await _firestore.collection('restaurants').add(restaurant.toMap());
+      return restaurant.copyWith(id: docRef.id);
+    } catch (e) {
+      throw Exception('Không thể thêm nhà hàng: $e');
+    }
+  }
+
+  Future<void> updateRestaurant(RestaurantModel restaurant) async {
+    try {
+      await _firestore
+          .collection('restaurants')
+          .doc(restaurant.id)
+          .update(restaurant.toMap());
+    } catch (e) {
+      throw Exception('Không thể cập nhật nhà hàng: $e');
+    }
+  }
+
+  Future<void> deleteRestaurant(String restaurantId) async {
+    try {
+      await _firestore.collection('restaurants').doc(restaurantId).delete();
+    } catch (e) {
+      throw Exception('Không thể xóa nhà hàng: $e');
+    }
   }
 }

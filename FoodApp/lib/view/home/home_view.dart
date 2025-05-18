@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:foodapp/common_widget/appbar/t_appbar.dart';
+import 'package:foodapp/core/location_service.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
-import 'package:foodapp/view/home/widgets/header_home_view.dart';
 import 'package:foodapp/view/home/widgets/list_banner.dart';
 import 'package:foodapp/view/home/widgets/list_best_seller_food.dart';
 import 'package:foodapp/view/home/widgets/list_category.dart';
 import 'package:foodapp/view/home/widgets/list_restaurant_new.dart';
 import 'package:foodapp/view/home/widgets/restaurant_tab_view.dart';
+import 'package:foodapp/view/notifications/notification_view.dart';
 import 'package:foodapp/viewmodels/restaurant_viewmodel.dart';
+import 'package:foodapp/viewmodels/user_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:foodapp/viewmodels/food_viewmodel.dart';
 import '../../common_widget/selection_text_view.dart';
@@ -35,6 +38,8 @@ class _HomeViewContent extends StatefulWidget {
 
 class _HomeViewContentState extends State<_HomeViewContent>
     with SingleTickerProviderStateMixin {
+  String? _currentAddress;
+
   @override
   void initState() {
     super.initState();
@@ -46,7 +51,26 @@ class _HomeViewContentState extends State<_HomeViewContent>
       context.read<FoodViewModel>().loadFoods();
       context.read<CategoryViewModel>().loadCategories();
       context.read<RestaurantViewModel>().getNewRestaurants();
+      context.read<UserViewModel>().loadCurrentUser();
     });
+
+    _loadCurrentAddress();
+  }
+
+  Future<void> _loadCurrentAddress() async {
+    final position = await LocationService.getCurrentLocation(context);
+    if (position != null) {
+      final address = await LocationService.getAddressFromPosition(position);
+      if (mounted) {
+        setState(() {
+          _currentAddress = address ?? 'Không xác định';
+        });
+      }
+    } else {
+      setState(() {
+        _currentAddress = 'Không xác định';
+      });
+    }
   }
 
   @override
@@ -61,9 +85,53 @@ class _HomeViewContentState extends State<_HomeViewContent>
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              const SliverToBoxAdapter(
-                child: HeaderHomeView(),
-              ),
+              SliverToBoxAdapter(
+                  child: TAppBar(
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Selector<UserViewModel, String>(
+                      selector: (context, user) => user.currentUser?.name ?? '',
+                      builder: (context, name, child) => Text(
+                        'Xin chào, $name',
+                        style: TextStyle(
+                          color: TColor.text,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      _currentAddress ?? 'Đang lấy vị trí...',
+                      style: TextStyle(
+                        color: TColor.gray,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+                // showBackArrow: isSelectCity,
+
+                action: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.notifications_outlined,
+                      size: 24,
+                      color: TColor.text,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const NotificationsView()),
+                      );
+                    },
+                  ),
+                ],
+              )),
               SliverAppBar(
                 backgroundColor: Colors.white,
                 elevation: 1,
