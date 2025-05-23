@@ -95,13 +95,15 @@ class RestaurantViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> deleteRestaurant(String restaurantId) async {
+  Future<bool> deleteRestaurant(String restaurantId) async {
     _setLoading(true);
     try {
       await _repository.deleteRestaurant(restaurantId);
       _error = null;
+      return true;
     } catch (e) {
       _error = 'Không thể xóa nhà hàng: $e';
+      return false;
     } finally {
       _setLoading(false);
     }

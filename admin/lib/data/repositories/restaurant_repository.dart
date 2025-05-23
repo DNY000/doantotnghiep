@@ -311,11 +311,13 @@ class RestaurantRepository {
     }
   }
 
-  Future<void> deleteRestaurant(String restaurantId) async {
+  Future<bool> deleteRestaurant(String restaurantId) async {
     try {
       await _firestore.collection('restaurants').doc(restaurantId).delete();
+      return true;
     } catch (e) {
-      throw Exception('Không thể xóa nhà hàng: $e');
+      print('Lỗi xóa nhà hàng: $e'); // Thêm log để dễ debug
+      return false;
     }
   }
 }

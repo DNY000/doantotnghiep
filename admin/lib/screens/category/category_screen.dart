@@ -68,7 +68,7 @@ class _CategoryContentState extends State<CategoryContent> {
             ),
             ElevatedButton.icon(
               onPressed: () {
-                // TODO: Navigate to add category screen
+                _showCategoryDialog(context);
               },
               icon: const Icon(Icons.add),
               label: const Text('Thêm Danh mục'),
@@ -188,7 +188,7 @@ class _CategoryContentState extends State<CategoryContent> {
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () {
-                        // TODO: Navigate to edit screen
+                        _showCategoryDialog(context, category);
                       },
                     ),
                     IconButton(
@@ -294,7 +294,7 @@ class _CategoryContentState extends State<CategoryContent> {
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () {
-                        // TODO: Navigate to edit screen
+                        _showCategoryDialog(context, category);
                       },
                     ),
                     IconButton(
@@ -330,6 +330,132 @@ class _CategoryContentState extends State<CategoryContent> {
               ],
             ),
           ),
+        );
+      },
+    );
+  }
+
+  void _showCategoryDialog(BuildContext context, [CategoryModel? category]) {
+    final viewModel = Provider.of<CategoryViewModel>(context, listen: false);
+    final TextEditingController nameController =
+        TextEditingController(text: category?.name ?? '');
+    final TextEditingController imageController =
+        TextEditingController(text: category?.image ?? '');
+    bool isActive = category?.isActive ?? true;
+    String? errorText;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(category == null ? 'Thêm Danh mục' : 'Sửa Danh mục'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Tên Danh mục',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: imageController,
+                      decoration: const InputDecoration(
+                        labelText: 'URL Hình ảnh',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        const Text('Trạng thái hoạt động:'),
+                        const SizedBox(width: 8),
+                        Switch(
+                          value: isActive,
+                          onChanged: (value) {
+                            setState(() {
+                              isActive = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    if (errorText != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          errorText!,
+                          style:
+                              const TextStyle(color: Colors.red, fontSize: 12),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Hủy'),
+                ),
+                ElevatedButton(
+                  onPressed: viewModel.isLoading
+                      ? null
+                      : () async {
+                          setState(() {
+                            errorText = null;
+                          });
+
+                          if (nameController.text.isEmpty) {
+                            setState(() {
+                              errorText = 'Tên danh mục không được để trống';
+                            });
+                            return;
+                          }
+
+                          final newCategory = CategoryModel(
+                            id: category?.id ?? '', // Use existing ID for edit
+                            name: nameController.text,
+                            image: imageController.text,
+                            isActive: isActive,
+                          );
+
+                          try {
+                            if (category == null) {
+                              // Tạo mới với thời gian tạo hiện tại
+                              // final categoryToAdd = newCategory.copyWith(
+                              //   createdAt: DateTime.now(),
+                              // );
+                              // await viewModel.addCategory(categoryToAdd);
+                              // debugPrint(
+                              //     'Added category: ${categoryToAdd.name}');
+                            } else {
+                              // Cập nhật, giữ nguyên thời gian tạo
+                              await viewModel.updateCategory(
+                                  category.id, newCategory);
+                              debugPrint(
+                                  'Updated category: ${newCategory.name}');
+                            }
+                            if (context.mounted) {
+                              Navigator.pop(
+                                  context); // Đóng dialog sau khi thành công
+                            }
+                          } catch (e) {
+                            debugPrint('Dialog action error: $e');
+                            setState(() {
+                              errorText = e.toString();
+                            });
+                          }
+                        },
+                  child: viewModel.isLoading
+                      ? const CircularProgressIndicator()
+                      : Text(category == null ? 'Thêm' : 'Lưu'),
+                ),
+              ],
+            );
+          },
         );
       },
     );

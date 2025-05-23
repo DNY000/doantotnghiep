@@ -52,8 +52,10 @@ class _RestaurantContentState extends State<RestaurantContent> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => context.read<RestaurantViewModel>().loadRestaurants(),
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        context.read<RestaurantViewModel>().loadRestaurants();
+      },
     );
   }
 
@@ -239,7 +241,12 @@ class _RestaurantContentState extends State<RestaurantContent> {
                                 child: const Text('Hủy'),
                               ),
                               TextButton(
-                                onPressed: () => Navigator.pop(context, true),
+                                onPressed: () async {
+                                  final isDelete = await viewModel
+                                      .deleteRestaurant(restaurant.id);
+
+                                  Navigator.pop(context, true);
+                                },
                                 child: const Text('Xóa'),
                               ),
                             ],
