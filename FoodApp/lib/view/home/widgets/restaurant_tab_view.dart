@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:foodapp/common_widget/card/t_card.dart';
 import 'package:foodapp/data/models/food_model.dart';
 import 'package:foodapp/view/restaurant/restaurant_detail_view.dart';
 import 'package:foodapp/view/restaurant/single_food_detail.dart';
@@ -36,6 +37,7 @@ class _RestaurantTabViewState extends State<RestaurantTabView>
         viewModel.fetchRestaurants();
         context.read<OrderViewModel>().getTopSellingFoods();
         context.read<FoodViewModel>().getFoodByRate();
+        context.read<OrderViewModel>().getTopSellingFoodsByApp();
       }
     });
   }
@@ -227,21 +229,20 @@ class _RestaurantTabViewState extends State<RestaurantTabView>
   Widget _buildNearbyRestaurants() {
     return Consumer<RestaurantViewModel>(
       builder: (context, viewModel, child) {
-        // Hiển thị loading
         if (_isLoadingLocation || viewModel.isLoading) {
-          return Center(
+          return const Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const CircularProgressIndicator(),
-                const SizedBox(height: 16),
+                CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+                ),
+                SizedBox(height: 16),
                 Text(
-                  _isLoadingLocation
-                      ? 'Đang lấy vị trí...'
-                      : 'Đang tải danh sách nhà hàng...',
+                  'Đang tải dữ liệu...',
                   style: TextStyle(
                     fontSize: 16,
-                    color: TColor.text,
+                    color: Colors.grey,
                   ),
                 ),
               ],
@@ -249,196 +250,132 @@ class _RestaurantTabViewState extends State<RestaurantTabView>
           );
         }
 
-        // Kiểm tra vị trí
         if (_currentPosition == null) {
           return _buildLocationStatus();
         }
 
-        // Hiển thị lỗi
         if (viewModel.error?.isNotEmpty == true) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 60,
-                  color: TColor.primary,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Có lỗi xảy ra',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: TColor.text,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  viewModel.error ?? '',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: TColor.gray,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () => viewModel.fetchNearbyRestaurants(
-                    radiusInKm: 20,
-                    limit: 10,
-                  ),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Thử lại'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: TColor.primary,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ],
+          return _buildErrorView(
+            message: viewModel.error ?? 'Có lỗi xảy ra',
+            onRetry: () => viewModel.fetchNearbyRestaurants(
+              radiusInKm: 20,
+              limit: 10,
             ),
           );
         }
 
-        // Không tìm thấy nhà hàng
         if (viewModel.nearbyRestaurants.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.restaurant_outlined,
-                  size: 60,
-                  color: TColor.primary,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Không tìm thấy nhà hàng',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Không có nhà hàng nào trong khu vực tìm kiếm',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () => viewModel.fetchNearbyRestaurants(
-                    radiusInKm: 40, // Tăng gấp đôi bán kính tìm kiếm
-                    limit: 10,
-                  ),
-                  icon: const Icon(Icons.search),
-                  label: const Text('Mở rộng tìm kiếm'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: TColor.primary,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ],
+          return _buildEmptyView(
+            icon: Icons.restaurant_outlined,
+            title: 'Không tìm thấy nhà hàng',
+            message: 'Không có nhà hàng nào trong khu vực tìm kiếm',
+            buttonText: 'Mở rộng tìm kiếm',
+            onButtonPressed: () => viewModel.fetchNearbyRestaurants(
+              radiusInKm: 40,
+              limit: 10,
             ),
           );
         }
 
-        // Hiển thị danh sách nhà hàng
-        return Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(15),
-                itemCount: viewModel.nearbyRestaurants.length,
-                itemBuilder: (context, index) {
-                  final restaurant = viewModel.nearbyRestaurants[index];
-                  final distanceInMeters =
-                      viewModel.calculateDistanceToRestaurant(restaurant);
-                  final formattedDistance =
-                      viewModel.formatDistance(distanceInMeters);
+        return ListView.builder(
+          padding: const EdgeInsets.all(15),
+          itemCount: viewModel.nearbyRestaurants.length,
+          itemBuilder: (context, index) {
+            final restaurant = viewModel.nearbyRestaurants[index];
+            final distanceInMeters =
+                viewModel.calculateDistanceToRestaurant(restaurant);
+            final formattedDistance =
+                viewModel.formatDistance(distanceInMeters);
 
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                RestaurantDetailView(restaurant: restaurant)),
-                      );
-                    },
-                    child: Card(
-                      color: Colors.white,
-                      elevation: 0.8,
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(8),
-                        leading: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.asset(
-                            restaurant.mainImage,
-                            width: 60,
-                            height: 60,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(
-                              width: 60,
-                              height: 60,
-                              color: Colors.grey[300],
-                              child: const Icon(Icons.restaurant),
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          restaurant.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(restaurant.address),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.star,
-                                  size: 16,
-                                  color: Colors.orange,
-                                ),
-                                Text(
-                                  ' ${restaurant.rating}',
-                                  style: const TextStyle(
-                                    color: Colors.orange,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                const Icon(
-                                  Icons.location_on,
-                                  size: 16,
-                                  color: Colors.orange,
-                                ),
-                                Text(
-                                  ' $formattedDistance',
-                                  style: const TextStyle(
-                                    color: Colors.orange,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+            return RepaintBoundary(
+              child: Card(
+                color: Colors.white,
+                elevation: 0.8,
+                margin: const EdgeInsets.only(bottom: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            RestaurantDetailView(restaurant: restaurant),
                       ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        // Restaurant Image
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Hero(
+                            tag: 'restaurant_${restaurant.id}',
+                            child: Image.asset(
+                              restaurant.mainImage,
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(Icons.restaurant,
+                                    color: TColor.orange5),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                restaurant.name,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                restaurant.address,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: TColor.gray,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  _buildRatingInfo(restaurant.rating),
+                                  const SizedBox(width: 12),
+                                  _buildDistanceInfo(formattedDistance),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -448,116 +385,30 @@ class _RestaurantTabViewState extends State<RestaurantTabView>
     return Consumer<OrderViewModel>(
       builder: (context, viewModel, child) {
         if (viewModel.isLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+            ),
+          );
         }
 
         if (viewModel.error?.isNotEmpty == true) {
-          return Center(
-            child: Text('Lỗi: ${viewModel.error}'),
+          return _buildErrorView(
+            message: viewModel.error ?? 'Có lỗi xảy ra',
+            onRetry: () => viewModel.getTopSellingFoods(),
           );
         }
 
-        if (viewModel.topSellingFoods.isEmpty) {
-          return const Center(
-            child: Text('Chưa có món ăn bán chạy'),
+        if (viewModel.topSellingFoodsByApp.isEmpty) {
+          return _buildEmptyView(
+            icon: Icons.trending_up,
+            title: 'Chưa có món ăn bán chạy',
+            message: 'Hãy quay lại sau để xem các món ăn bán chạy',
           );
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(15),
-          itemCount: viewModel.topSellingFoods.length,
-          itemBuilder: (context, index) {
-            final food = viewModel.topSellingFoods[index];
-            final foodModel = FoodModel.fromMap(food);
-            return Card(
-              color: Colors.white,
-              elevation: 0.8,
-              margin: const EdgeInsets.only(bottom: 8),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            SingleFoodDetail(foodItem: foodModel)),
-                  );
-                },
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(8),
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: food['images'] != null &&
-                            (food['images'] as List).isNotEmpty
-                        ? Image.network(
-                            food['images'][0],
-                            width: 60,
-                            height: 60,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(
-                              width: 60,
-                              height: 60,
-                              color: Colors.grey[300],
-                              child: const Icon(Icons.fastfood),
-                            ),
-                          )
-                        : Container(
-                            width: 60,
-                            height: 60,
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.fastfood),
-                          ),
-                  ),
-                  title: Text(
-                    food['name'] ?? 'Không có tên',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Danh mục: ${food['category'] ?? 'Chưa phân loại'}'),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.shopping_cart,
-                            size: 16,
-                            color: Colors.orange,
-                          ),
-                          Text(
-                            ' Đã bán: ${food['quantity'] ?? 0}',
-                            style: const TextStyle(
-                              color: Colors.orange,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.star,
-                            size: 16,
-                            color: Colors.orange,
-                          ),
-                          Text(
-                            ' ${food['rating']?.toStringAsFixed(1) ?? 'N/A'}',
-                            style: const TextStyle(
-                              color: Colors.orange,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        'Doanh thu: ${(food['totalRevenue'] as double).toStringAsFixed(0)}đ',
-                        style: const TextStyle(
-                          color: Colors.green,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
+        return FoodListView(
+          foods: viewModel.topSellingFoodsByApp,
         );
       },
     );
@@ -567,160 +418,199 @@ class _RestaurantTabViewState extends State<RestaurantTabView>
     return Consumer<FoodViewModel>(
       builder: (context, viewModel, child) {
         if (viewModel.isLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+            ),
+          );
         }
 
         if (viewModel.error?.isNotEmpty == true) {
-          return Center(
-            child: Text('Lỗi: ${viewModel.error}'),
+          return _buildErrorView(
+            message: viewModel.error ?? 'Có lỗi xảy ra',
+            onRetry: () => viewModel.getFoodByRate(),
           );
         }
 
         if (viewModel.fetchFoodsByRate.isEmpty) {
-          return const Center(
-            child: Text('Chưa có nhà hàng được đánh giá'),
+          return _buildEmptyView(
+            icon: Icons.star,
+            title: 'Chưa có món ăn được đánh giá',
+            message: 'Hãy quay lại sau để xem các món ăn được đánh giá cao',
           );
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(15),
-          itemCount: viewModel.fetchFoodsByRate.length,
-          itemBuilder: (context, index) {
-            final food = viewModel.fetchFoodsByRate[index];
-
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            SingleFoodDetail(foodItem: food)));
-              },
-              child: Card(
-                color: Colors.white,
-                elevation: 0.8,
-                margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Ảnh món ăn với kích thước nhỏ gọn và bo viền
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.asset(
-                          food.images.isNotEmpty
-                              ? food.images.first
-                              : 'assets/img/placeholder.png',
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(
-                            width: 80,
-                            height: 80,
-                            color: Colors.grey[200],
-                            child: Icon(Icons.fastfood, color: TColor.primary),
-                          ),
-                        ),
-                      ),
-
-                      // Khoảng cách giữa ảnh và thông tin
-                      const SizedBox(width: 12),
-
-                      // Thông tin món ăn
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Tên món ăn
-                            Text(
-                              food.name,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-
-                            const SizedBox(height: 4),
-
-                            // Đánh giá
-                            Row(
-                              children: [
-                                Text(
-                                  food.rating.toStringAsFixed(1),
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: TColor.text,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                // Rating stars
-                                SizedBox(
-                                  height: 16,
-                                  child: RatingBarIndicator(
-                                    rating: food.rating,
-                                    itemBuilder: (context, index) => const Icon(
-                                      Icons.star,
-                                      color: Colors.amber,
-                                    ),
-                                    itemCount: 5,
-                                    itemSize: 14,
-                                    direction: Axis.horizontal,
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 4),
-
-                            // Mô tả món ăn
-                            Text(
-                              food.description,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: TColor.gray,
-                                height: 1.3,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-
-                            const SizedBox(height: 4),
-
-                            // Giá và nhà hàng
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                // Giá
-                                Text(
-                                  '${food.price.toStringAsFixed(0)}đ',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: TColor.color3,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
+        return FoodListView(foods: viewModel.fetchFoodsByRate);
       },
+    );
+  }
+
+  // Helper widgets
+  Widget _buildErrorView({
+    required String message,
+    required VoidCallback onRetry,
+  }) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 60,
+            color: TColor.orange5,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Có lỗi xảy ra',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: TColor.text,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: TColor.gray,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Thử lại'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: TColor.orange5,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyView({
+    required IconData icon,
+    required String title,
+    required String message,
+    String? buttonText,
+    VoidCallback? onButtonPressed,
+  }) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: 60,
+            color: TColor.orange5,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 15,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          if (buttonText != null && onButtonPressed != null) ...[
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: onButtonPressed,
+              icon: const Icon(Icons.search),
+              label: Text(buttonText),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: TColor.orange5,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRatingInfo(double rating) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.star,
+          size: 16,
+          color: TColor.orange5,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          rating.toStringAsFixed(1),
+          style: TextStyle(
+            color: TColor.orange5,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDistanceInfo(String distance) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(
+          Icons.location_on,
+          size: 16,
+          color: Colors.orange,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          distance,
+          style: const TextStyle(
+            color: Colors.orange,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSalesInfo(int quantity) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(
+          Icons.shopping_cart,
+          size: 16,
+          color: Colors.orange,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          'Đã bán: $quantity',
+          style: const TextStyle(
+            color: Colors.orange,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }

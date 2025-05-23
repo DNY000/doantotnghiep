@@ -10,12 +10,11 @@ class ListFoodYouMaybeLike extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sizeContainer = MediaQuery.of(context).size.width * 0.43;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.all(0),
           child: SelectionTextView(
             title: "Có thể bạn sẽ thích",
             onSeeAllTap: () {},
@@ -23,12 +22,15 @@ class ListFoodYouMaybeLike extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         SizedBox(
-          height: sizeContainer, // Tăng chiều cao
+          height: 164,
           child: Consumer<FoodViewModel>(
             builder: (context, viewModel, child) {
-              if (viewModel.isLoading) {
+              if (viewModel.isLoading && viewModel.foods.isEmpty) {
                 return const Center(
-                  child: CircularProgressIndicator(),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+                  ),
                 );
               }
 
@@ -37,49 +39,89 @@ class ListFoodYouMaybeLike extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.red,
+                        size: 32,
+                      ),
+                      const SizedBox(height: 8),
                       Text(
                         'Error: ${viewModel.error ?? 'Đã xảy ra lỗi'}',
                         style: const TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
                       ),
-                      ElevatedButton(
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
                         onPressed: () => viewModel.loadFoods(),
-                        child: const Text('Thử lại'),
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Thử lại'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                        ),
                       ),
                     ],
                   ),
                 );
               }
 
-              if (viewModel.foods.isEmpty) {
+              final foods = viewModel.fetchFoodsForYou;
+              if (foods.isEmpty) {
                 return const Center(
-                  child: Text('Không có món ăn '),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.no_food,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Không có món ăn',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               }
 
               return ListView.builder(
                 scrollDirection: Axis.horizontal,
                 clipBehavior: Clip.hardEdge,
-                shrinkWrap: true,
+                cacheExtent: 1000, // Cache more items for smoother scrolling
                 padding: const EdgeInsets.symmetric(horizontal: 7),
-                itemCount: viewModel.fetchFoodsForYou.length,
+                itemCount: foods.length,
                 itemBuilder: (context, index) {
-                  final food = viewModel.fetchFoodsForYou[index];
-
-                  return GestureDetector(
-                    onTap: () {
-                      // Sửa lại phần navigation để truyền restaurantId
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => SingleFoodDetail(
-                            foodItem: food,
-                            restaurantId:
-                                food.restaurantId, // Thêm restaurantId vào đây
+                  final food = foods[index];
+                  return RepaintBoundary(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Hero(
+                        tag: 'food_${food.id}',
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SingleFoodDetail(
+                                    foodItem: food,
+                                    restaurantId: food.restaurantId,
+                                  ),
+                                ),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: FoodGridItem(food: food),
                           ),
                         ),
-                      );
-                    },
-                    child: FoodGridItem(food: food),
+                      ),
+                    ),
                   );
                 },
               );

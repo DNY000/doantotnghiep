@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:foodapp/common_widget/card/t_card.dart';
 import 'package:provider/provider.dart';
 import 'package:foodapp/data/models/food_model.dart';
 import 'package:foodapp/viewmodels/food_viewmodel.dart';
@@ -118,102 +119,109 @@ class _FoodSearchViewState extends State<FoodSearchView> {
             );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: searchResults.length,
-            itemBuilder: (context, index) {
-              final food = searchResults[index];
-              return _buildFoodItem(food);
-            },
+          return FoodListView(
+            foods: searchResults,
+            physics: const BouncingScrollPhysics(),
           );
+          // ListView.builder(
+          //   padding: const EdgeInsets.all(16),
+          //   itemCount: searchResults.length,
+          //   itemBuilder: (context, index) {
+          //     final food = searchResults[index];
+          //     return _buildFoodItem(food);
+          //   },
+          // );
         },
       ),
     );
   }
 
-  Widget _buildFoodItem(FoodModel food) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      color: Colors.white,
-      elevation: 1,
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SingleFoodDetail(foodItem: food),
-            ),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              // Food Image
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  food.images.first,
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    width: 80,
-                    height: 80,
-                    color: Colors.grey[200],
-                    child: Icon(Icons.fastfood, color: TColor.color3),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Food Details
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      food.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      food.description,
-                      style: TextStyle(
-                        color: TColor.gray,
-                        fontSize: 14,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Text(
-                          '${food.price.toStringAsFixed(0)}đ',
-                          style: TextStyle(
-                            color: TColor.color3,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Spacer(),
-                        const Icon(Icons.star, size: 16, color: Colors.yellow),
-                        const SizedBox(width: 4),
-                        Text(
-                          food.rating.toStringAsFixed(1),
-                          style: TextStyle(color: TColor.color3),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+//   Widget _buildFoodItem(FoodModel food) {
+//     return Card(
+//       margin: const EdgeInsets.only(bottom: 12),
+//       color: Colors.white,
+//       elevation: 1,
+//       child: InkWell(
+//         onTap: () {
+//           Navigator.push(
+//             context,
+//             MaterialPageRoute(
+//               builder: (context) => SingleFoodDetail(
+//                 foodItem: food,
+//                 restaurantId: food.restaurantId,
+//               ),
+//             ),
+//           );
+//         },
+//         child: Padding(
+//           padding: const EdgeInsets.all(12),
+//           child: Row(
+//             children: [
+//               // Food Image
+//               ClipRRect(
+//                 borderRadius: BorderRadius.circular(8),
+//                 child: Image.asset(
+//                   food.images.first,
+//                   width: 80,
+//                   height: 80,
+//                   fit: BoxFit.cover,
+//                   errorBuilder: (context, error, stackTrace) => Container(
+//                     width: 80,
+//                     height: 80,
+//                     color: Colors.grey[200],
+//                     child: Icon(Icons.fastfood, color: TColor.color3),
+//                   ),
+//                 ),
+//               ),
+//               const SizedBox(width: 12),
+//               // Food Details
+//               Expanded(
+//                 child: Column(
+//                   crossAxisAlignment: CrossAxisAlignment.start,
+//                   children: [
+//                     Text(
+//                       food.name,
+//                       style: const TextStyle(
+//                         fontSize: 16,
+//                         fontWeight: FontWeight.bold,
+//                       ),
+//                     ),
+//                     const SizedBox(height: 4),
+//                     Text(
+//                       food.description,
+//                       style: TextStyle(
+//                         color: TColor.gray,
+//                         fontSize: 14,
+//                       ),
+//                       maxLines: 2,
+//                       overflow: TextOverflow.ellipsis,
+//                     ),
+//                     const SizedBox(height: 4),
+//                     Row(
+//                       children: [
+//                         Text(
+//                           '${food.price.toStringAsFixed(0)}đ',
+//                           style: TextStyle(
+//                             color: TColor.color3,
+//                             fontWeight: FontWeight.bold,
+//                           ),
+//                         ),
+//                         const Spacer(),
+//                         Icon(Icons.star, size: 16, color: TColor.orange5),
+//                         const SizedBox(width: 4),
+//                         Text(
+//                           food.rating.toStringAsFixed(1),
+//                           style: TextStyle(color: TColor.color3),
+//                         ),
+//                       ],
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
 }

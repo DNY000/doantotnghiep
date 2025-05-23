@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:foodapp/data/models/notification_model.dart';
+import 'package:foodapp/data/models/order_model.dart';
+import 'package:foodapp/view/order/order_detail_screen.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/notification_viewmodel.dart';
+import '../../viewmodels/order_viewmodel.dart';
+import 'package:foodapp/ultils/const/enum.dart';
 
 class NotificationsView extends StatefulWidget {
   const NotificationsView({super.key});
@@ -14,9 +18,12 @@ class _NotificationsViewState extends State<NotificationsView> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        context.read<NotificationViewModel>().loadNotifications();
+      },
+    );
     // Load notifications when the view is initialized
-    Future.microtask(
-        () => context.read<NotificationViewModel>().loadNotifications());
   }
 
   @override
@@ -77,6 +84,7 @@ class _NotificationsViewState extends State<NotificationsView> {
                 notification: notification,
                 onMarkAsRead: () => viewModel.markAsRead(notification.id),
                 onDelete: () => viewModel.deleteNotification(notification.id),
+                onTap: () => _handleNotificationTap(context, notification),
               );
             },
           );
@@ -84,18 +92,50 @@ class _NotificationsViewState extends State<NotificationsView> {
       ),
     );
   }
+
+  Future<void> _handleNotificationTap(
+      BuildContext context, NotificationModel notification) async {
+    // Mark notification as read
+    await context.read<NotificationViewModel>().markAsRead(notification.id);
+
+    // If notification is about an order, navigate to order detail
+    if (notification.type == NotificationType.order &&
+        notification.data.containsKey('orderId')) {
+      final orderId = notification.data['orderId'] as String;
+
+      // Get order details
+      context.read<OrderViewModel>().getOrderById(orderId);
+
+      final orders = await context.read<OrderViewModel>().selectedOrder;
+      // final order = orders.firstWhere(
+      //   (order) => order.id == orderId,
+      //   orElse: () => throw Exception('Order not found'),
+      // );
+
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OrderDetailScreen(order: orders!),
+          ),
+        );
+      }
+    }
+  }
 }
 
 class NotificationItem extends StatelessWidget {
   final NotificationModel notification;
   final VoidCallback onMarkAsRead;
   final VoidCallback onDelete;
+  final VoidCallback onTap;
 
   const NotificationItem({
     Key? key,
     required this.notification,
     required this.onMarkAsRead,
     required this.onDelete,
+    required this.onTap,
   }) : super(key: key);
 
   @override
@@ -111,7 +151,7 @@ class NotificationItem extends StatelessWidget {
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       child: InkWell(
-        onTap: onMarkAsRead,
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           child: Row(
@@ -121,12 +161,13 @@ class NotificationItem extends StatelessWidget {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.2),
+                  color:
+                      _getNotificationColor(notification.type).withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
-                  Icons.notifications,
-                  color: Colors.orange,
+                child: Icon(
+                  _getNotificationIcon(notification.type),
+                  color: _getNotificationColor(notification.type),
                   size: 30,
                 ),
               ),
@@ -162,6 +203,15 @@ class NotificationItem extends StatelessWidget {
                   ],
                 ),
               ),
+              if (!notification.isRead)
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Colors.orange,
+                    shape: BoxShape.circle,
+                  ),
+                ),
             ],
           ),
         ),
@@ -169,7 +219,44 @@ class NotificationItem extends StatelessWidget {
     );
   }
 
+  Color _getNotificationColor(NotificationType type) {
+    switch (type) {
+      case NotificationType.order:
+        return Colors.orange;
+      case NotificationType.promotion:
+        return Colors.green;
+      case NotificationType.system:
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getNotificationIcon(NotificationType type) {
+    switch (type) {
+      case NotificationType.order:
+        return Icons.shopping_bag;
+      case NotificationType.promotion:
+        return Icons.local_offer;
+      case NotificationType.system:
+        return Icons.notifications;
+      default:
+        return Icons.notifications;
+    }
+  }
+
   String _formatTime(DateTime time) {
-    return "${time.hour}:${time.minute} ${time.day}/${time.month}/${time.year}";
+    final now = DateTime.now();
+    final difference = now.difference(time);
+
+    if (difference.inDays > 0) {
+      return "${time.day}/${time.month}/${time.year}";
+    } else if (difference.inHours > 0) {
+      return "${difference.inHours} giờ trước";
+    } else if (difference.inMinutes > 0) {
+      return "${difference.inMinutes} phút trước";
+    } else {
+      return "Vừa xong";
+    }
   }
 }

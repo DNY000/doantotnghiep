@@ -204,7 +204,7 @@ class OrderRepository {
     }
   }
 
-  // Thống kê món ăn bán chạy
+  //  món ăn phổ biến của nhà hàng
   Future<List<FoodModel>> getTopSellingFoods({
     required String restaurantId,
     int limit = 10,
@@ -373,6 +373,74 @@ class OrderRepository {
       return ShipperModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
     } catch (e) {
       throw Exception('Không thể lấy thông tin shipper: $e');
+    }
+  }
+
+  // Lắng nghe thay đổi trạng thái đơn hàng của người dùng
+  Stream<OrderModel?> listenToOrderStatus(String orderId) {
+    return _firestore.collection(_collection).doc(orderId).snapshots().map(
+        (doc) => doc.exists ? OrderModel.fromMap(doc.data()!, doc.id) : null);
+  }
+
+  // Lắng nghe tất cả đơn hàng của người dùng
+  Stream<List<OrderModel>> listenToUserOrders(String userId) {
+    return _firestore
+        .collection(_collection)
+        .where('userId', isEqualTo: userId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
+            .toList());
+  }
+
+  Future<List<FoodModel>> getTopSellingFoodsByApp({
+    int limit = 10,
+  }) async {
+    try {
+      // Lấy tất cả order của nhà hàng có trạng thái delivered
+      Query query = _firestore
+          .collection(_collection)
+          .where('status', isEqualTo: OrderState.delivered.name);
+
+      final snapshot = await query.get();
+      Map<String, int> foodCount = {};
+
+      for (var doc in snapshot.docs) {
+        try {
+          final order =
+              OrderModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+          for (var item in order.items) {
+            final foodKey = item.foodId;
+            if (foodKey.isEmpty) continue;
+            foodCount[foodKey] = (foodCount[foodKey] ?? 0) + item.quantity;
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+
+      // Sắp xếp theo số lần xuất hiện giảm dần
+      var sortedFoodIds = foodCount.entries.toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+      final topFoodIds = sortedFoodIds.take(limit).map((e) => e.key).toList();
+
+      // Lấy chi tiết từng món ăn
+      List<FoodModel> foods = [];
+      for (final id in topFoodIds) {
+        try {
+          final food = await FoodRepository().getFoodById(id);
+          if (food != null) {
+            foods.add(food);
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+
+      return foods;
+    } catch (e) {
+      throw Exception('Không thể lấy thống kê món ăn bán chạy: $e');
     }
   }
 }

@@ -255,7 +255,7 @@ class _RestaurantFoodsScreenState extends State<RestaurantFoodsScreen>
                     },
                     child: Card(
                       elevation: 0.5,
-                      color: Colors.orange.shade50,
+                      color: Colors.white,
                       margin: const EdgeInsets.only(bottom: 12),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),

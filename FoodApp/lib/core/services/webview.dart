@@ -1,140 +1,134 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:foodapp/core/services/payment_service.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-class VNPayWebViewScreen extends StatefulWidget {
-  final String paymentUrl;
-  final String shipperId;
-  final Function(bool success, String? responseCode, String? errorMessage)
-      onComplete;
+class VNPayWebView extends StatefulWidget {
+  final String orderId;
+  final double amount;
+  final String orderInfo;
+  final Function(bool isSuccess, String message) onPaymentResult;
 
-  const VNPayWebViewScreen({
+  const VNPayWebView({
     Key? key,
-    required this.paymentUrl,
-    required this.shipperId,
-    required this.onComplete,
+    required this.orderId,
+    required this.amount,
+    required this.orderInfo,
+    required this.onPaymentResult,
   }) : super(key: key);
 
   @override
-  State<VNPayWebViewScreen> createState() => _VNPayWebViewScreenState();
+  State<VNPayWebView> createState() => _VNPayWebViewState();
 }
 
-class _VNPayWebViewScreenState extends State<VNPayWebViewScreen> {
-  late WebViewController _controller;
-  bool _isLoading = true;
-  Timer? _timeoutTimer;
-  static const String _returnUrlScheme = 'shipper-vnpay-return://vnpay-return';
-  String? _errorMessage;
+class _VNPayWebViewState extends State<VNPayWebView> {
+  late final WebViewController controller;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    try {
-      print(
-          "❗DEBUG - Khởi tạo WebView VNPay với URL: ${widget.paymentUrl.substring(0, 50)}...");
-      _timeoutTimer = Timer(const Duration(minutes: 15), () {
-        if (mounted) {
-          widget.onComplete(false, null, '99');
-          Navigator.of(context).pop();
-        }
-      });
-      _initWebViewController();
-    } catch (e) {
-      print("❗DEBUG - Lỗi khởi tạo WebView: $e");
-      _errorMessage = "Lỗi khởi tạo WebView: $e";
-      if (mounted) {
-        widget.onComplete(false, null, '99');
-        Navigator.of(context).pop();
-      }
-    }
-  }
 
-  void _initWebViewController() {
-    _controller = WebViewController()
+    controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageStarted: (url) {
-            try {
-              print("❗DEBUG - WebView bắt đầu tải URL: $url");
-              if (mounted) setState(() => _isLoading = true);
-              _checkReturnUrl(url);
-            } catch (e) {
-              print("❗DEBUG - Lỗi khi bắt đầu tải trang: $e");
+          onProgress: (int progress) {
+            if (progress == 100) {
+              setState(() {
+                isLoading = false;
+              });
             }
           },
-          onPageFinished: (url) {
-            try {
-              print("❗DEBUG - WebView đã tải xong URL: $url");
-              if (mounted) setState(() => _isLoading = false);
-              _checkReturnUrl(url);
-
-              // Kiểm tra URL lỗi VNPay
-              if (url.contains('Payment/Error.html')) {
-                final uri = Uri.parse(url);
-                final errorCode = uri.queryParameters['code'];
-                print(
-                    "❗DEBUG - Phát hiện trang lỗi của VNPay với mã: $errorCode");
-                String errorMessage = 'Giao dịch không thành công';
-
-                switch (errorCode) {
-                  // ... existing code ...
-                }
-              }
-            } catch (e) {
-              print("❗DEBUG - Lỗi khi kết thúc tải trang: $e");
-            }
+          onPageStarted: (String url) {
+            setState(() {
+              isLoading = true;
+            });
           },
-          onNavigationRequest: (request) {
-            _checkReturnUrl(request.url);
+          onPageFinished: (String url) {
+            setState(() {
+              isLoading = false;
+            });
+          },
+          onNavigationRequest: (NavigationRequest request) {
+            // Kiểm tra nếu là return URL
+            if (request.url.contains('yourapp.com/payment-result')) {
+              _handlePaymentResult(request.url);
+              return NavigationDecision.prevent;
+            }
             return NavigationDecision.navigate;
           },
         ),
-      )
-      ..loadRequest(Uri.parse(widget.paymentUrl));
+      );
+
+    // Load VNPay payment URL
+    String paymentUrl = VNPayService.createPaymentUrl(
+      orderId: widget.orderId,
+      amount: widget.amount,
+      orderInfo: widget.orderInfo,
+    );
+    controller.loadRequest(Uri.parse(paymentUrl));
   }
 
-  void _checkReturnUrl(String url) {
-    try {
-      print("❗DEBUG - Kiểm tra URL VNPay: $url");
-      if (url.startsWith(_returnUrlScheme) ||
-          url.contains('vnp_ResponseCode=')) {
-        final uri = Uri.parse(url);
-        final params = uri.queryParameters;
-        final responseCode = params['vnp_ResponseCode'];
+  void _handlePaymentResult(String url) {
+    Map<String, String> params = VNPayService.parseReturnUrl(url);
 
-        if (responseCode != null) {
-          _timeoutTimer?.cancel();
-          print("❗DEBUG - Nhận được responseCode từ VNPay: $responseCode");
-          if (mounted) {
-            Navigator.of(context).pop();
-            widget.onComplete(responseCode == '00', responseCode, null);
-          }
-        }
-      }
-    } catch (e) {
-      print("❗DEBUG - Lỗi khi xử lý URL trả về: $e");
-      if (mounted) {
-        widget.onComplete(false, null, '99');
-        Navigator.of(context).pop();
-      }
+    bool isValidCallback = VNPayService.validateCallback(params);
+    String responseCode = params['vnp_ResponseCode'] ?? '';
+
+    if (isValidCallback && responseCode == '00') {
+      // Thanh toán thành công
+      widget.onPaymentResult(true, 'Thanh toán thành công');
+    } else {
+      // Thanh toán thất bại
+      String errorMessage = _getErrorMessage(responseCode);
+      widget.onPaymentResult(false, errorMessage);
     }
+
+    Navigator.of(context).pop();
   }
 
-  @override
-  void dispose() {
-    _timeoutTimer?.cancel();
-    super.dispose();
+  String _getErrorMessage(String responseCode) {
+    switch (responseCode) {
+      case '07':
+        return 'Trừ tiền thành công. Giao dịch bị nghi ngờ.';
+      case '09':
+        return 'Thẻ chưa đăng ký InternetBanking.';
+      case '10':
+        return 'Xác thực thông tin không đúng quá 3 lần.';
+      case '11':
+        return 'Đã hết hạn chờ thanh toán.';
+      case '12':
+        return 'Thẻ/Tài khoản bị khóa.';
+      case '13':
+        return 'Mật khẩu OTP không đúng.';
+      case '24':
+        return 'Khách hàng hủy giao dịch.';
+      case '51':
+        return 'Tài khoản không đủ số dư.';
+      case '65':
+        return 'Tài khoản vượt quá hạn mức giao dịch.';
+      default:
+        return 'Giao dịch không thành công. Mã lỗi: $responseCode';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Thanh toán VNPay'), elevation: 0),
+      appBar: AppBar(
+        title: Text('Thanh toán VNPay'),
+        backgroundColor: Colors.orange,
+        foregroundColor: Colors.white,
+      ),
       body: Stack(
         children: [
-          WebViewWidget(controller: _controller),
-          if (_isLoading) const Center(child: CircularProgressIndicator()),
+          WebViewWidget(controller: controller),
+          if (isLoading)
+            Center(
+              child: CircularProgressIndicator(
+                color: Colors.orange,
+              ),
+            ),
         ],
       ),
     );

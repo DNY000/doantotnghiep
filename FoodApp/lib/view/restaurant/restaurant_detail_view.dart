@@ -71,13 +71,16 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
         }
 
         if (viewModel.popularFoods.isEmpty) {
-          return const SizedBox(
-            height: 200,
-            child: Center(
-              child: Text('Không có món ăn phổ biến'),
-            ),
-          );
+          return const Padding(
+              padding: EdgeInsets.only(top: 20), child: SizedBox.shrink());
         }
+        //   return const SizedBox(
+        //     height: 200,
+        //     child: Center(
+        //       child: Text('Không có món ăn phổ biến'),
+        //     ),
+        //   );
+        // }
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -226,6 +229,7 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
                               MaterialPageRoute(
                                 builder: (context) => ReviewUser(
                                   foodId: widget.restaurant.id,
+                                  restaurantId: widget.restaurant.id,
                                 ),
                               ),
                             );

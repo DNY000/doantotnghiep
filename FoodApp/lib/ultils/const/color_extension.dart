@@ -8,10 +8,19 @@ class TColor {
   static Color get text => secondary;
 
   static Color get rating => const Color(0xffCDD614);
-
+  static Color get gray1 => const Color(0xFFF7FAFC);
   static Color get color1 => const Color(0xffE8334A);
   static Color get color2 => const Color(0xff60B8F6);
   static Color get color3 => const Color(0xffF5821F);
+  static Color get orange1 => const Color(0xFFFF9A56);
+  static Color get orange2 => const Color(0xFFFFA000);
+  static Color get orange3 => const Color(0xFFFFA726);
+  static Color get orange4 => const Color(0xFFFFCC80);
+  static Color get orange5 => const Color(0xFFFFB55B);
+  static Color get orange6 => const Color(0xFFFFB864);
+  static Color get orange7 => const Color(0xFFFFBB6D);
+  static Color get orange8 => const Color(0xFFFFBE76);
+  static Color get orange9 => const Color(0xFFFFC180);
 
   static Color get gray => const Color(0xff9D9D9D);
   static Color get bg => const Color(0xffF2F2F3);

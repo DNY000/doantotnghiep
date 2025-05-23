@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:foodapp/core/services/notifications_service.dart';
 import 'package:foodapp/data/models/notification_model.dart';
 import 'package:foodapp/data/models/order_model.dart';
@@ -6,12 +7,16 @@ import 'package:foodapp/data/repositories/order_repository.dart';
 import 'package:foodapp/data/models/food_model.dart';
 import 'package:foodapp/data/repositories/food_repository.dart';
 import 'package:flutter/foundation.dart';
+import 'package:foodapp/routes/name_router.dart';
 import 'package:foodapp/ultils/const/enum.dart';
 import 'package:foodapp/data/models/cart_item_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:foodapp/data/models/user_model.dart';
 import 'package:foodapp/data/repositories/user_repository.dart';
 import 'package:foodapp/viewmodels/notification_viewmodel.dart';
+import 'dart:async';
+
+import 'package:go_router/go_router.dart';
 
 class OrderViewModel extends ChangeNotifier {
   final OrderRepository _repository;
@@ -21,8 +26,13 @@ class OrderViewModel extends ChangeNotifier {
   String? _error;
   final FoodRepository _foodRepository;
   List<Map<String, dynamic>> _topSellingFoods = [];
+  List<FoodModel> topSellingFoodsByApp = [];
   List<FoodModel> _recommendedFoods = [];
   Stream<List<OrderModel>>? _ordersStream;
+  Stream<OrderModel?>? _orderStatusStream;
+  Stream<List<OrderModel>>? _userOrdersStream;
+  StreamSubscription<OrderModel?>? _orderStatusSubscription;
+  StreamSubscription<List<OrderModel>>? _userOrdersSubscription;
 
   OrderViewModel(this._repository, {FoodRepository? foodRepository})
       : _foodRepository = foodRepository ?? FoodRepository();
@@ -38,6 +48,8 @@ class OrderViewModel extends ChangeNotifier {
 
   // Tạo đơn hàng mới
   Future<void> createOrder({
+    required BuildContext context, // 👈 thêm dòng này
+
     required String userId,
     required String restaurantId,
     required List<CartItemModel> items,
@@ -106,8 +118,10 @@ class OrderViewModel extends ChangeNotifier {
         restaurantLocation: restaurantLocation,
       );
 
-      await _repository.createOrder(order);
+      // Tạo đơn hàng và lấy ID
+      final orderId = await _repository.createOrder(order);
 
+      // Tạo thông báo với order ID
       final notification = NotificationModel(
         id: '',
         userId: userId,
@@ -117,14 +131,19 @@ class OrderViewModel extends ChangeNotifier {
         type: NotificationType.order,
         createdAt: DateTime.now(),
         isRead: false,
-        data: {},
+        data: {
+          'orderId': orderId, // Use the returned order ID
+        },
       );
+
       await _notificationViewModel.createNotification(notification);
       await NotificationsService.showLocalNotification(
         title: 'Đặt đơn thành công',
         body:
             'Đơn hàng của bạn đã được đặt thành công! Cảm ơn bạn đã sử dụng dịch vụ.',
+        payload: orderId,
       );
+      context.go("/home");
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -158,10 +177,61 @@ class OrderViewModel extends ChangeNotifier {
     }
   }
 
-  // Phương thức cũ sử dụng Stream (giữ lại để tương thích với code hiện tại)
-  @Deprecated('Use loadUserOrders instead')
+  // Lắng nghe thay đổi trạng thái của một đơn hàng cụ thể
+  void listenToOrderStatus(String orderId) {
+    _orderStatusStream = _repository.listenToOrderStatus(orderId);
+    _orderStatusSubscription?.cancel();
+    _orderStatusSubscription = _orderStatusStream?.listen((order) {
+      if (order != null) {
+        // Kiểm tra nếu đơn hàng vừa được giao thành công
+        if (order.status == OrderState.delivered) {
+          _sendDeliverySuccessNotification(order);
+        }
+      }
+    });
+  }
+
+  // Lắng nghe tất cả đơn hàng của người dùng
   void listenToUserOrders(String userId) {
-    loadUserOrders(userId);
+    _userOrdersStream = _repository.listenToUserOrders(userId);
+    _userOrdersSubscription?.cancel();
+    _userOrdersSubscription = _userOrdersStream?.listen((orders) {
+      _orders = orders;
+      notifyListeners();
+    });
+  }
+
+  // Gửi thông báo khi đơn hàng được giao thành công
+  Future<void> _sendDeliverySuccessNotification(OrderModel order) async {
+    try {
+      final _notificationViewModel = NotificationViewModel();
+
+      // Tạo thông báo trong ứng dụng
+      final notification = NotificationModel(
+        id: '',
+        userId: order.userId,
+        title: 'Đơn hàng đã được giao thành công',
+        content:
+            'Đơn hàng #${order.id.substring(0, 8)} của bạn đã được giao thành công. Cảm ơn bạn đã sử dụng dịch vụ!',
+        type: NotificationType.order,
+        createdAt: DateTime.now(),
+        isRead: false,
+        data: {
+          'orderId': order.id,
+        },
+      );
+      await _notificationViewModel.createNotification(notification);
+
+      // Hiển thị thông báo hệ thống
+      await NotificationsService.showLocalNotification(
+        title: 'Đơn hàng đã được giao thành công',
+        body:
+            'Đơn hàng #${order.id.substring(0, 8)} của bạn đã được giao thành công. Cảm ơn bạn đã sử dụng dịch vụ!',
+        payload: order.id,
+      );
+    } catch (e) {
+      debugPrint('Lỗi khi gửi thông báo: $e');
+    }
   }
 
   // Hủy đơn hàng
@@ -384,28 +454,6 @@ class OrderViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Future<void> fetchTopSellingFoodsLastWeek() async {
-  //   try {
-  //     _isLoading = true;
-  //     notifyListeners();
-
-  //     final now = DateTime.now();
-  //     final lastWeek = now.subtract(const Duration(days: 7));
-
-  //     _topSellingFoods = await _repository.getTopSellingFoods(
-  //       restaurantId: '',
-  //       limit: 10,
-  //     );
-  //     _error = '';
-  //   } catch (e) {
-  //     _error = 'Không thể lấy danh sách món ăn bán chạy: ${e.toString()}';
-  //     _topSellingFoods = [];
-  //   } finally {
-  //     _isLoading = false;
-  //     notifyListeners();
-  //   }
-  // }
-
   // Thêm phương thức để lọc món ăn bán chạy theo danh mục
   List<Map<String, dynamic>> getTopSellingFoodsByCategory(String category) {
     return _topSellingFoods
@@ -516,6 +564,7 @@ class OrderViewModel extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
+      // Cập nhật trạng thái đơn hàng
       await _repository.updateDeliveryStatus(orderId, status);
 
       // Cập nhật lại trạng thái đơn hàng trong danh sách
@@ -525,6 +574,36 @@ class OrderViewModel extends ChangeNotifier {
           status: status,
         );
         _orders[index] = updatedOrder;
+
+        // Nếu đơn hàng đã được giao thành công, gửi thông báo cho người dùng
+        if (status == OrderState.delivered) {
+          final order = updatedOrder;
+          final _notificationViewModel = NotificationViewModel();
+
+          // Tạo thông báo trong ứng dụng
+          final notification = NotificationModel(
+            id: '',
+            userId: order.userId,
+            title: 'Đơn hàng đã được giao thành công',
+            content:
+                'Đơn hàng #${order.id.substring(0, 8)} của bạn đã được giao thành công. Cảm ơn bạn đã sử dụng dịch vụ!',
+            type: NotificationType.order,
+            createdAt: DateTime.now(),
+            isRead: false,
+            data: {
+              'orderId': order.id,
+            },
+          );
+          await _notificationViewModel.createNotification(notification);
+
+          // Hiển thị thông báo hệ thống
+          await NotificationsService.showLocalNotification(
+            title: 'Đơn hàng đã được giao thành công',
+            body:
+                'Đơn hàng #${order.id.substring(0, 8)} của bạn đã được giao thành công. Cảm ơn bạn đã sử dụng dịch vụ!',
+            payload: order.id,
+          );
+        }
       }
 
       _isLoading = false;
@@ -566,6 +645,46 @@ class OrderViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return info;
+    } catch (e) {
+      _isLoading = false;
+      _error = e.toString();
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  @override
+  void dispose() {
+    _orderStatusSubscription?.cancel();
+    _userOrdersSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> getTopSellingFoodsByApp() async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+      topSellingFoodsByApp = await _repository.getTopSellingFoodsByApp();
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      _error = e.toString();
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> getOrderById(String id) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+      _selectedOrder = await _repository.getOrderById(id);
+      print('có data ${_selectedOrder?.id}');
+      _isLoading = false;
+      notifyListeners();
     } catch (e) {
       _isLoading = false;
       _error = e.toString();

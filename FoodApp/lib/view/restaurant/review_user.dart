@@ -5,7 +5,9 @@ import 'package:foodapp/viewmodels/review_viewmodel.dart';
 
 class ReviewUser extends StatefulWidget {
   final String foodId;
-  const ReviewUser({super.key, required this.foodId});
+  final String restaurantId;
+  const ReviewUser(
+      {super.key, required this.foodId, required this.restaurantId});
 
   @override
   State<ReviewUser> createState() => _ReviewUserState();
@@ -16,7 +18,9 @@ class _ReviewUserState extends State<ReviewUser> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      context.read<ReviewViewModel>().loadReviews(widget.foodId, 'food');
+      context
+          .read<ReviewViewModel>()
+          .loadReviews(widget.foodId, widget.restaurantId);
     });
   }
 

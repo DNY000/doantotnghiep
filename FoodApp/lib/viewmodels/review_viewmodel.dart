@@ -7,17 +7,22 @@ class ReviewViewModel extends ChangeNotifier {
   List<ReviewModel> _reviews = [];
   bool _isLoading = false;
   String? _error;
+  String? _currentTargetId;
+  String? _currentTargetType;
 
   List<ReviewModel> get reviews => _reviews;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  String? get currentTargetId => _currentTargetId;
+  String? get currentTargetType => _currentTargetType;
 
-  Future<void> loadReviews(String targetId, String targetType) async {
+  Future<void> loadReviews(String foodId, String restaurantId) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
+
     try {
-      _reviews = await _repository.getReviewsByTarget(targetId, targetType);
+      _reviews = await _repository.getReviewsByFood(foodId, restaurantId);
     } catch (e) {
       _error = 'Không thể tải đánh giá: $e';
     } finally {
@@ -26,11 +31,24 @@ class ReviewViewModel extends ChangeNotifier {
     }
   }
 
+  Future<bool> canUserReview(String foodId, String userId) async {
+    try {
+      return await _repository.checkReviewExists(foodId, userId);
+    } catch (e) {
+      _error = 'Không thể kiểm tra quyền đánh giá: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<void> addReview(ReviewModel review) async {
     try {
       await _repository.addReview(review);
-      _reviews.insert(0, review);
-      notifyListeners();
+      if (review.foodId == _currentTargetId ||
+          review.restaurantId == _currentTargetId) {
+        _reviews.insert(0, review);
+        notifyListeners();
+      }
     } catch (e) {
       _error = 'Không thể thêm đánh giá: $e';
       notifyListeners();
@@ -65,6 +83,13 @@ class ReviewViewModel extends ChangeNotifier {
 
   void clearError() {
     _error = null;
+    notifyListeners();
+  }
+
+  void clearReviews() {
+    _reviews = [];
+    _currentTargetId = null;
+    _currentTargetType = null;
     notifyListeners();
   }
 }

@@ -4,22 +4,24 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+// App files
+import 'package:foodapp/core/firebase_options.dart'
+    if (kIsWeb) 'package:foodapp/core/firebase_web_options.dart';
 import 'package:foodapp/data/repositories/food_repository.dart';
 import 'package:foodapp/data/repositories/order_repository.dart';
 import 'package:foodapp/data/repositories/restaurant_repository.dart';
-import 'package:foodapp/routes/page_router.dart';
-import 'package:foodapp/ultils/local_storage/storage_utilly.dart';
+import 'package:foodapp/data/repositories/user_repository.dart';
 import 'package:foodapp/viewmodels/food_viewmodel.dart';
 import 'package:foodapp/viewmodels/order_viewmodel.dart';
 import 'package:foodapp/viewmodels/restaurant_viewmodel.dart';
-import 'package:provider/provider.dart';
 import 'package:foodapp/viewmodels/user_viewmodel.dart';
-import 'package:foodapp/data/repositories/user_repository.dart';
-import 'package:foodapp/core/firebase_options.dart'
-    if (kIsWeb) 'package:foodapp/core/firebase_web_options.dart';
 import 'package:foodapp/viewmodels/simple_providers.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'core/services/notifications_service.dart';
+import 'package:foodapp/routes/page_router.dart';
+import 'package:foodapp/ultils/local_storage/storage_utilly.dart';
+import 'package:foodapp/core/services/notifications_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -31,21 +33,14 @@ Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  // Cấu hình toàn diện hơn cho status bar
-  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark,
-    statusBarBrightness: Brightness.light,
-    systemNavigationBarColor: Colors.white,
-    systemNavigationBarIconBrightness: Brightness.dark,
-  ));
+  // Cấu hình System UI - Status bar visible, Navigation bar hidden
+  _configureSystemUI();
 
-  // Đảm bảo hiển thị status bar nhưng trong suốt
-  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-
+  // Tải biến môi trường từ file .env
   await dotenv.load(fileName: ".env");
 
-  await Future.wait<void>([
+  // Khởi tạo Firebase và local storage song song
+  await Future.wait([
     TLocalStorage.init('food_app'),
     Firebase.initializeApp(
       options: kIsWeb
@@ -55,8 +50,9 @@ Future<void> main() async {
               projectId: "foodapp-daade",
               storageBucket: "foodapp-daade.appspot.com",
               messagingSenderId: "44206956684",
-              appId: dotenv.env['APP_ID'] ?? "",
-              measurementId: "G-ZCRF80FGZ6")
+              appId: dotenv.env["APP_ID"] ?? "",
+              measurementId: "G-ZCRF80FGZ6",
+            )
           : DefaultFirebaseOptions.currentPlatform,
     ),
   ]);
@@ -64,6 +60,7 @@ Future<void> main() async {
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   FlutterNativeSplash.remove();
+
   runApp(
     MultiProvider(
       providers: [
@@ -73,23 +70,118 @@ Future<void> main() async {
         ChangeNotifierProvider(
             create: (_) => OrderViewModel(OrderRepository(),
                 foodRepository: FoodRepository())),
-        ChangeNotifierProvider(
-          create: (_) => UserViewModel(UserRepository()),
-        ),
+        ChangeNotifierProvider(create: (_) => UserViewModel(UserRepository())),
       ],
-      child: const SimpleProviders(
-        child: MyApp(),
-      ),
+      child: const SimpleProviders(child: MyApp()),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
+void _configureSystemUI() {
+  if (!kIsWeb) {
+    // QUAN TRỌNG: Sử dụng manual để có control tốt hơn
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: [
+        SystemUiOverlay.top
+      ], // CHỈ hiển thị status bar, ẩn navigation bar
+    );
+
+    // Cấu hình style cho status bar
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.white, // Màu nền status bar
+        statusBarIconBrightness: Brightness.dark, // Icon màu đen
+        statusBarBrightness: Brightness.light, // Cho iOS
+        // Navigation bar sẽ bị ẩn hoàn toàn
+        systemNavigationBarColor: Colors.black,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+    );
+
+    // Đảm bảo cấu hình được áp dụng cho Xiaomi/MIUI
+    Future.delayed(const Duration(milliseconds: 100), () {
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: [SystemUiOverlay.top], // Chỉ status bar
+      );
+    });
+  }
+}
+
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    // Khởi tạo notifications và cấu hình UI
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        NotificationsService.initialize(context);
+        _ensureSystemUIConfig();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    // Đảm bảo UI config được duy trì khi app resume
+    if (state == AppLifecycleState.resumed) {
+      _ensureSystemUIConfig();
+    }
+  }
+
+  void _ensureSystemUIConfig() {
+    if (!kIsWeb) {
+      // Đảm bảo status bar hiển thị, navigation bar ẩn
+      Future.delayed(const Duration(milliseconds: 50), () {
+        if (mounted) {
+          SystemChrome.setEnabledSystemUIMode(
+            SystemUiMode.manual,
+            overlays: [SystemUiOverlay.top], // CHỈ status bar
+          );
+
+          // Đặt lại style cho status bar
+          SystemChrome.setSystemUIOverlayStyle(
+            const SystemUiOverlayStyle(
+              statusBarColor: Colors.white,
+              statusBarIconBrightness: Brightness.dark,
+              statusBarBrightness: Brightness.light,
+            ),
+          );
+        }
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    NotificationsService.initialize(context);
+    const overlayStyle = SystemUiOverlayStyle(
+      statusBarColor: Colors.white, // Status bar có màu nền trắng
+      statusBarIconBrightness: Brightness.dark, // Icon màu đen
+      statusBarBrightness: Brightness.light, // Cho iOS
+      // Navigation bar properties (dù bị ẩn)
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.light,
+      systemNavigationBarDividerColor: Colors.transparent,
+    );
 
     return MaterialApp.router(
       title: 'Food App',
@@ -100,27 +192,29 @@ class MyApp extends StatelessWidget {
         primaryColor: Colors.white,
         fontFamily: "Quicksand",
         scaffoldBackgroundColor: Colors.white,
-        appBarTheme: AppBarTheme(
+        appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
           elevation: 0,
           iconTheme: IconThemeData(color: Colors.black),
-          systemOverlayStyle: SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.dark,
-            statusBarBrightness: Brightness.light,
-            systemNavigationBarColor: Colors.transparent,
-          ),
+          systemOverlayStyle: overlayStyle,
+          surfaceTintColor:
+              Colors.transparent, // tắt tính năng đổi màu khi vuốt xuống
         ),
       ),
       builder: (context, child) {
         return AnnotatedRegion<SystemUiOverlayStyle>(
-          value: SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.dark,
-            statusBarBrightness: Brightness.light,
-            systemNavigationBarColor: Colors.transparent,
+          value: overlayStyle,
+          child: MediaQuery(
+            // CHỈ loại bỏ bottom padding (navigation bar area)
+            // GIỮ NGUYÊN top padding cho status bar
+            data: MediaQuery.of(context).copyWith(
+              padding: MediaQuery.of(context).padding.copyWith(
+                    bottom: 0, // Loại bỏ bottom padding
+                    // top: MediaQuery.of(context).padding.top, // Giữ nguyên top padding
+                  ),
+            ),
+            child: child!,
           ),
-          child: child!,
         );
       },
     );

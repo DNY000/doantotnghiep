@@ -1,214 +1,104 @@
-import 'dart:convert';
-import 'dart:math';
 import 'package:crypto/crypto.dart';
-import 'package:flutter/material.dart';
-import 'package:foodapp/core/services/webview.dart';
+import 'dart:convert';
 
+// VNPay Service
 class VNPayService {
-  final String _tmnCode = 'C8EGK4UI';
-  final String _hashKey = '8DMZTJX8SF7FH565TCMU0WMQUTMAVYLR';
-  final String _paymentUrl =
+  static const String vnpUrl =
       'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
-  final String _returnUrl = 'shipper-vnpay-return://vnpay-return';
+  static const String vnpTmnCode = 'HAV9K10E'; // Thay bằng TMN Code của bạn
+  static const String vnpHashSecret = 'GS7KJKCV25U9WKA9S0M2O75SYQ5BAHFL';
+  static const String vnpReturnUrl = 'myapp://payment-result';
+  static const String vnpVersion = '2.1.0';
+  static const String vnpCommand = 'pay';
 
-  VNPayService();
-
-  Future<void> processDeposit({
-    required BuildContext context,
-    required String shipperId,
-    required double amount,
-    String? userEmail,
-    String? userPhone,
-    String userIp = '',
-    required Function(bool success, String? responseCode, String message)
-        onComplete,
-  }) async {
-    try {
-      if (amount <= 0 || shipperId.isEmpty) throw "Dữ liệu không hợp lệ";
-
-      final testAmount = 10000.0;
-
-      final paymentUrl = await createPaymentUrl(
-        orderId: _generateTxnRef(),
-        amount: testAmount,
-        userEmail: userEmail,
-        userPhone: userPhone,
-        userIp: userIp,
-      );
-
-      try {
-        await Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => VNPayWebViewScreen(
-              paymentUrl: paymentUrl,
-              shipperId: shipperId,
-              onComplete: (success, responseCode, errorMessage) async {
-                try {
-                  if (success) {
-                    print(
-                        "❗DEBUG - Thanh toán VNPAY thành công: $responseCode");
-                    onComplete(true, responseCode, 'Nạp tiền thành công');
-                  } else {
-                    String errorMsg = 'Giao dịch không thành công';
-                    if (responseCode != null) {
-                      switch (responseCode) {
-                        case '24':
-                          errorMsg = 'Khách hàng hủy giao dịch';
-                          break;
-                        case '51':
-                          errorMsg = 'Tài khoản không đủ số dư';
-                          break;
-                        case '65':
-                          errorMsg = 'Tài khoản đã vượt quá hạn mức giao dịch';
-                          break;
-                        case '75':
-                          errorMsg = 'Ngân hàng đang bảo trì';
-                          break;
-                        case '79':
-                          errorMsg = 'Khách hàng nhập sai mật khẩu thanh toán';
-                          break;
-                        case '99':
-                          errorMsg = 'Lỗi không xác định từ VNPAY';
-                          break;
-                      }
-                    }
-
-                    if (errorMessage != null && errorMessage.isNotEmpty) {
-                      errorMsg = '$errorMsg: $errorMessage';
-                    }
-
-                    print(
-                        "❗DEBUG - Thanh toán VNPAY thất bại: $responseCode - $errorMsg");
-                    onComplete(false, responseCode, errorMsg);
-                  }
-                } catch (e) {
-                  print("❗DEBUG - Lỗi xử lý kết quả thanh toán: $e");
-                  onComplete(false, responseCode,
-                      'Lỗi khi xử lý kết quả thanh toán: $e');
-                }
-              },
-            ),
-          ),
-        );
-      } catch (e) {
-        print("❗DEBUG - Lỗi khi mở WebView: $e");
-        throw "Lỗi khi mở trang thanh toán: $e";
-      }
-    } catch (e) {
-      print("❗DEBUG - Lỗi trong processDeposit: $e");
-      onComplete(false, null, e.toString());
-    }
-  }
-
-  /// Dùng riêng để tạo link không cần WebView (nếu server-side hoặc API)
-  Future<String> createPaymentUrl({
+  static String createPaymentUrl({
     required String orderId,
     required double amount,
-    String? userEmail,
-    String? userPhone,
-    String userIp = '',
-  }) async {
-    try {
-      final txnRef = orderId.isNotEmpty ? orderId : _generateTxnRef();
-      final DateTime now = DateTime.now();
+    required String orderInfo,
+  }) {
+    // Tạo parameters
+    Map<String, String> vnpParams = {
+      'vnp_Version': vnpVersion,
+      'vnp_Command': vnpCommand,
+      'vnp_TmnCode': vnpTmnCode,
+      'vnp_Amount':
+          (amount * 100).toInt().toString(), // VNPay yêu cầu amount * 100
+      'vnp_CurrCode': 'VND',
+      'vnp_TxnRef': orderId,
+      'vnp_OrderInfo': orderInfo,
+      'vnp_OrderType': 'other',
+      'vnp_Locale': 'vn',
+      'vnp_ReturnUrl': vnpReturnUrl,
+      'vnp_IpAddr': '127.0.0.1',
+      'vnp_CreateDate': _getCurrentTime(),
+    };
 
-      print("❗DEBUG - Năm hiện tại thực: ${now.year}");
+    // Sắp xếp parameters theo thứ tự alphabet
+    var sortedKeys = vnpParams.keys.toList()..sort();
 
-      final Map<String, String> vnpParams = {
-        'vnp_Version': '2.1.0',
-        'vnp_Command': 'pay',
-        'vnp_TmnCode': _tmnCode,
-        'vnp_Amount': (amount * 100).round().toString(),
-        'vnp_CreateDate': _formatDate(now),
-        'vnp_CurrCode': 'VND',
-        'vnp_IpAddr': userIp.isEmpty ? '127.0.0.1' : userIp,
-        'vnp_Locale': 'vn',
-        'vnp_OrderInfo': 'Thanh toan don hang: $txnRef',
-        'vnp_OrderType': 'billpayment',
-        'vnp_ReturnUrl': _returnUrl,
-        'vnp_TxnRef': txnRef,
-        'vnp_ExpireDate': _formatDate(now.add(const Duration(minutes: 15))),
-      };
-
-      if (userEmail?.isNotEmpty == true)
-        vnpParams['vnp_Bill_Email'] = userEmail!;
-      if (userPhone?.isNotEmpty == true)
-        vnpParams['vnp_Bill_Mobile'] = userPhone!;
-
-      final sortedParams = _sortParams(vnpParams);
-
-      final signData = _buildQueryString(sortedParams);
-      print("❗DEBUG - Chuỗi dữ liệu để tạo chữ ký VNPAY: $signData");
-
-      final secureHash = _createHmacSha512Signature(signData, _hashKey);
-      sortedParams['vnp_SecureHash'] = secureHash;
-
-      final encodedParams = sortedParams.entries
-          .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
-          .join('&');
-      final paymentUrl = '$_paymentUrl?$encodedParams';
-
-      print("❗DEBUG - URL thanh toán VNPAY đầy đủ: $paymentUrl");
-      final debugUrl = paymentUrl.replaceAll(
-          RegExp(r'vnp_SecureHash=\w{20}.*?(&|$)'),
-          'vnp_SecureHash=HASH_REMOVED...');
-      print("❗DEBUG - URL thanh toán VNPAY: $debugUrl");
-
-      return paymentUrl;
-    } catch (e) {
-      print("❗DEBUG - Lỗi khi tạo URL thanh toán: $e");
-      throw "Lỗi khi tạo URL thanh toán: $e";
+    // Tạo query string
+    List<String> queryParams = [];
+    for (String key in sortedKeys) {
+      queryParams.add('$key=${Uri.encodeComponent(vnpParams[key]!)}');
     }
+    String queryString = queryParams.join('&');
+
+    // Tạo secure hash
+    String signData = queryString;
+    String secureHash = _hmacSHA512(vnpHashSecret, signData);
+
+    // Tạo URL cuối cùng
+    String paymentUrl = '$vnpUrl?$queryString&vnp_SecureHash=$secureHash';
+
+    return paymentUrl;
   }
 
-  String _generateTxnRef() {
-    final now = DateTime.now().millisecondsSinceEpoch.toString();
-    final rand = Random().nextInt(9000) + 1000;
-    return '${now.substring(0, 10)}$rand';
+  static String _getCurrentTime() {
+    DateTime now = DateTime.now();
+    return '${now.year.toString().padLeft(4, '0')}'
+        '${now.month.toString().padLeft(2, '0')}'
+        '${now.day.toString().padLeft(2, '0')}'
+        '${now.hour.toString().padLeft(2, '0')}'
+        '${now.minute.toString().padLeft(2, '0')}'
+        '${now.second.toString().padLeft(2, '0')}';
   }
 
-  String _formatDate(DateTime dt) {
-    return '${dt.year.toString().padLeft(4, '0')}${_pad(dt.month)}${_pad(dt.day)}${_pad(dt.hour)}${_pad(dt.minute)}${_pad(dt.second)}';
+  static String _hmacSHA512(String key, String data) {
+    var keyBytes = utf8.encode(key);
+    var dataBytes = utf8.encode(data);
+    var hmacSha512 = Hmac(sha512, keyBytes);
+    var digest = hmacSha512.convert(dataBytes);
+    return digest.toString();
   }
 
-  String _pad(int val) => val.toString().padLeft(2, '0');
+  static Map<String, String> parseReturnUrl(String url) {
+    Uri uri = Uri.parse(url);
+    return uri.queryParameters;
+  }
 
-  Map<String, String> _sortParams(Map<String, String> params) {
-    final sortedParams = <String, String>{};
-    final sortedKeys = params.keys.toList()..sort();
-    for (final key in sortedKeys) {
-      final value = params[key];
-      if (value != null && value.isNotEmpty) {
-        sortedParams[key] = value;
-      }
+  static bool validateCallback(Map<String, String> params) {
+    String? vnpSecureHash = params['vnp_SecureHash'];
+    if (vnpSecureHash == null) return false;
+
+    // Remove vnp_SecureHash from params
+    Map<String, String> sortedParams = Map.from(params);
+    sortedParams.remove('vnp_SecureHash');
+
+    // Sort parameters
+    var sortedKeys = sortedParams.keys.toList()..sort();
+
+    // Create query string
+    List<String> queryParams = [];
+    for (String key in sortedKeys) {
+      queryParams.add('$key=${sortedParams[key]}');
     }
-    return sortedParams;
-  }
+    String queryString = queryParams.join('&');
 
-  String _buildQueryString(Map<String, String> params) {
-    return params.entries.map((e) => '${e.key}=${e.value}').join('&');
-  }
+    // Create secure hash
+    String calculatedHash = _hmacSHA512(vnpHashSecret, queryString);
 
-  String _createHmacSha512Signature(String data, String key) {
-    try {
-      final dataBytes = utf8.encode(data);
-      final keyBytes = utf8.encode(key);
-
-      print("❗DEBUG - Dữ liệu gốc để ký: $data");
-      print("❗DEBUG - Khóa sử dụng để ký: $key");
-
-      final hmac = Hmac(sha512, keyBytes);
-      final digest = hmac.convert(dataBytes);
-      final hexSignature = digest.bytes
-          .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-          .join('')
-          .toUpperCase();
-
-      print("❗DEBUG - Chữ ký tạo ra: $hexSignature");
-      return hexSignature;
-    } catch (e) {
-      print("❗DEBUG - Lỗi khi tạo chữ ký HMAC SHA512: $e");
-      throw "Lỗi khi tạo chữ ký HMAC SHA512: $e";
-    }
+    return calculatedHash == vnpSecureHash;
   }
 }
+
+// VNPay WebView Screen

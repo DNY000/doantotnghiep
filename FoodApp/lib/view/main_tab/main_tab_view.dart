@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:foodapp/core/services/notifications_service.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
 import 'package:foodapp/common_widget/shimmer/shimmer_main_tab.dart';
-import 'package:foodapp/view/notifications/notification_view.dart';
 import 'package:foodapp/view/order/order_view.dart';
 import 'package:foodapp/view/profile/my_profile_view.dart';
 import 'dart:ui';
@@ -23,7 +23,7 @@ class _MainTabViewState extends State<MainTabView>
 
   // Các completer để quản lý trạng thái tải của từng tab
   final List<Completer<bool>> _dataLoadingCompleters = List.generate(
-    5,
+    4,
     (_) => Completer<bool>(),
   );
 
@@ -33,7 +33,9 @@ class _MainTabViewState extends State<MainTabView>
   @override
   void initState() {
     super.initState();
-    controller = TabController(length: 5, vsync: this);
+    // Khởi tạo notifications và cấu hình UI
+
+    controller = TabController(length: 4, vsync: this);
 
     // Thiết lập tab ban đầu
     _currentTabDataLoaded = _dataLoadingCompleters[0].future;
@@ -99,7 +101,6 @@ class _MainTabViewState extends State<MainTabView>
             HomeView(),
             OrderView(),
             FarvoriteView(),
-            NotificationsView(),
             MyProfileView()
           ]),
           bottomNavigationBar: SafeArea(
@@ -143,15 +144,6 @@ class _MainTabViewState extends State<MainTabView>
                                 ? Colors.orange
                                 : TColor.gray),
                         text: "Yêu thích",
-                      ),
-                      Tab(
-                        icon: Icon(
-                          Icons.notification_add,
-                          color: controller?.index == 3
-                              ? Colors.orange
-                              : TColor.gray,
-                        ),
-                        text: "Thông báo",
                       ),
                       Tab(
                         icon: Icon(

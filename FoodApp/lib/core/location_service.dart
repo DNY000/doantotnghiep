@@ -170,15 +170,17 @@ class LocationService {
       );
       if (placemarks.isNotEmpty) {
         final place = placemarks.first;
-        // Ghép các thành phần địa chỉ lại thành 1 chuỗi
         String address = [
           place.street,
-          place.subLocality,
-          place.locality,
-          place.subAdministrativeArea,
+          // place.subLocality,
+          // place.thoroughfare,
+          // place.locality,
+          // place.subAdministrativeArea,
           place.administrativeArea,
-          place.country
         ].where((e) => e != null && e.isNotEmpty).join(', ');
+        if (place.administrativeArea == 'Ha Noi') {
+          address = address.replaceAll('Ha Noi', 'Hà Nội');
+        }
         return address;
       }
       return null;

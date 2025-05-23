@@ -1,15 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:foodapp/data/models/cart_item_model.dart';
 import 'package:foodapp/data/models/user_model.dart';
+import 'package:foodapp/routes/name_router.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
 import 'package:foodapp/ultils/const/enum.dart';
 import 'package:foodapp/viewmodels/order_viewmodel.dart';
 import 'package:foodapp/viewmodels/user_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:foodapp/core/services/webview.dart';
-import 'package:foodapp/core/services/payment_service.dart';
+import 'package:go_router/go_router.dart';
+import 'package:foodapp/data/models/order_model.dart';
 
 class OrderScreen extends StatefulWidget {
   final List<CartItemModel> cartItems;
@@ -32,11 +35,16 @@ class _OrderScreenState extends State<OrderScreen> {
   final _noteController = TextEditingController();
   final _phoneController = TextEditingController();
   final _nameController = TextEditingController();
-  String _currentAddress = '';
-  String _currentPhone = '';
-  String _currentName = '';
-  String _currentNote = '';
   PaymentMethod _selectedPaymentMethod = PaymentMethod.thanhtoankhinhanhang;
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.edgeToEdge,
+      overlays: [SystemUiOverlay.top],
+    );
+  }
 
   @override
   void dispose() {
@@ -44,27 +52,21 @@ class _OrderScreenState extends State<OrderScreen> {
     _noteController.dispose();
     _phoneController.dispose();
     _nameController.dispose();
+
     super.dispose();
   }
 
   Future<void> _placeOrder() async {
-    if (_currentAddress.isEmpty) {
+    if (_addressController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng nhập địa chỉ giao hàng')),
       );
       return;
     }
 
-    if (_currentPhone.isEmpty) {
+    if (_phoneController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng cập nhật số điện thoại')),
-      );
-      return;
-    }
-
-    if (_currentName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng cập nhật tên người nhận')),
       );
       return;
     }
@@ -82,20 +84,21 @@ class _OrderScreenState extends State<OrderScreen> {
       }
 
       await orderViewModel.createOrder(
+        context: context,
         userId: currentUser.id,
         restaurantId: widget.restaurantId,
         items: widget.cartItems,
-        address: _currentAddress,
+        address: _addressController.text,
         paymentMethod: PaymentMethod.thanhtoankhinhanhang,
-        note: _currentNote,
+        note: _noteController.text,
         currentUser: currentUser,
       );
 
       if (mounted) {
+        context.go(NameRouter.mainTab);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Đặt hàng thành công')),
         );
-        Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (mounted) {
@@ -108,37 +111,45 @@ class _OrderScreenState extends State<OrderScreen> {
 
   Future<void> _showEditAddressBottomSheet(UserModel? user) async {
     if (user == null) return;
-    _addressController.text = _currentAddress.isNotEmpty
-        ? _currentAddress
+    _addressController.text = _addressController.text.isNotEmpty
+        ? _addressController.text
         : (user.defaultAddress?.street ?? '');
-    _phoneController.text =
-        _currentPhone.isNotEmpty ? _currentPhone : user.phoneNumber;
-    _nameController.text = _currentName.isNotEmpty ? _currentName : user.name;
+    _phoneController.text = _phoneController.text.isNotEmpty
+        ? _phoneController.text
+        : user.phoneNumber;
 
-    final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final minHeight = screenHeight * 0.3; // 30% of screen height
+    final maxHeight = screenHeight * 0.7; // 70% of screen height
+
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          height: screenHeight * 0.6,
+          constraints: BoxConstraints(
+            minHeight: minHeight,
+            maxHeight: maxHeight,
+          ),
           width: double.infinity,
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 24,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 24,
           ),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(16),
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
                 blurRadius: 10,
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -147,36 +158,39 @@ class _OrderScreenState extends State<OrderScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Chỉnh sửa thông tin nhận hàng',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Chỉnh sửa thông tin nhận hàng',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 16),
-                TextField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Tên người nhận',
-                    hintText: 'Nhập tên người nhận',
+                if (user.phoneNumber.isEmpty)
+                  TextField(
+                    controller: _phoneController,
+                    decoration: InputDecoration(
+                      labelText: 'Số điện thoại',
+                      hintText: 'Nhập số điện thoại',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    keyboardType: TextInputType.phone,
                   ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _phoneController,
-                  decoration: const InputDecoration(
-                    labelText: 'Số điện thoại',
-                    hintText: 'Nhập số điện thoại',
-                  ),
-                  keyboardType: TextInputType.phone,
-                ),
-                const SizedBox(height: 8),
+                if (user.phoneNumber.isEmpty) const SizedBox(height: 16),
                 TextField(
                   controller: _addressController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Địa chỉ',
                     hintText: 'Nhập địa chỉ giao hàng',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
-                  maxLines: 3,
+                  maxLines: 2,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -184,17 +198,20 @@ class _OrderScreenState extends State<OrderScreen> {
                       onPressed: () => Navigator.pop(context),
                       child: const Text('Hủy'),
                     ),
+                    const SizedBox(width: 8),
                     ElevatedButton(
                       onPressed: () {
-                        setState(() {
-                          _currentAddress = _addressController.text;
-                          _currentPhone = _phoneController.text;
-                          _currentName = _nameController.text;
-                        });
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: TColor.color3,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                       child: const Text('Lưu'),
                     ),
@@ -209,7 +226,6 @@ class _OrderScreenState extends State<OrderScreen> {
   }
 
   void _showNoteDialog() {
-    _noteController.text = _currentNote;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -228,9 +244,6 @@ class _OrderScreenState extends State<OrderScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              setState(() {
-                _currentNote = _noteController.text;
-              });
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
@@ -239,6 +252,32 @@ class _OrderScreenState extends State<OrderScreen> {
             child: const Text('Lưu'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _navigateToVNPay(BuildContext context, OrderModel order) {
+    if (order.id == null) {
+      print("Order ID is null. Cannot initiate payment.");
+      return;
+    }
+    double amountInVnPayUnits = order.totalAmount * 100;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VNPayWebView(
+          orderId: order.id!,
+          amount: amountInVnPayUnits,
+          orderInfo: 'Thanh toan don hang #${order.id}',
+          onPaymentResult: (bool success, String? message) {
+            if (success) {
+              print("Payment successful! Message: ${message ?? 'N/A'}");
+            } else {
+              print("Payment failed! Message: ${message ?? 'N/A'}");
+            }
+          },
+        ),
       ),
     );
   }
@@ -277,24 +316,16 @@ class _OrderScreenState extends State<OrderScreen> {
     return Selector<UserViewModel, UserModel?>(
       selector: (_, vm) => vm.currentUser,
       builder: (context, user, _) {
-        final name = _currentName.isNotEmpty
-            ? _currentName
+        final name = _nameController.text.isNotEmpty
+            ? _nameController.text
             : (user?.name ?? "Người dùng chưa đăng nhập");
-        final phone = _currentPhone.isNotEmpty
-            ? _currentPhone
+        final phone = _phoneController.text.isNotEmpty
+            ? _phoneController.text
             : (user?.phoneNumber ?? "Chưa có số điện thoại");
-        final address = _currentAddress.isNotEmpty
-            ? _currentAddress
+        final address = _addressController.text.isNotEmpty
+            ? _addressController.text
             : (user?.defaultAddress?.street ??
                 "Vui lòng nhập địa chỉ giao hàng");
-
-        Future.microtask(() {
-          if (mounted) {
-            _nameController.text = name;
-            _phoneController.text = phone;
-            _addressController.text = address;
-          }
-        });
 
         return Padding(
           padding: const EdgeInsets.all(16),
@@ -550,7 +581,7 @@ class _OrderScreenState extends State<OrderScreen> {
         maxLines: 2,
         onChanged: (value) {
           setState(() {
-            _currentNote = value;
+            _noteController.text = value;
           });
         },
       ),
@@ -590,114 +621,106 @@ class _OrderScreenState extends State<OrderScreen> {
           Consumer<OrderViewModel>(
             builder: (context, orderViewModel, _) {
               return ElevatedButton(
-                onPressed: orderViewModel.isLoading
-                    ? null
-                    : () async {
-                        if (_selectedPaymentMethod ==
-                            PaymentMethod.thanhtoankhinhanhang) {
-                          await _placeOrder();
-                        } else if (_selectedPaymentMethod == PaymentMethod.qr) {
-                          final paymentUrl = await _getVNPayPaymentUrl();
-                          if (paymentUrl != null && context.mounted) {
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => VNPayWebViewScreen(
-                                  paymentUrl: paymentUrl,
-                                  shipperId: "",
-                                  onComplete: (success, responseCode,
-                                      errorMessage) async {
-                                    if (success) {
-                                      await _placeOrder();
-                                    } else {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                            content: Text(errorMessage ??
-                                                'Thanh toán VNPay thất bại hoặc bị hủy.')),
-                                      );
-                                    }
-                                  },
+                  onPressed: orderViewModel.isLoading
+                      ? null
+                      : () async {
+                          if (_selectedPaymentMethod ==
+                              PaymentMethod.thanhtoankhinhanhang) {
+                            await _placeOrder();
+                          } else if (_selectedPaymentMethod ==
+                              PaymentMethod.qr) {
+                            final userViewModel = context.read<UserViewModel>();
+                            final user = userViewModel.currentUser;
+
+                            if (user == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'Vui lòng đăng nhập để thanh toán VNPay')),
+                              );
+                              return;
+                            }
+
+                            double totalAmount = widget.cartItems.fold(
+                              0,
+                              (sum, item) => sum + (item.price * item.quantity),
+                            );
+                            double deliveryFee = 5000 * 7.3;
+                            totalAmount += deliveryFee;
+
+                            // Create a temporary order ID for VNPay
+                            String tempOrderId = DateTime.now()
+                                .millisecondsSinceEpoch
+                                .toString();
+
+                            // Navigate to VNPay WebView
+                            if (context.mounted) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => VNPayWebView(
+                                    orderId: tempOrderId,
+                                    amount: totalAmount,
+                                    orderInfo:
+                                        'Thanh toan don hang #$tempOrderId',
+                                    onPaymentResult: (success, message) async {
+                                      if (success) {
+                                        // If payment is successful, place the order
+                                        if (context.mounted) {
+                                          await _placeOrder();
+                                          Navigator.pop(
+                                              context); // Close VNPay WebView
+                                        }
+                                      } else {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(content: Text(message)),
+                                          );
+                                          Navigator.pop(
+                                              context); // Close VNPay WebView
+                                        }
+                                      }
+                                    },
+                                  ),
                                 ),
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text('Không thể tạo thanh toán VNPay.')),
-                            );
+                              );
+                            }
                           }
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange[200],
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange[200],
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
-                ),
-                child: orderViewModel.isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : Text(
-                        'Đặt đơn - ${widget.totalAmount.toStringAsFixed(0)}đ',
-                        style:
-                            const TextStyle(fontSize: 16, color: Colors.black),
-                      ),
-              );
+                  child: orderViewModel.isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Center(
+                          child: Text(
+                            'Đặt đơn - ${widget.totalAmount.toStringAsFixed(0)}đ',
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.black),
+                            textAlign: TextAlign.center,
+                          ),
+                        ));
             },
           ),
+          const SizedBox(
+            height: 60,
+          )
         ],
       ),
     );
-  }
-
-  Future<String?> _getVNPayPaymentUrl() async {
-    try {
-      double totalAmount = widget.cartItems.fold(
-        0,
-        (sum, item) => sum + (item.price * item.quantity),
-      );
-
-      double deliveryFee = 5000 * 7.3;
-      totalAmount += deliveryFee;
-
-      final userViewModel = Provider.of<UserViewModel>(context, listen: false);
-      final user = userViewModel.currentUser;
-
-      if (user == null) {
-        throw "Vui lòng đăng nhập để thanh toán";
-      }
-
-      final completer = Completer<String?>();
-
-      final vnpayService = VNPayService();
-
-      vnpayService.processDeposit(
-        context: context,
-        shipperId: user.id,
-        amount: totalAmount,
-        userEmail: user.email,
-        userPhone: user.phoneNumber,
-        onComplete: (success, responseCode, message) {},
-      );
-
-      return 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=1000000&vnp_Command=pay&vnp_CreateDate=20240118121212&vnp_CurrCode=VND&vnp_IpAddr=127.0.0.1&vnp_Locale=vn&vnp_OrderInfo=Thanh+toan+don+hang+test&vnp_OrderType=billpayment&vnp_ReturnUrl=shipper-vnpay-return://vnpay-return&vnp_TmnCode=C8EGK4UI&vnp_TxnRef=123456789&vnp_Version=2.1.0&vnp_SecureHash=HASH...';
-    } catch (error) {
-      print("❗DEBUG - Lỗi khi tạo URL thanh toán VNPay: $error");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Lỗi khi tạo URL thanh toán: $error")),
-      );
-      return null;
-    }
   }
 }

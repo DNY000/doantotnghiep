@@ -10,178 +10,178 @@ class UserReviewRow extends StatelessWidget {
   final VoidCallback? onLikePress;
   final VoidCallback? onSharePress;
   final ReviewModel reviews;
-  const UserReviewRow(
-      {super.key,
-      this.isBottomActionBar = false,
-      this.onSharePress,
-      this.onLikePress,
-      this.onCommentPress,
-      required this.reviews});
+  const UserReviewRow({
+    super.key,
+    this.isBottomActionBar = false,
+    this.onSharePress,
+    this.onLikePress,
+    this.onCommentPress,
+    required this.reviews,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(25),
-              child: Icon(
-                Icons.person,
-                size: 50,
-                color: TColor.color3,
-              ),
-            ),
-            const SizedBox(
-              width: 15,
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    reviews.userId,
-                    style: TextStyle(
-                        color: TColor.text,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Row chứa avatar, tên, rating và ngày
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Avatar
+              ClipRRect(
+                borderRadius: BorderRadius.circular(25),
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  color: TColor.color3.withOpacity(0.1),
+                  child: Icon(
+                    Icons.person,
+                    size: 30,
+                    color: TColor.color3,
                   ),
-                ],
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(
-          height: 8,
-        ),
-        Row(children: [
-          Text(
-            "Rated",
-            style: TextStyle(
-                color: TColor.gray, fontSize: 12, fontWeight: FontWeight.w700),
-          ),
-          IgnorePointer(
-            ignoring: true,
-            child: RatingBar.builder(
-              initialRating: 1,
-              minRating: 1,
-              direction: Axis.horizontal,
-              allowHalfRating: true,
-              unratedColor: Colors.transparent,
-              itemCount: 5,
-              itemSize: 20,
-              itemPadding: const EdgeInsets.symmetric(horizontal: 2.0),
-              itemBuilder: (context, _) => Icon(
-                Icons.star,
-                color: TColor.color3,
-              ),
-              onRatingUpdate: (rating) {
-                // print(rating);
-              },
-            ),
-          ),
-          Text(
-            reviews.rating.toString(),
-            style: TextStyle(
-                color: TColor.color3,
-                fontSize: 14,
-                fontWeight: FontWeight.w700),
-          ),
-          const Spacer(),
-          Text(
-            reviews.createdAt.toString(),
-            style: TextStyle(
-                color: TColor.gray, fontSize: 12, fontWeight: FontWeight.w700),
-          ),
-        ]),
-        const SizedBox(
-          height: 8,
-        ),
-        ReadMoreText(
-          reviews.comment,
-          trimLines: 4,
-          colorClickableText: TColor.text,
-          trimMode: TrimMode.Line,
-          style: TextStyle(
-              fontSize: 14, fontWeight: FontWeight.bold, color: TColor.text),
-          trimCollapsedText: 'Read more',
-          trimExpandedText: 'Read less',
-          moreStyle: TextStyle(
-              fontSize: 14, fontWeight: FontWeight.bold, color: TColor.color3),
-        ),
-        const SizedBox(
-          height: 8,
-        ),
-        SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
+              const SizedBox(width: 12),
+              // Thông tin người dùng và đánh giá
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    IconButton(
-                      onPressed: () {
-                        if (onLikePress != null) {
-                          onLikePress!();
-                        }
-                      },
-                      icon: Image.asset(
-                        "assets/img/like.png",
-                        width: 22,
-                        height: 22,
-                        fit: BoxFit.fitWidth,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        if (onCommentPress != null) {
-                          onCommentPress!();
-                        }
-                      },
-                      icon: Image.asset(
-                        "assets/img/comments.png",
-                        width: 22,
-                        height: 22,
-                        fit: BoxFit.fitWidth,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        if (onSharePress != null) {
-                          onSharePress!();
-                        }
-                      },
-                      icon: Image.asset(
-                        "assets/img/share.png",
-                        width: 22,
-                        height: 22,
-                        fit: BoxFit.fitWidth,
-                      ),
-                    ),
-                    const SizedBox(width: 20),
+                    // Tên người dùng
                     Text(
-                      "4 Likes",
+                      reviews.name,
                       style: TextStyle(
-                          color: TColor.gray,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700),
+                        color: TColor.text,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                    const SizedBox(
-                      width: 15,
-                    ),
-                    Text(
-                      "3 Comments",
-                      style: TextStyle(
-                          color: TColor.gray,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700),
+                    const SizedBox(height: 4),
+                    // Rating và ngày
+                    Row(
+                      children: [
+                        IgnorePointer(
+                          ignoring: true,
+                          child: RatingBar.builder(
+                            initialRating: reviews.rating,
+                            minRating: 1,
+                            direction: Axis.horizontal,
+                            allowHalfRating: true,
+                            unratedColor: Colors.grey[300],
+                            itemCount: 5,
+                            itemSize: 16,
+                            itemPadding:
+                                const EdgeInsets.symmetric(horizontal: 1.0),
+                            itemBuilder: (context, _) => Icon(
+                              Icons.star,
+                              color: TColor.color3,
+                            ),
+                            onRatingUpdate: (rating) {},
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          reviews.rating.toString(),
+                          style: TextStyle(
+                            color: TColor.color3,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          _formatDate(reviews.createdAt),
+                          style: TextStyle(
+                            color: TColor.gray,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
-                )
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Nội dung bình luận
+          ReadMoreText(
+            reviews.comment,
+            trimLines: 3,
+            colorClickableText: TColor.color3,
+            trimMode: TrimMode.Line,
+            style: TextStyle(
+              fontSize: 14,
+              color: TColor.text,
+            ),
+            trimCollapsedText: 'Xem thêm',
+            trimExpandedText: 'Thu gọn',
+            moreStyle: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: TColor.color3,
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Actions (like, comment, share)
+          if (isBottomActionBar)
+            Row(
+              children: [
+                IconButton(
+                  onPressed: onLikePress,
+                  icon: Icon(
+                    Icons.thumb_up_outlined,
+                    size: 20,
+                    color: TColor.gray,
+                  ),
+                ),
+                Text(
+                  "${reviews.likeCount}",
+                  style: TextStyle(
+                    color: TColor.gray,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                IconButton(
+                  onPressed: onCommentPress,
+                  icon: Icon(
+                    Icons.comment_outlined,
+                    size: 20,
+                    color: TColor.gray,
+                  ),
+                ),
+                IconButton(
+                  onPressed: onSharePress,
+                  icon: Icon(
+                    Icons.share_outlined,
+                    size: 20,
+                    color: TColor.gray,
+                  ),
+                ),
               ],
-            ))
-      ]),
+            ),
+        ],
+      ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      if (difference.inHours == 0) {
+        return '${difference.inMinutes} phút trước';
+      }
+      return '${difference.inHours} giờ trước';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} ngày trước';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
   }
 }

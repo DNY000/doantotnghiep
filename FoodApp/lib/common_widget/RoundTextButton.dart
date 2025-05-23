@@ -19,16 +19,16 @@ class RoundTextButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 10),
         decoration: BoxDecoration(
-            color: isSelect ? TColor.primary : Colors.white,
+            color: isSelect ? TColor.orange5 : Colors.white,
             border: Border.all(
-              color: TColor.primary,
+              color: TColor.orange5,
             ),
             borderRadius: BorderRadius.circular(15)),
         child: Text(
           title,
           textAlign: TextAlign.left,
           style: TextStyle(
-              color: isSelect ? Colors.white : TColor.primary,
+              color: isSelect ? Colors.white : TColor.orange5,
               fontSize: 12,
               fontWeight: FontWeight.w700),
         ),

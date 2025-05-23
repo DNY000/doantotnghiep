@@ -5,8 +5,22 @@ import 'package:foodapp/common_widget/round_button.dart';
 import 'package:foodapp/view/authentication/viewmodel/login_viewmodel.dart';
 import 'package:provider/provider.dart';
 
-class ForgotPasswordView extends StatelessWidget {
+class ForgotPasswordView extends StatefulWidget {
   const ForgotPasswordView({super.key});
+
+  @override
+  State<ForgotPasswordView> createState() => _ForgotPasswordViewState();
+}
+
+class _ForgotPasswordViewState extends State<ForgotPasswordView> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +34,7 @@ class ForgotPasswordView extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Form(
-              key: viewModel.formKey,
+              key: _formKey,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -70,7 +84,7 @@ class ForgotPasswordView extends StatelessWidget {
 
                   // Email Field
                   LineTextField(
-                    controller: viewModel.txtEmail,
+                    controller: _emailController,
                     hitText: "Email",
                     keyboardType: TextInputType.emailAddress,
                     validator: viewModel.validateEmail,
@@ -148,7 +162,8 @@ class ForgotPasswordView extends StatelessWidget {
                     onPressed: () async {
                       if (viewModel.isLoading) return;
 
-                      if (viewModel.formKey.currentState!.validate()) {
+                      if (_formKey.currentState!.validate()) {
+                        viewModel.txtEmail.text = _emailController.text;
                         await viewModel.resetPassword();
 
                         if (viewModel.isSuccess && context.mounted) {

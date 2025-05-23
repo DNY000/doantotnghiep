@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
 import 'package:foodapp/common_widget/login/other_login.dart';
-import 'package:foodapp/common_widget/line_textfield.dart';
 import 'package:foodapp/common_widget/round_button.dart';
 import 'package:foodapp/view/authentication/viewmodel/login_viewmodel.dart';
 import 'package:go_router/go_router.dart';
@@ -15,10 +14,11 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
+  bool isShowPassword = true;
+
   @override
   void initState() {
     super.initState();
-
     // Gọi autoLogin sau khi frame được build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -50,36 +50,40 @@ class _LoginViewState extends State<LoginView> {
                 child: Form(
                   key: viewModel.formKey,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: SizedBox(
                       width: media.width,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          SizedBox(height: media.width * 0.15),
+                          const SizedBox(height: 32),
                           // Logo or App Name with Icon
                           Container(
-                            padding: const EdgeInsets.all(16),
+                            width: 120,
+                            height: 140,
                             decoration: const BoxDecoration(
                               color: Colors.white,
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(
-                              Icons.restaurant,
-                              size: 60,
-                              color: TColor.color3,
+                            child: ClipOval(
+                              child: Image.asset(
+                                'assets/images/logo/foodapp.jpg',
+                                filterQuality: FilterQuality.high,
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
+
                           SizedBox(height: media.width * 0.06),
-                          Text(
-                            "Food APP",
-                            style: TextStyle(
-                              color: TColor.text,
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          SizedBox(height: media.width * 0.02),
+                          // Text(
+                          //   "Food APP",
+                          //   style: TextStyle(
+                          //     color: TColor.text,
+                          //     fontSize: 28,
+                          //     fontWeight: FontWeight.w700,
+                          //   ),
+                          // ),
+                          // SizedBox(height: media.width * 0.02),
                           Text(
                             "Đăng nhập để tiếp tục",
                             style: TextStyle(
@@ -91,20 +95,116 @@ class _LoginViewState extends State<LoginView> {
                           SizedBox(height: media.width * 0.12),
 
                           // Email Field
-                          LineTextField(
-                            controller: viewModel.txtEmail,
-                            hitText: "Email",
-                            keyboardType: TextInputType.emailAddress,
-                            validator: viewModel.validateEmail,
+                          Container(
+                            height: 50,
+                            child: TextFormField(
+                              controller: viewModel.txtEmail,
+                              keyboardType: TextInputType.emailAddress,
+                              validator: viewModel.validateEmail,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: "Email",
+                                hintStyle: TextStyle(
+                                  color: TColor.gray,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: TColor.gray, width: 1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: TColor.color3, width: 1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(
+                                      color: Colors.red, width: 1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(
+                                      color: Colors.red, width: 1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 12),
+                                suffixIcon: Icon(
+                                  Icons.email_outlined,
+                                  color: TColor.gray,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
                           ),
-                          SizedBox(height: media.width * 0.07),
+                          const SizedBox(height: 24),
 
                           // Password Field
-                          LineTextField(
-                            controller: viewModel.txtPassword,
-                            hitText: "Mật khẩu",
-                            obscureText: true,
-                            validator: viewModel.validatePassword,
+                          Container(
+                            height: 50,
+                            child: TextFormField(
+                              controller: viewModel.txtPassword,
+                              obscureText: isShowPassword,
+                              validator: viewModel.validatePassword,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: "Mật khẩu",
+                                hintStyle: TextStyle(
+                                  color: TColor.gray,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: TColor.gray, width: 1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: TColor.color3, width: 1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(
+                                      color: Colors.red, width: 1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(
+                                      color: Colors.red, width: 1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 12),
+                                prefixIcon: Icon(
+                                  Icons.lock_outline,
+                                  color: TColor.gray,
+                                  size: 18,
+                                ),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    isShowPassword
+                                        ? Icons.visibility_outlined
+                                        : Icons.visibility_off_outlined,
+                                    color: TColor.gray,
+                                    size: 18,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      isShowPassword = !isShowPassword;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
                           ),
                           SizedBox(height: media.width * 0.02),
 
@@ -131,7 +231,7 @@ class _LoginViewState extends State<LoginView> {
                             ),
                           ),
 
-                          SizedBox(height: media.width * 0.08),
+                          SizedBox(height: media.width * 0.04),
 
                           // Login Button
                           RoundButton(
@@ -161,24 +261,13 @@ class _LoginViewState extends State<LoginView> {
                                   ),
                                 );
                               }
-                              // } else if (viewModel.error.isNotEmpty &&
-                              //     context.mounted) {
-                              //   ScaffoldMessenger.of(context).showSnackBar(
-                              //     SnackBar(
-                              //       content: Text(viewModel.error),
-                              //       backgroundColor: Colors.red,
-                              //       duration: const Duration(seconds: 3),
-                              //       behavior: SnackBarBehavior.floating,
-                              //     ),
-                              //   );
-                              // }
                             },
                             isLoading: viewModel.isLoading,
                           ),
 
-                          SizedBox(height: media.width * 0.08),
+                          SizedBox(height: media.width * 0.04),
                           const OtherLogin(color1: Colors.grey),
-                          SizedBox(height: media.width * 0.1),
+                          SizedBox(height: media.width * 0.04),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [

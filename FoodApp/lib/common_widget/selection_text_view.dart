@@ -10,12 +10,12 @@ class SelectionTextView extends StatelessWidget {
       {super.key,
       required this.title,
       required this.onSeeAllTap,
-      this.actionTitle = "See all"});
+      this.actionTitle = "Xem tất cả"});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -33,10 +33,10 @@ class SelectionTextView extends StatelessWidget {
               child: Text(
                 actionTitle,
                 textAlign: TextAlign.left,
-                style: const TextStyle(
-                    color: Colors.orange,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700),
+                style: TextStyle(
+                    color: TColor.orange5,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600),
               ),
             ),
           )

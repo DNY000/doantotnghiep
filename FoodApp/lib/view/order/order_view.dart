@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foodapp/common_widget/card/t_card.dart';
 import 'package:foodapp/data/models/order_model.dart';
 import 'package:foodapp/ultils/const/enum.dart';
 import 'package:foodapp/view/order/order_screen.dart';
@@ -11,6 +12,7 @@ import 'package:foodapp/ultils/const/color_extension.dart';
 import 'dart:convert';
 import 'package:foodapp/data/models/cart_item_model.dart';
 import 'package:foodapp/ultils/local_storage/storage_utilly.dart';
+import 'package:foodapp/view/order/order_detail_screen.dart';
 
 class OrderView extends StatefulWidget {
   const OrderView({super.key});
@@ -145,12 +147,6 @@ class _OrderViewState extends State<OrderView>
       return const Center(child: CircularProgressIndicator());
     }
 
-    // In log để debug
-    print("Tổng số đơn hàng: ${orderViewModel.orders.length}");
-    for (var order in orderViewModel.orders) {
-      print("Đơn hàng ${order.id}: trạng thái ${order.status}");
-    }
-
     // Lọc đơn hàng đã hoàn thành - kiểm tra cả enum và chuỗi
     final completedOrders = orderViewModel.orders
         .where((order) => order.status == OrderState.delivered)
@@ -213,105 +209,97 @@ class _OrderViewState extends State<OrderView>
         ? "${order.items.first.foodName} ${order.items.length > 1 ? 'và ${order.items.length - 1} món khác' : ''}"
         : "Không có món";
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      color: Colors.white,
-      elevation: 5,
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  restaurantName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.normal,
-                    fontSize: 16,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OrderDetailScreen(
+              order: order,
+            ),
+          ),
+        );
+      },
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 16),
+        color: Colors.white,
+        elevation: 5,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    restaurantName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.normal,
+                      fontSize: 16,
+                    ),
                   ),
-                ),
-                _buildStatusChip(order.status),
-              ],
-            ),
-            const Divider(),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Expanded(
-                    flex: 1,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                      child: Image.asset(
-                        order.items.first.image,
-                        fit: BoxFit.cover,
-                      ),
-                    )),
-                Expanded(
-                    flex: 2,
-                    child: Column(
-                      children: [
-                        Text(
-                          "Món: $itemsDescription",
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "Tổng tiền: ${order.totalAmount.toStringAsFixed(0)}đ",
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Colors.orange,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "Ngày đặt: ${_formatDateTime(order.createdAt)}",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ))
-              ],
-            ),
-            // Text(
-            //   "Món: $itemsDescription",
-            //   style: const TextStyle(fontSize: 14),
-            // ),
-            // const SizedBox(height: 8),
-            // Text(
-            //   "Tổng tiền: ${order.totalAmount.toStringAsFixed(0)}đ",
-            //   style: const TextStyle(
-            //     fontWeight: FontWeight.bold,
-            //     fontSize: 16,
-            //     color: Colors.orange,
-            //   ),
-            // ),
-            // const SizedBox(height: 8),
-            // Text(
-            //   "Ngày đặt: ${_formatDateTime(order.createdAt)}",
-            //   style: TextStyle(
-            //     fontSize: 14,
-            //     color: Colors.grey[600],
-            //   ),
-            // ),
-            const SizedBox(height: 12),
-            if (order.status == OrderState.delivered ||
-                order.status.toString().toLowerCase() == "delivered")
-              OutlinedButton(
-                onPressed: () {
-                  // Xử lý đánh giá đơn hàng
-                },
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: TColor.color3,
-                ),
-                child: const Text("Đánh giá đơn hàng"),
+                  _buildStatusChip(order.status),
+                ],
               ),
-          ],
+              const Divider(),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Expanded(
+                      flex: 1,
+                      child: ClipRRect(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(10)),
+                        child: Image.asset(
+                          order.items.first.image,
+                          fit: BoxFit.cover,
+                        ),
+                      )),
+                  Expanded(
+                      flex: 2,
+                      child: Column(
+                        children: [
+                          Text(
+                            "Món: $itemsDescription",
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Tổng tiền: ${order.totalAmount.toStringAsFixed(0)}đ",
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.orange,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Ngày đặt: ${_formatDateTime(order.createdAt)}",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ))
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (order.status == OrderState.delivered ||
+                  order.status.toString().toLowerCase() == "delivered")
+                OutlinedButton(
+                  onPressed: () {
+                    // Xử lý đánh giá đơn hàng
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: TColor.color3,
+                  ),
+                  child: const Text("Đánh giá đơn hàng"),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -419,43 +407,184 @@ class _OrderViewState extends State<OrderView>
                           .map((entry) {
                         final restaurantId = entry.key;
                         final items = entry.value;
-                        return Card(
-                          color: Colors.white,
-                          child: ListTile(
-                            leading: Image.asset(items.first.image),
-                            title: Text('Đơn nháp nhà hàng $restaurantId'),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: items
-                                  .map((item) => Text(
-                                      '${item.foodName} x${item.quantity}'))
-                                  .toList(),
-                            ),
-                            trailing: Text(
-                              '${items.fold<double>(0, (sum, item) => sum + item.price * item.quantity).toInt()}đ',
-                              style: TextStyle(color: Colors.orange),
-                            ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => OrderScreen(
-                                    restaurantId: restaurantId,
-                                    cartItems: items,
-                                    totalAmount: items.fold<double>(
-                                        0,
-                                        (sum, item) =>
-                                            sum + item.price * item.quantity),
+                        final totalAmount = items.fold<double>(
+                            0, (sum, item) => sum + item.price * item.quantity);
+
+                        return Container(
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                spreadRadius: 1,
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => OrderScreen(
+                                      restaurantId: restaurantId,
+                                      cartItems: items,
+                                      totalAmount: totalAmount,
+                                    ),
                                   ),
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
+                                  children: [
+                                    // Phần ảnh
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Stack(
+                                        children: [
+                                          Image.asset(
+                                            items.first.image,
+                                            width: 80,
+                                            height: 80,
+                                            fit: BoxFit.cover,
+                                          ),
+                                          if (items.length > 1)
+                                            Positioned(
+                                              right: 0,
+                                              bottom: 0,
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 6,
+                                                  vertical: 2,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black
+                                                      .withOpacity(0.7),
+                                                  borderRadius:
+                                                      const BorderRadius.only(
+                                                    topLeft: Radius.circular(8),
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  '+${items.length - 1}',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    // Phần thông tin
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Đơn nháp nhà hàng $restaurantId',
+                                            style: const TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '${items.length} món',
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            items
+                                                .map((item) =>
+                                                    '${item.foodName} x${item.quantity}')
+                                                .join(', '),
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    // Phần giá
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          '${totalAmount.toInt()}đ',
+                                          style: TextStyle(
+                                            color: Colors.orange[700],
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                Colors.orange.withOpacity(0.1),
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                          child: const Text(
+                                            'Tiếp tục',
+                                            style: TextStyle(
+                                              color: Colors.orange,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                              );
-                            },
+                              ),
+                            ),
                           ),
                         );
                       }).toList(),
                     );
                   }
-                  return const Text('Không có đơn nháp nào');
+                  return const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(children: [
+                      Icon(
+                        Icons.restaurant,
+                        size: 80,
+                      ),
+                      Text(
+                        'Giỏ hàng trống',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ]),
+                  );
                 },
               );
             },
@@ -469,54 +598,41 @@ class _OrderViewState extends State<OrderView>
   Widget _buildRecommendationSection(OrderViewModel orderViewModel) {
     return Column(
       children: [
-        const Divider(),
+        const Divider(height: 1),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Text(
-            "Có thể bạn cũng thích",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[700],
-            ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Icon(Icons.restaurant_menu, size: 20, color: Colors.grey[700]),
+              const SizedBox(width: 8),
+              Text(
+                "Có thể bạn cũng thích",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ],
           ),
         ),
         orderViewModel.isLoading
             ? const Center(child: CircularProgressIndicator())
             : orderViewModel.recommendedFoods.isEmpty
                 ? const Center(
-                    child: Text(
-                      "Không có món ăn nào được đề xuất",
-                      style: TextStyle(color: Colors.grey),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        "Không có món ăn nào được đề xuất",
+                        style: TextStyle(color: Colors.grey),
+                      ),
                     ),
                   )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    scrollDirection: Axis.vertical,
-                    // physics: const NeverScrollableScrollPhysics(),
+                : FoodListView(
+                    foods: orderViewModel.recommendedFoods,
                     shrinkWrap: true,
-                    itemCount: orderViewModel.recommendedFoods.length,
-                    itemBuilder: (context, index) {
-                      final food = orderViewModel.recommendedFoods[index];
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SingleFoodDetail(
-                                foodItem: food,
-                                restaurantId: food.restaurantId,
-                              ),
-                            ),
-                          );
-                        },
-                        child: FoodListItem(
-                          food: food,
-                          showButtonAddToCart: false,
-                        ),
-                      );
-                    },
-                  ),
+                    physics: const NeverScrollableScrollPhysics(),
+                  )
       ],
     );
   }

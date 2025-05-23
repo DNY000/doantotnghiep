@@ -16,54 +16,15 @@ class MyProfileView extends StatefulWidget {
   State<MyProfileView> createState() => _MyProfileViewState();
 }
 
-class _MyProfileViewState extends State<MyProfileView>
-    with SingleTickerProviderStateMixin {
-  bool _isLoading = true;
-  UserModel? _userData;
-  late AnimationController _animationController;
-  late Animation<double> _animation;
-  final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nameController;
-  late TextEditingController _emailController;
-  late TextEditingController _phoneController;
-  late TextEditingController _addressController;
-
+class _MyProfileViewState extends State<MyProfileView> {
   @override
   void initState() {
     super.initState();
     _loadUserData();
-
-    // Khởi tạo animation
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    );
-
-    _animation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
-
-    _animationController.forward();
-
-    final userViewModel = context.read<UserViewModel>();
-    _nameController =
-        TextEditingController(text: userViewModel.currentUser?.name);
-    _emailController =
-        TextEditingController(text: userViewModel.currentUser?.email);
-    _phoneController =
-        TextEditingController(text: userViewModel.currentUser?.phoneNumber);
-    _addressController = TextEditingController(
-        text: userViewModel.currentUser?.defaultAddress?.street ?? '');
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
-    _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _addressController.dispose();
     super.dispose();
   }
 
@@ -71,19 +32,9 @@ class _MyProfileViewState extends State<MyProfileView>
     if (!mounted) return;
 
     try {
-      setState(() {
-        _isLoading = true;
-      });
-
       final userViewModel = Provider.of<UserViewModel>(context, listen: false);
 
       if (userViewModel.currentUser != null) {
-        if (mounted) {
-          setState(() {
-            _userData = userViewModel.currentUser;
-            _isLoading = false;
-          });
-        }
         return;
       }
 
@@ -91,61 +42,14 @@ class _MyProfileViewState extends State<MyProfileView>
       if (userId != null) {
         await Future.microtask(() async {
           await userViewModel.fetchUser(userId);
-          if (mounted) {
-            setState(() {
-              _userData = userViewModel.currentUser;
-              _isLoading = false;
-            });
-          }
-        });
-      } else {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
         });
       }
-    }
+    } catch (e) {}
   }
-
-  // Future<void> _updateProfile() async {
-  //   if (_formKey.currentState?.validate() ?? false) {
-  //     final userViewModel = context.read<UserViewModel>();
-  //     try {
-  //       final userId = FirebaseAuth.instance.currentUser?.uid;
-  //       if (userId != null) {
-  //         await userViewModel.updateProfile(userId, {
-  //           'name': _nameController.text,
-  //           'email': _emailController.text,
-  //           'phoneNumber': _phoneController.text,
-  //           'address': _addressController.text,
-  //         });
-  //         if (mounted) {
-  //           ScaffoldMessenger.of(context).showSnackBar(
-  //             const SnackBar(content: Text('Cập nhật thông tin thành công')),
-  //           );
-  //         }
-  //       }
-  //     } catch (e) {
-  //       if (mounted) {
-  //         ScaffoldMessenger.of(context).showSnackBar(
-  //           SnackBar(content: Text('Lỗi: ${e.toString()}')),
-  //         );
-  //       }
-  //     }
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
     final userViewModel = context.watch<UserViewModel>();
-    final mediaSize = MediaQuery.of(context).size;
 
     return SafeArea(
       child: Scaffold(
@@ -158,7 +62,7 @@ class _MyProfileViewState extends State<MyProfileView>
                     // Header with user info
                     Container(
                       padding: const EdgeInsets.all(20),
-                      color: Colors.orange.withOpacity(0.8),
+                      color: TColor.orange4,
                       child: SafeArea(
                         child: Column(
                           children: [
@@ -167,20 +71,42 @@ class _MyProfileViewState extends State<MyProfileView>
                                 CircleAvatar(
                                   radius: 30,
                                   backgroundColor: Colors.white,
-                                  child: Text(
-                                    (userViewModel
-                                                .currentUser?.name.isNotEmpty ==
-                                            true)
-                                        ? userViewModel.currentUser!.name
-                                            .substring(0, 1)
-                                            .toUpperCase()
-                                        : 'U',
-                                    style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green,
-                                    ),
-                                  ),
+                                  child: (userViewModel
+                                                  .currentUser?.avatarUrl !=
+                                              null &&
+                                          userViewModel.currentUser!.avatarUrl
+                                              .isNotEmpty)
+                                      ? ClipOval(
+                                          child: Image.network(
+                                            userViewModel
+                                                .currentUser!.avatarUrl,
+                                            width:
+                                                60, // Twice the radius for fill
+                                            height:
+                                                60, // Twice the radius for fill
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              // Fallback to initial if network image fails
+                                              return const Icon(Icons.person);
+                                            },
+                                          ),
+                                        )
+                                      : Text(
+                                          (userViewModel.currentUser?.name
+                                                      .isNotEmpty ==
+                                                  true)
+                                              ? userViewModel.currentUser!.name
+                                                  .substring(0, 1)
+                                                  .toUpperCase()
+                                              : 'U',
+                                          style: const TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors
+                                                .green, // Or a suitable default color
+                                          ),
+                                        ),
                                 ),
                                 const SizedBox(width: 15),
                                 Expanded(
@@ -207,13 +133,6 @@ class _MyProfileViewState extends State<MyProfileView>
                                     ],
                                   ),
                                 ),
-                                // IconButton(
-                                //   icon:
-                                //       const Icon(Icons.edit, color: Colors.white),
-                                //   onPressed: () {
-                                //     // TODO: Navigate to edit profile
-                                //   },
-                                // ),
                               ],
                             ),
                           ],
@@ -251,7 +170,6 @@ class _MyProfileViewState extends State<MyProfileView>
 
                     const SizedBox(height: 20),
 
-                    const SizedBox(height: 20),
                     _buildSection(
                       'Cài đặt',
                       [
@@ -262,13 +180,6 @@ class _MyProfileViewState extends State<MyProfileView>
                             // TODO: Navigate to general settings
                           },
                         ),
-                        // _buildMenuItem(
-                        //   icon: Icons.notifications_none,
-                        //   title: 'Thông báo',
-                        //   onTap: () {
-                        //     // TODO: Navigate to notifications
-                        //   },
-                        // ),
                         _buildMenuItem(
                           icon: Icons.lock_outline,
                           title: 'Quyền riêng tư',
@@ -434,84 +345,30 @@ class _MyProfileViewState extends State<MyProfileView>
 
   void _performLogout(BuildContext context) async {
     final loginViewModel = context.read<LoginViewModel>();
-    bool isNavigating = false;
 
     try {
-      setState(() {
-        _isLoading = true;
-      });
-
-      // Thiết lập callback điều hướng TRƯỚC khi gọi logout
       loginViewModel.navigationCallback = (String route) {
-        if (mounted && !isNavigating) {
-          isNavigating = true; // Đánh dấu để tránh điều hướng trùng lặp
-          setState(() {
-            _isLoading = false;
+        if (route == '/login') {
+          Future.microtask(() {
+            if (context.mounted) {
+              context.go('/login');
+            }
           });
-
-          if (route == '/login') {
-            // Sử dụng GoRouter thay vì Navigator để tránh xung đột
-            Future.microtask(() {
-              if (context.mounted) {
-                context.go('/login');
-              }
-            });
-          }
         }
       };
 
-      // Gọi phương thức đăng xuất từ LoginViewModel
       await loginViewModel.logOut();
-
-      // Nếu callback không được gọi (hiếm khi xảy ra), vẫn đảm bảo tắt loading
-      if (mounted && !isNavigating) {
-        setState(() {
-          _isLoading = false;
-        });
-
-        // Đảm bảo điều hướng trong trường hợp callback không được gọi
-        Future.microtask(() {
-          if (context.mounted) {
-            context.go('/login');
-          }
-        });
-      }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Lỗi đăng xuất: $e'),
-            backgroundColor: TColor.color1,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi đăng xuất: $e'),
+          backgroundColor: TColor.color1,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
           ),
-        );
-      }
+        ),
+      );
     }
-  }
-}
-
-class ScrollableTab extends InheritedWidget {
-  final ScrollController scrollController;
-
-  const ScrollableTab({
-    Key? key,
-    required this.scrollController,
-    required Widget child,
-  }) : super(key: key, child: child);
-
-  static ScrollableTab? of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<ScrollableTab>();
-  }
-
-  @override
-  bool updateShouldNotify(ScrollableTab oldWidget) {
-    return oldWidget.scrollController != scrollController;
   }
 }

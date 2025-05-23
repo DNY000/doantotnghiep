@@ -28,22 +28,22 @@ class _OnBoardingViewState extends State<OnBoardingView>
     {
       "title": "Đặt món ăn yêu thích",
       "sub_title": "Chọn từ hàng ngàn món ăn ngon tuyệt",
-      "icon": "assets/img/1.png"
+      "icon": "assets/images/1.png"
     },
     {
       "title": "Giao hàng nhanh chóng",
       "sub_title": "Giao hàng tận nơi chỉ trong vài phút",
-      "icon": "assets/img/2.png"
+      "icon": "assets/images/2.png"
     },
     {
       "title": "Theo dõi đơn hàng",
       "sub_title": "Biết chính xác món ăn của bạn đang ở đâu",
-      "icon": "assets/img/3.png"
+      "icon": "assets/images/3.png"
     },
     {
       "title": "Thanh toán dễ dàng",
       "sub_title": "Nhiều phương thức thanh toán tiện lợi",
-      "icon": "assets/img/4.png"
+      "icon": "assets/images/4.png"
     },
   ];
 
@@ -70,10 +70,6 @@ class _OnBoardingViewState extends State<OnBoardingView>
     );
 
     _animationController.forward();
-    FlutterNativeSplash.remove();
-
-    isFirstTime = storage.readData<bool>("isFirstTime") ?? true;
-
     if (!isFirstTime) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -81,6 +77,8 @@ class _OnBoardingViewState extends State<OnBoardingView>
         }
       });
     }
+    FlutterNativeSplash.remove();
+    isFirstTime = storage.readData<bool>("isFirstTime") ?? true;
   }
 
   @override

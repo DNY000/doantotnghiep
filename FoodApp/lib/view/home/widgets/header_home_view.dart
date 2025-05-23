@@ -1,5 +1,4 @@
 import 'package:foodapp/common_widget/appbar/t_appbar.dart';
-import 'package:foodapp/core/location_service.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:foodapp/view/notifications/notification_view.dart';

@@ -28,8 +28,6 @@ class _InformationUserViewState extends State<InformationUserView> {
 
   @override
   Widget build(BuildContext context) {
-    // final mediaSize = MediaQuery.of(context).size;
-
     return Scaffold(
       backgroundColor: TColor.bg,
       appBar: AppBar(
@@ -42,6 +40,7 @@ class _InformationUserViewState extends State<InformationUserView> {
           ),
         ),
         backgroundColor: Colors.white,
+        foregroundColor: Colors.white,
         centerTitle: true,
         leading: IconButton(
           onPressed: () {
@@ -81,246 +80,220 @@ class _InformationUserViewState extends State<InformationUserView> {
 
           return SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            child: Column(
-              children: [
-                // Header profile section
-                Container(
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black,
-                        blurRadius: 8,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 30),
-                      Stack(
-                        children: [
-                          Container(
-                            height: 110,
-                            width: 110,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(55),
-                              border:
-                                  Border.all(color: TColor.color3, width: 2),
-                            ),
-                            alignment: Alignment.center,
-                            child: _isUploading
-                                ? const CircularProgressIndicator()
-                                : _avatarImage != null
-                                    ? ClipOval(
-                                        child: Image.file(
-                                          _avatarImage!,
-                                          width: 110,
-                                          height: 110,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      )
-                                    : (user.avatarUrl.isNotEmpty
-                                        ? ClipOval(
-                                            child: Image.network(
-                                              user.avatarUrl,
-                                              width: 110,
-                                              height: 110,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          )
-                                        : Text(
-                                            user.name.isNotEmpty
-                                                ? user.name[0].toUpperCase()
-                                                : '?',
-                                            style: const TextStyle(
-                                                fontSize: 40,
-                                                color: Colors.grey),
-                                          )),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: GestureDetector(
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  builder: (context) => SafeArea(
-                                    child: Wrap(
-                                      children: [
-                                        ListTile(
-                                          leading: Icon(Icons.photo_library),
-                                          title: Text('Chọn từ thư viện'),
-                                          onTap: () {
-                                            Navigator.pop(context);
-                                            _pickImage(ImageSource.gallery);
-                                          },
-                                        ),
-                                        ListTile(
-                                          leading: Icon(Icons.camera_alt),
-                                          title: Text('Chụp ảnh'),
-                                          onTap: () {
-                                            Navigator.pop(context);
-                                            _pickImage(ImageSource.camera);
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                height: 32,
-                                width: 32,
-                                decoration: BoxDecoration(
-                                  color: TColor.color3,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border:
-                                      Border.all(color: Colors.white, width: 2),
+            child: MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                padding: MediaQuery.of(context).padding.copyWith(
+                      bottom: 0,
+                    ),
+              ),
+              child: Column(
+                children: [
+                  // Header profile section
+                  Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black,
+                          blurRadius: 8,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: IconButton(
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const EditUserView(),
                                 ),
-                                child: const Icon(
-                                  Icons.camera_alt,
-                                  size: 16,
-                                  color: Colors.white,
+                              );
+                              // Reload lại user khi quay về
+                              if (mounted) {
+                                context.read<UserViewModel>().loadCurrentUser();
+                              }
+                            },
+                            icon: Icon(
+                              Icons.edit,
+                              color: TColor.orange5,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Stack(
+                          children: [
+                            Container(
+                              height: 110,
+                              width: 110,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(55),
+                                border:
+                                    Border.all(color: TColor.gray, width: 1),
+                              ),
+                              alignment: Alignment.center,
+                              child: _isUploading
+                                  ? const CircularProgressIndicator()
+                                  : _avatarImage != null
+                                      ? ClipOval(
+                                          child: Image.file(
+                                            _avatarImage!,
+                                            width: 110,
+                                            height: 110,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        )
+                                      : (user.avatarUrl.isNotEmpty
+                                          ? ClipOval(
+                                              child: Image.network(
+                                                user.avatarUrl,
+                                                width: 110,
+                                                height: 110,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            )
+                                          : Text(
+                                              user.name.isNotEmpty
+                                                  ? user.name[0].toUpperCase()
+                                                  : '?',
+                                              style: const TextStyle(
+                                                  fontSize: 40,
+                                                  color: Colors.grey),
+                                            )),
+                            ),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: GestureDetector(
+                                onTap: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    builder: (context) => SafeArea(
+                                      child: Wrap(
+                                        children: [
+                                          ListTile(
+                                            leading: Icon(Icons.photo_library),
+                                            title: Text('Chọn từ thư viện'),
+                                            onTap: () {
+                                              Navigator.pop(context);
+                                              _pickImage(ImageSource.gallery);
+                                            },
+                                          ),
+                                          ListTile(
+                                            leading: Icon(Icons.camera_alt),
+                                            title: Text('Chụp ảnh'),
+                                            onTap: () {
+                                              Navigator.pop(context);
+                                              _pickImage(ImageSource.camera);
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  height: 32,
+                                  width: 32,
+                                  decoration: BoxDecoration(
+                                    color: TColor.orange5,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                        color: Colors.white, width: 2),
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt,
+                                    size: 16,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
-                            ),
-                          )
-                        ],
-                      ),
-                      const SizedBox(height: 15),
-                      Text(
-                        user.name,
-                        style: TextStyle(
-                          color: TColor.text,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                            )
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      // Text(
-                      //   'ID: ${user.id}',
-                      //   style: TextStyle(
-                      //     color: TColor.gray,
-                      //     fontSize: 14,
-                      //   ),
-                      // ),
-                      const SizedBox(height: 20),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Personal info section
-                _buildSectionContainer(
-                  title: 'Thông tin cá nhân',
-                  icon: CupertinoIcons.person_fill,
-                  iconColor: TColor.color2,
-                  content: Column(
-                    children: [
-                      _buildInfoRow(
-                        icon: CupertinoIcons.calendar,
-                        label: 'Ngày sinh',
-                        value: user.dateOfBirth.toString(),
-                      ),
-                      const Divider(),
-                      _buildInfoRow(
-                        icon: CupertinoIcons.phone_fill,
-                        label: 'Số điện thoại',
-                        value: user.phoneNumber,
-                      ),
-                      const Divider(),
-                      _buildInfoRow(
-                        icon: CupertinoIcons.person_crop_circle_badge_checkmark,
-                        label: 'Giới tính',
-                        value: user.gender,
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Contact info section
-                _buildSectionContainer(
-                  title: 'Thông tin liên hệ',
-                  icon: CupertinoIcons.mail_solid,
-                  iconColor: TColor.rating,
-                  content: Column(
-                    children: [
-                      _buildInfoRow(
-                        icon: CupertinoIcons.mail,
-                        label: 'Email',
-                        value: user.email ?? 'Chưa cập nhật',
-                      ),
-                      const Divider(),
-                      _buildInfoRow(
-                        icon: CupertinoIcons.location_solid,
-                        label: 'Địa chỉ',
-                        value: user.defaultAddress?.street ?? 'Chưa cập nhật',
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-
-                // Buttons
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const EditUserView(),
-                            ),
-                          );
-                          // Reload lại user khi quay về
-                          if (mounted) {
-                            context.read<UserViewModel>().loadCurrentUser();
-                          }
-                        },
-                        icon: const Icon(Icons.edit_outlined),
-                        label: const Text('Cập nhật thông tin'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: TColor.color3,
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          elevation: 1,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        icon: Icon(CupertinoIcons.home, color: TColor.gray),
-                        label: Text(
-                          'Quay lại Trang chủ',
-                          style: TextStyle(color: TColor.text),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 50),
-                          side: BorderSide(color: TColor.gray.withOpacity(0.3)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                        const SizedBox(height: 15),
+                        Text(
+                          user.name,
+                          style: TextStyle(
+                            color: TColor.text,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 4),
+                        // Remove commented out ID Text
+                        // Text(
+                        //   'ID: ${user.id}',
+                        //   style: TextStyle(
+                        //     color: TColor.gray,
+                        //     fontSize: 14,
+                        //   ),
+                        // ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 40),
-              ],
+                  const SizedBox(height: 20),
+
+                  // Personal info section
+                  _buildSectionContainer(
+                    title: 'Thông tin cá nhân',
+                    icon: CupertinoIcons.person_fill,
+                    iconColor: TColor.color2,
+                    content: Column(
+                      children: [
+                        _buildInfoRow(
+                          icon: CupertinoIcons.calendar,
+                          label: 'Ngày sinh',
+                          value: user.dateOfBirth.toString(),
+                        ),
+                        const Divider(),
+                        _buildInfoRow(
+                          icon: CupertinoIcons.phone_fill,
+                          label: 'Số điện thoại',
+                          value: user.phoneNumber,
+                        ),
+                        const Divider(),
+                        _buildInfoRow(
+                          icon:
+                              CupertinoIcons.person_crop_circle_badge_checkmark,
+                          label: 'Giới tính',
+                          value: user.gender,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Contact info section
+                  _buildSectionContainer(
+                    title: 'Thông tin liên hệ',
+                    icon: CupertinoIcons.mail_solid,
+                    iconColor: TColor.rating,
+                    content: Column(
+                      children: [
+                        _buildInfoRow(
+                          icon: CupertinoIcons.mail,
+                          label: 'Email',
+                          value: user.email ?? 'Chưa cập nhật',
+                        ),
+                        const Divider(),
+                        _buildInfoRow(
+                          icon: CupertinoIcons.location_solid,
+                          label: 'Địa chỉ',
+                          value: user.defaultAddress?.street ?? 'Chưa cập nhật',
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },

@@ -47,7 +47,7 @@ class _ShimmerExampleScreenState extends State<ShimmerExampleScreen> {
         child: Column(
           children: [
             TabBar(
-              labelColor: TColor.primary,
+              labelColor: TColor.orange5,
               unselectedLabelColor: Colors.grey,
               tabs: const [
                 Tab(text: 'Món ăn'),

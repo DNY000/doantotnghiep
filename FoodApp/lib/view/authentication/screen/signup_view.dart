@@ -16,45 +16,44 @@ class SignUpView extends StatelessWidget {
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: TColor.color3,
+            ),
+          ),
+        ),
         body: SingleChildScrollView(
           child: Form(
             key: viewModel.formKey,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: SizedBox(
                 width: media.width,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    AppBar(
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                      centerTitle: true,
-                      leading: IconButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        icon: Icon(
-                          Icons.arrow_back_ios,
-                          color: TColor.color3,
-                        ),
-                      ),
-                    ),
-
                     // Logo Container
                     Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.restaurant,
-                        size: 50,
-                        color: TColor.color3,
-                      ),
-                    ),
+                        height: 100,
+                        width: 100,
+                        padding: const EdgeInsets.all(16),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Image.asset(
+                          "assets/images/logo/foodapp.jpg",
+                          fit: BoxFit.fill,
+                        )),
                     SizedBox(height: media.width * 0.05),
 
                     Text(
@@ -78,37 +77,223 @@ class SignUpView extends StatelessWidget {
                     ),
                     SizedBox(height: media.width * 0.08),
 
-                    // Email TextField with icon
-                    LineTextField(
-                      controller: viewModel.txtUserName,
-                      hitText: "Tên người dùng",
-                      keyboardType: TextInputType.emailAddress,
-                      validator: viewModel.validateUserName,
-                    ),
-                    SizedBox(height: media.width * 0.05),
-                    LineTextField(
-                      controller: viewModel.txtEmail,
-                      hitText: "Email",
-                      keyboardType: TextInputType.emailAddress,
-                      validator: viewModel.validateEmail,
+                    // Username TextField
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: TextFormField(
+                        controller: viewModel.txtUserName,
+                        keyboardType: TextInputType.name,
+                        validator: viewModel.validateUserName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: "Tên người dùng",
+                          hintStyle: TextStyle(
+                            color: TColor.gray,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: TColor.gray, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: TColor.color3, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderSide:
+                                const BorderSide(color: Colors.red, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderSide:
+                                const BorderSide(color: Colors.red, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          prefixIcon: Icon(
+                            Icons.person_outline,
+                            color: TColor.gray,
+                            size: 20,
+                          ),
+                        ),
+                      ),
                     ),
                     SizedBox(height: media.width * 0.05),
 
-                    // Password TextField with icon
-                    LineTextField(
-                      controller: viewModel.txtPassword,
-                      obscureText: true,
-                      hitText: "Mật khẩu",
-                      validator: viewModel.validatePassword,
+                    // Email TextField
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: TextFormField(
+                        controller: viewModel.txtEmail,
+                        keyboardType: TextInputType.emailAddress,
+                        validator: viewModel.validateEmail,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: "Email",
+                          hintStyle: TextStyle(
+                            color: TColor.gray,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: TColor.gray, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: TColor.color3, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderSide:
+                                const BorderSide(color: Colors.red, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderSide:
+                                const BorderSide(color: Colors.red, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          prefixIcon: Icon(
+                            Icons.email_outlined,
+                            color: TColor.gray,
+                            size: 20,
+                          ),
+                        ),
+                      ),
                     ),
                     SizedBox(height: media.width * 0.05),
 
-                    // Confirm Password TextField with icon
-                    LineTextField(
-                      controller: viewModel.txtConfirmPassword,
-                      obscureText: true,
-                      hitText: "Xác nhận mật khẩu",
-                      validator: viewModel.validateConfirmPassword,
+                    // Password TextField
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: TextFormField(
+                        controller: viewModel.txtPassword,
+                        obscureText: true,
+                        validator: viewModel.validatePassword,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: "Mật khẩu",
+                          hintStyle: TextStyle(
+                            color: TColor.gray,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: TColor.gray, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: TColor.color3, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderSide:
+                                const BorderSide(color: Colors.red, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderSide:
+                                const BorderSide(color: Colors.red, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          prefixIcon: Icon(
+                            Icons.lock_outline,
+                            color: TColor.gray,
+                            size: 20,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              Icons.visibility_outlined,
+                              color: TColor.gray,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              // TODO: Implement password visibility toggle
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: media.width * 0.05),
+
+                    // Confirm Password TextField
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: TextFormField(
+                        controller: viewModel.txtConfirmPassword,
+                        obscureText: true,
+                        validator: viewModel.validateConfirmPassword,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: "Xác nhận mật khẩu",
+                          hintStyle: TextStyle(
+                            color: TColor.gray,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: TColor.gray, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: TColor.color3, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderSide:
+                                const BorderSide(color: Colors.red, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderSide:
+                                const BorderSide(color: Colors.red, width: 1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          prefixIcon: Icon(
+                            Icons.lock_outline,
+                            color: TColor.gray,
+                            size: 20,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              Icons.visibility_outlined,
+                              color: TColor.gray,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              // TODO: Implement password visibility toggle
+                            },
+                          ),
+                        ),
+                      ),
                     ),
                     SizedBox(height: media.width * 0.05),
 

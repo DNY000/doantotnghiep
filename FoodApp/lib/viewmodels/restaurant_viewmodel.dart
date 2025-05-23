@@ -133,7 +133,6 @@ class RestaurantViewModel extends ChangeNotifier {
       _clearError();
 
       if (_userLocation == null) {
-        print('User location is null. Attempting to get current location...');
         await updateUserLocation();
 
         if (_userLocation == null) {
@@ -142,18 +141,12 @@ class RestaurantViewModel extends ChangeNotifier {
         }
       }
 
-      print(
-          'User location: ${_userLocation!.latitude}, ${_userLocation!.longitude}');
-      print('Searching for restaurants within ${radiusInKm}km radius');
-
       final restaurants = await _repository.getNearbyRestaurants(
         userLocation:
             GeoPoint(_userLocation!.latitude, _userLocation!.longitude),
         radiusInKm: radiusInKm,
         limit: limit,
       );
-
-      print('Repository returned ${restaurants.length} nearby restaurants');
 
       _nearbyRestaurants = restaurants.map((restaurant) {
         if (restaurant.images.isEmpty ||
@@ -173,10 +166,8 @@ class RestaurantViewModel extends ChangeNotifier {
       _error = null;
     } catch (e) {
       _error = 'Không thể tải danh sách nhà hàng gần đây: $e';
-      print('Error in fetchNearbyRestaurants: $e');
       _nearbyRestaurants = [];
     } finally {
-      print('danh sach nha hang gan day: ${_nearbyRestaurants.length}');
       // _setLoading(false);
       notifyListeners(); // Đảm bảo gọi notifyListeners để cập nhật UI
     }
@@ -275,23 +266,24 @@ class RestaurantViewModel extends ChangeNotifier {
   }
 
   // Lấy danh sách nhà hàng mới
-  List<RestaurantModel> getNewRestaurants({int limit = 10}) {
-    final sorted = List<RestaurantModel>.from(_restaurants)
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    _newRestaurants = sorted;
-    notifyListeners();
-    return sorted.take(limit).toList();
+  Future<void> getNewRestaurants({int limit = 10}) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+      final restaurant = await _repository.getNewRestaurants(limit: limit);
+      _newRestaurants = restaurant;
+    } catch (e) {
+      throw Exception(e);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   void setSelectedRestaurant(RestaurantModel restaurant) {
     _selectedRestaurant = restaurant;
     notifyListeners();
   }
-
-  // void clearSelectedRestaurant() {
-  //   _selectedRestaurant = null;
-  //   notifyListeners();
-  // }
 
   void clearError() {
     _error = null;
@@ -349,38 +341,6 @@ class RestaurantViewModel extends ChangeNotifier {
       ..sort((a, b) => b.rating.compareTo(a.rating));
     return sorted.take(limit).toList();
   }
-
-  // Lấy danh sách nhà hàng mới đăng ký
-  // Future<void> fetchNewRestaurants() async {
-  //   if (_isLoading) return;
-  //   // _setLoading(true);
-
-  //   try {
-  //     final restaurants = await _repository.getNewRestaurants();
-  //     _newRestaurants = restaurants.map((restaurant) {
-  //       // Ensure images are properly handled
-  //       final images = restaurant.images;
-  //       if (images.isEmpty ||
-  //           !images.containsKey('main') ||
-  //           images['main']?.isEmpty == true) {
-  //         return restaurant.copyWith(
-  //           images: {
-  //             'main': 'assets/images/placeholder_restaurant.png',
-  //             'gallery': images['gallery'] as List<String>? ?? [],
-  //           },
-  //         );
-  //       }
-  //       return restaurant;
-  //     }).toList();
-
-  //     _error = null;
-  //   } catch (e) {
-  //     _error = e.toString();
-  //     _newRestaurants = [];
-  //   } finally {
-  //     // _setLoading(false);
-  //   }
-  // }
 
   // Tính khoảng cách từ vị trí người dùng đến nhà hàng
   double calculateDistanceToRestaurant(RestaurantModel restaurant) {
@@ -482,9 +442,4 @@ class RestaurantViewModel extends ChangeNotifier {
     _error = null;
     notifyListeners();
   }
-
-  // void _setError(String errorMessage) {
-  //   _error = errorMessage;
-  //   notifyListeners();
-  // }
 }

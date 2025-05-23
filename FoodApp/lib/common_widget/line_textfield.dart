@@ -22,7 +22,7 @@ class LineTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
@@ -30,12 +30,12 @@ class LineTextField extends StatelessWidget {
         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         decoration: InputDecoration(
             hintText: hitText,
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: TColor.gray),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: TColor.primary),
-            ),
+            enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: TColor.gray, width: 0.3),
+                borderRadius: const BorderRadius.all(Radius.circular(12))),
+            focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: TColor.gray, width: 0.3),
+                borderRadius: const BorderRadius.all(Radius.circular(12))),
             suffixIcon: isClear
                 ? IconButton(
                     onPressed: () {

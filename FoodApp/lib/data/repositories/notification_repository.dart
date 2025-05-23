@@ -52,4 +52,23 @@ class NotificationRepository {
       print('Error creating notification: $e');
     }
   }
+
+  Future<int> getUnreadNotificationsCount() async {
+    try {
+      final AggregateQuerySnapshot snapshot = await _firestore
+          .collection(_collection)
+          .where('isRead', isEqualTo: false)
+          .count()
+          .get();
+
+      // Access the count value and ensure it's non-nullable
+      final count = snapshot.count ??
+          0; // Use null-aware operator to handle potential null
+      print('Unread notifications count: $count');
+      return count;
+    } catch (e) {
+      print('Error getting unread notifications count: $e');
+      return 0; // Return 0 in case of error
+    }
+  }
 }

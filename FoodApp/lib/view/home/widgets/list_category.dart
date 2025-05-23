@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:foodapp/common_widget/selection_text_view.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
 import 'package:foodapp/common_widget/grid/grid_view.dart';
 import 'package:foodapp/data/models/category_model.dart';
 import 'package:foodapp/view/home/widgets/category_gird_view.dart';
+import 'package:foodapp/view/home/widgets/list_food_by_category.dart';
 import 'package:foodapp/viewmodels/category_viewmodel.dart';
 import 'package:provider/provider.dart';
 
@@ -20,40 +22,61 @@ class ListCategory extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header section
+          // Padding(
+          //   padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+          //   child: Row(
+          //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //     children: [
+          //       Text(
+          //         "Danh mục món ăn",
+          //         style: TextStyle(
+          //           fontSize: 16,
+          //           fontWeight: FontWeight.bold,
+          //           color: TColor.text,
+          //           letterSpacing: 0.2,
+          //         ),
+          //       ),
+          //       TextButton(
+          //         onPressed: () {
+          //           Navigator.push(
+          //               context,
+          //               MaterialPageRoute(
+          //                 builder: (context) => const ListFoodByCategory(
+          //                   category: "",
+          //                 ),
+          //               ));
+          //         },
+          //         style: TextButton.styleFrom(
+          //           padding:
+          //               const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+          //           shape: RoundedRectangleBorder(
+          //             borderRadius: BorderRadius.circular(20),
+          //           ),
+          //           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          //         ),
+          //         child: Text(
+          //           "Xem tất cả",
+          //           style: TextStyle(
+          //             fontSize: 12,
+          //             color: TColor.color3,
+          //             fontWeight: FontWeight.w600,
+          //           ),
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Danh mục món ăn",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: TColor.text,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {},
-                  style: TextButton.styleFrom(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+            padding: const EdgeInsets.all(0),
+            child: SelectionTextView(
+              title: "Danh mục món ăn",
+              onSeeAllTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ListFoodByCategory(
+                      category: "",
                     ),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: Text(
-                    "Xem tất cả",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: TColor.color3,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
+                  )),
             ),
           ),
 

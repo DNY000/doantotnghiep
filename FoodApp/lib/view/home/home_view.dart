@@ -8,6 +8,7 @@ import 'package:foodapp/view/home/widgets/list_category.dart';
 import 'package:foodapp/view/home/widgets/list_restaurant_new.dart';
 import 'package:foodapp/view/home/widgets/restaurant_tab_view.dart';
 import 'package:foodapp/view/notifications/notification_view.dart';
+import 'package:foodapp/viewmodels/notification_viewmodel.dart';
 import 'package:foodapp/viewmodels/restaurant_viewmodel.dart';
 import 'package:foodapp/viewmodels/user_viewmodel.dart';
 import 'package:provider/provider.dart';
@@ -43,15 +44,14 @@ class _HomeViewContentState extends State<_HomeViewContent>
   @override
   void initState() {
     super.initState();
-    // Khởi tạo TabController trong HomeViewModel
     context.read<HomeViewModel>().initTabController(this);
 
-    // Khởi tạo data khi widget được build lần đầu
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<FoodViewModel>().loadFoods();
       context.read<CategoryViewModel>().loadCategories();
       context.read<RestaurantViewModel>().getNewRestaurants();
       context.read<UserViewModel>().loadCurrentUser();
+      context.read<NotificationViewModel>().getUnreadNotificationsCount();
     });
 
     _loadCurrentAddress();
@@ -75,8 +75,6 @@ class _HomeViewContentState extends State<_HomeViewContent>
 
   @override
   Widget build(BuildContext context) {
-    // final viewModel = context.watch<HomeViewModel>();
-
     return SafeArea(
       child: Scaffold(
         backgroundColor: TColor.bg,
@@ -85,102 +83,112 @@ class _HomeViewContentState extends State<_HomeViewContent>
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              SliverToBoxAdapter(
-                  child: TAppBar(
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Selector<UserViewModel, String>(
-                      selector: (context, user) => user.currentUser?.name ?? '',
-                      builder: (context, name, child) => Text(
-                        'Xin chào, $name',
-                        style: TextStyle(
-                          color: TColor.text,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _SliverAppBarDelegate(
+                  child: Column(
+                    children: [
+                      TAppBar(
+                        padding: 20,
+                        title: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Selector<UserViewModel, String>(
+                              selector: (context, user) =>
+                                  user.currentUser?.name ?? '',
+                              builder: (context, name, child) => Text(
+                                'Vị trí',
+                                style: TextStyle(
+                                  color: TColor.text,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              _currentAddress ?? 'Đang lấy vị trí...',
+                              style: TextStyle(
+                                color: TColor.gray,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
+                        action: [
+                          Selector<NotificationViewModel, int>(
+                            selector: (p0, p1) => p1.countNotification,
+                            builder:
+                                (BuildContext context, value, Widget? child) {
+                              return IconButton(
+                                icon: Badge(
+                                  label: Text(
+                                    '$value',
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 10),
+                                  ),
+                                  child: Icon(
+                                    Icons.notifications_outlined,
+                                    size: 24,
+                                    color: TColor.text,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const NotificationsView(),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ],
                       ),
-                    ),
-                    Text(
-                      _currentAddress ?? 'Đang lấy vị trí...',
-                      style: TextStyle(
-                        color: TColor.gray,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-                // showBackArrow: isSelectCity,
-
-                action: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.notifications_outlined,
-                      size: 24,
-                      color: TColor.text,
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const NotificationsView()),
-                      );
-                    },
-                  ),
-                ],
-              )),
-              SliverAppBar(
-                backgroundColor: Colors.white,
-                elevation: 1,
-                pinned: false,
-                floating: true,
-                primary: false,
-                // không hiển thị back button
-                automaticallyImplyLeading: false,
-                title: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const FoodSearchView()),
-                    );
-                  },
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.search, color: TColor.gray),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Tìm kiếm món ăn...',
-                          style: TextStyle(
-                            color: TColor.gray,
-                            fontSize: 16,
-                            fontWeight: FontWeight.normal,
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const FoodSearchView()),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.search, color: TColor.gray),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Tìm kiếm món ăn...',
+                                  style: TextStyle(
+                                    color: TColor.gray,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SliverToBoxAdapter(
-                child: ListBanner(),
-              ),
-              const SliverToBoxAdapter(
-                child: ListCategory(),
-              ),
-              const SliverToBoxAdapter(
-                child: ListFoodYouMaybeLike(),
-              ),
+              const SliverToBoxAdapter(child: ListBanner()),
+              const SliverToBoxAdapter(child: ListCategory()),
+              const SliverToBoxAdapter(child: ListFoodYouMaybeLike()),
               SliverToBoxAdapter(
                 child: Column(
                   children: [
@@ -192,15 +200,10 @@ class _HomeViewContentState extends State<_HomeViewContent>
                   ],
                 ),
               ),
-              const SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 20,
-                ),
-              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 20)),
               SliverToBoxAdapter(
                 child: SizedBox(
-                  height: MediaQuery.of(context).size.height *
-                      0.6, // 60% chiều cao màn hình
+                  height: MediaQuery.of(context).size.height * 0.6,
                   child: const RestaurantTabView(),
                 ),
               ),
@@ -210,4 +213,31 @@ class _HomeViewContentState extends State<_HomeViewContent>
       ),
     );
   }
+}
+
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+
+  _SliverAppBarDelegate({required this.child});
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Material(
+      color: Colors.white,
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+      child: child,
+    );
+  }
+
+  @override
+  double get maxExtent => 110;
+
+  @override
+  double get minExtent => 110;
+
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
+      false;
 }

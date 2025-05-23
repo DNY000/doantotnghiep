@@ -25,7 +25,7 @@ class OrderViewModel extends ChangeNotifier {
   Stream<List<OrderModel>>? _ordersStream;
 
   OrderViewModel(this._repository, {FoodRepository? foodRepository})
-    : _foodRepository = foodRepository ?? FoodRepository();
+      : _foodRepository = foodRepository ?? FoodRepository();
 
   // Getters
   List<OrderModel> get orders => _orders;
@@ -68,11 +68,10 @@ class OrderViewModel extends ChangeNotifier {
       // Lấy vị trí nhà hàng cố định từ Firestore
       String restaurantName = '';
       GeoPoint? restaurantLocation;
-      final doc =
-          await FirebaseFirestore.instance
-              .collection('restaurants')
-              .doc(restaurantId)
-              .get();
+      final doc = await FirebaseFirestore.instance
+          .collection('restaurants')
+          .doc(restaurantId)
+          .get();
       if (doc.exists) {
         final data = doc.data();
         if (data != null && data['location'] is GeoPoint) {
@@ -113,8 +112,7 @@ class OrderViewModel extends ChangeNotifier {
         id: '',
         userId: userId,
         title: 'Đặt đơn thành công',
-        content:
-            'Đơn hàng của bạn đã được đặt thành công! Cảm ơn bạn đã sử dụng dịch vụ.',
+        content: 'Xem chi tiết',
         type: NotificationType.order.name,
         createdAt: DateTime.now(),
         isRead: false,
@@ -123,8 +121,7 @@ class OrderViewModel extends ChangeNotifier {
       await _notificationViewModel.createNotification(notification);
       await NotificationsService.showLocalNotification(
         title: 'Đặt đơn thành công',
-        body:
-            'Đơn hàng của bạn đã được đặt thành công! Cảm ơn bạn đã sử dụng dịch vụ.',
+        body: 'Xem chi tiết',
       );
       _isLoading = false;
       notifyListeners();
@@ -374,10 +371,9 @@ class OrderViewModel extends ChangeNotifier {
   // Sắp xếp theo thời gian
   void sortByOrderTime({bool ascending = false}) {
     _orders.sort(
-      (a, b) =>
-          ascending
-              ? a.orderTime.compareTo(b.orderTime)
-              : b.orderTime.compareTo(a.orderTime),
+      (a, b) => ascending
+          ? a.orderTime.compareTo(b.orderTime)
+          : b.orderTime.compareTo(a.orderTime),
     );
     notifyListeners();
   }
@@ -385,10 +381,9 @@ class OrderViewModel extends ChangeNotifier {
   // Sắp xếp theo tổng tiền
   void sortByTotalAmount({bool ascending = false}) {
     _orders.sort(
-      (a, b) =>
-          ascending
-              ? a.totalPrice.compareTo(b.totalPrice)
-              : b.totalPrice.compareTo(a.totalPrice),
+      (a, b) => ascending
+          ? a.totalPrice.compareTo(b.totalPrice)
+          : b.totalPrice.compareTo(a.totalPrice),
     );
     notifyListeners();
   }

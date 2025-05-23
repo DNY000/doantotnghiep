@@ -7,11 +7,12 @@ class NotificationViewModel extends ChangeNotifier {
   List<NotificationModel> _notifications = [];
   bool _isLoading = false;
   String? _error;
+  int _countNotification = 0;
 
   List<NotificationModel> get notifications => _notifications;
   bool get isLoading => _isLoading;
   String? get error => _error;
-
+  int get countNotification => _countNotification;
   Future<void> loadNotifications() async {
     _isLoading = true;
     _error = null;
@@ -64,6 +65,21 @@ class NotificationViewModel extends ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       _error = 'Failed to create notification';
+      notifyListeners();
+    }
+  }
+
+  Future<void> getUnreadNotificationsCount() async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+      _countNotification = await _repository.getUnreadNotificationsCount();
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      _error = 'Failed notification';
       notifyListeners();
     }
   }

@@ -527,7 +527,7 @@ class _EditUserViewState extends State<EditUserView> {
                   child: ElevatedButton(
                     onPressed: _saveProfile,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: TColor.color3,
+                      backgroundColor: TColor.orange5,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
