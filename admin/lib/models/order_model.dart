@@ -53,14 +53,12 @@ class OrderModel {
 
   factory OrderModel.fromMap(Map<String, dynamic> map, String id) {
     final statusStr = map['status']?.toString() ?? '';
-    print("Parse trạng thái: $statusStr");
     return OrderModel(
       id: id,
       userId: map['userId'] ?? '',
       restaurantId: map['restaurantId'] ?? '',
       restaurantName: map['restaurantName'] ?? '',
-      items:
-          (map['items'] as List<dynamic>?)
+      items: (map['items'] as List<dynamic>?)
               ?.map((e) => CartItemModel.fromMap(e))
               .toList() ??
           [],
@@ -105,10 +103,9 @@ class OrderModel {
   // Helper method để hiển thị thông tin đơn hàng ngắn gọn
   Map<String, dynamic> toListView() {
     final firstItem = items.isNotEmpty ? items.first : null;
-    final itemsDescription =
-        firstItem != null
-            ? "${firstItem.foodName} ${items.length > 1 ? 'và ${items.length - 1} món khác' : ''}"
-            : "Không có món";
+    final itemsDescription = firstItem != null
+        ? "${firstItem.foodName} ${items.length > 1 ? 'và ${items.length - 1} món khác' : ''}"
+        : "Không có món";
 
     return {
       'id': id,

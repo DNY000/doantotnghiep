@@ -4,15 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:foodapp/data/models/cart_item_model.dart';
 import 'package:foodapp/data/models/user_model.dart';
-import 'package:foodapp/routes/name_router.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
 import 'package:foodapp/ultils/const/enum.dart';
 import 'package:foodapp/viewmodels/order_viewmodel.dart';
+import 'package:foodapp/viewmodels/restaurant_viewmodel.dart';
 import 'package:foodapp/viewmodels/user_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:foodapp/core/services/webview.dart';
 import 'package:go_router/go_router.dart';
-import 'package:foodapp/data/models/order_model.dart';
 
 class OrderScreen extends StatefulWidget {
   final List<CartItemModel> cartItems;
@@ -34,16 +33,20 @@ class _OrderScreenState extends State<OrderScreen> {
   final _addressController = TextEditingController();
   final _noteController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _nameController = TextEditingController();
+  late String restaurantName;
   PaymentMethod _selectedPaymentMethod = PaymentMethod.thanhtoankhinhanhang;
 
   @override
   void initState() {
     super.initState();
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.edgeToEdge,
-      overlays: [SystemUiOverlay.top],
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        context
+            .read<RestaurantViewModel>()
+            .selectRestaurant(widget.restaurantId);
+      },
     );
+ 
   }
 
   @override
@@ -51,20 +54,41 @@ class _OrderScreenState extends State<OrderScreen> {
     _addressController.dispose();
     _noteController.dispose();
     _phoneController.dispose();
-    _nameController.dispose();
 
     super.dispose();
   }
 
   Future<void> _placeOrder() async {
-    if (_addressController.text.isEmpty) {
+    final userViewModel = context.read<UserViewModel>();
+    final currentUser = userViewModel.currentUser;
+
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng đăng nhập để đặt hàng')),
+      );
+      return;
+    }
+
+    // Kiểm tra địa chỉ
+    String deliveryAddress = _addressController.text;
+    if (deliveryAddress.isEmpty) {
+      deliveryAddress = currentUser.defaultAddress?.street ?? '';
+    }
+
+    if (deliveryAddress.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng nhập địa chỉ giao hàng')),
       );
       return;
     }
 
-    if (_phoneController.text.isEmpty) {
+    // Kiểm tra số điện thoại
+    String phoneNumber = _phoneController.text;
+    if (phoneNumber.isEmpty) {
+      phoneNumber = currentUser.phoneNumber;
+    }
+
+    if (phoneNumber.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng cập nhật số điện thoại')),
       );
@@ -73,32 +97,36 @@ class _OrderScreenState extends State<OrderScreen> {
 
     try {
       final orderViewModel = context.read<OrderViewModel>();
-      final userViewModel = context.read<UserViewModel>();
-
-      final currentUser = userViewModel.currentUser;
-      if (currentUser == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Vui lòng đăng nhập để đặt hàng')),
-        );
-        return;
-      }
+      final restaurant = context.read<RestaurantViewModel>().selectedRestaurant;
 
       await orderViewModel.createOrder(
-        context: context,
-        userId: currentUser.id,
-        restaurantId: widget.restaurantId,
-        items: widget.cartItems,
-        address: _addressController.text,
-        paymentMethod: PaymentMethod.thanhtoankhinhanhang,
-        note: _noteController.text,
-        currentUser: currentUser,
-      );
+          context: context,
+          userId: currentUser.id,
+          restaurantId: widget.restaurantId,
+          items: widget.cartItems,
+          address: deliveryAddress,
+          paymentMethod: _selectedPaymentMethod,
+          note: _noteController.text,
+          currentUser: currentUser,
+          restaurantName: restaurant!.name);
 
       if (mounted) {
-        context.go(NameRouter.mainTab);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đặt hàng thành công')),
-        );
+        // Hiển thị thông báo thành công
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(content: Text('Đặt hàng thành công')),
+        // );
+
+        // Đợi một chút để người dùng thấy thông báo
+        await Future.delayed(const Duration(milliseconds: 500));
+        // Navigator.push(
+        //     context,
+        //     MaterialPageRoute(
+        //       builder: (context) => const MainTabView(),
+        //     ));
+        // Chuyển về màn hình chính KHÔNG hiển thị loading
+        if (mounted) {
+          context.go('/main-tab');
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -225,63 +253,6 @@ class _OrderScreenState extends State<OrderScreen> {
     );
   }
 
-  void _showNoteDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Ghi chú'),
-        content: TextField(
-          controller: _noteController,
-          decoration: const InputDecoration(
-            hintText: 'Nhập ghi chú cho đơn hàng',
-          ),
-          maxLines: 3,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: TColor.color3,
-            ),
-            child: const Text('Lưu'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _navigateToVNPay(BuildContext context, OrderModel order) {
-    if (order.id == null) {
-      print("Order ID is null. Cannot initiate payment.");
-      return;
-    }
-    double amountInVnPayUnits = order.totalAmount * 100;
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => VNPayWebView(
-          orderId: order.id!,
-          amount: amountInVnPayUnits,
-          orderInfo: 'Thanh toan don hang #${order.id}',
-          onPaymentResult: (bool success, String? message) {
-            if (success) {
-              print("Payment successful! Message: ${message ?? 'N/A'}");
-            } else {
-              print("Payment failed! Message: ${message ?? 'N/A'}");
-            }
-          },
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -316,9 +287,6 @@ class _OrderScreenState extends State<OrderScreen> {
     return Selector<UserViewModel, UserModel?>(
       selector: (_, vm) => vm.currentUser,
       builder: (context, user, _) {
-        final name = _nameController.text.isNotEmpty
-            ? _nameController.text
-            : (user?.name ?? "Người dùng chưa đăng nhập");
         final phone = _phoneController.text.isNotEmpty
             ? _phoneController.text
             : (user?.phoneNumber ?? "Chưa có số điện thoại");
@@ -338,8 +306,8 @@ class _OrderScreenState extends State<OrderScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      address.isEmpty
-                          ? "Vui lòng nhập địa chỉ giao hàng"
+                      address == "Vui lòng nhập địa chỉ giao hàng"
+                          ? address
                           : "Địa chỉ: $address",
                       style: const TextStyle(
                           fontSize: 15, fontWeight: FontWeight.w500),
@@ -356,9 +324,9 @@ class _OrderScreenState extends State<OrderScreen> {
               Padding(
                 padding: const EdgeInsets.only(left: 32),
                 child: Text(
-                  name.isEmpty || phone.isEmpty
-                      ? "Vui lòng cập nhật thông tin người nhận"
-                      : '$name | $phone',
+                  phone.isEmpty
+                      ? "Vui lòng cập nhật số điện thoại"
+                      : '${user?.name} | $phone',
                   style: const TextStyle(color: Colors.black54, fontSize: 13),
                 ),
               ),
@@ -697,9 +665,7 @@ class _OrderScreenState extends State<OrderScreen> {
                     ),
                   ),
                   child: orderViewModel.isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
+                      ? const Center(
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor:

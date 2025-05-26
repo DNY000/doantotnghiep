@@ -1,13 +1,15 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:foodapp/common_widget/shimmer/shimmer_main_tab.dart';
 import 'package:foodapp/core/services/notifications_service.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
-import 'package:foodapp/common_widget/shimmer/shimmer_main_tab.dart';
+import 'package:foodapp/view/farvorites/farvorite_view.dart';
 import 'package:foodapp/view/order/order_view.dart';
 import 'package:foodapp/view/profile/my_profile_view.dart';
-import 'dart:ui';
-import 'dart:async';
-
-import '../farvorites/farvorite_view.dart';
+import 'package:foodapp/viewmodels/notification_viewmodel.dart';
+import 'package:provider/provider.dart';
 import '../home/home_view.dart';
 
 class MainTabView extends StatefulWidget {
@@ -19,157 +21,146 @@ class MainTabView extends StatefulWidget {
 
 class _MainTabViewState extends State<MainTabView>
     with TickerProviderStateMixin {
-  TabController? controller;
+  late final TabController _tabController;
+  int _currentIndex = 0;
+  bool _isLoading = true; // Add loading state
 
-  // Các completer để quản lý trạng thái tải của từng tab
-  final List<Completer<bool>> _dataLoadingCompleters = List.generate(
-    4,
-    (_) => Completer<bool>(),
-  );
-
-  // Các future để theo dõi trạng thái tải của tab hiện tại
-  late Future<bool> _currentTabDataLoaded;
+  final List<Widget> _pages = const [
+    HomeView(),
+    OrderView(),
+    FarvoriteView(),
+    MyProfileView(),
+  ];
 
   @override
   void initState() {
     super.initState();
-    // Khởi tạo notifications và cấu hình UI
+    _tabController = TabController(length: _pages.length, vsync: this);
+    _tabController.addListener(_handleTabChange);
 
-    controller = TabController(length: 4, vsync: this);
+    // Ensure system UI is properly configured for bottom navigation bar
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: [SystemUiOverlay.top], // Only show status bar
+    );
 
-    // Thiết lập tab ban đầu
-    _currentTabDataLoaded = _dataLoadingCompleters[0].future;
-
-    // Khởi động tải dữ liệu cho tab đầu tiên
-    _loadDataForCurrentTab();
-
-    controller?.addListener(() {
-      if (controller!.indexIsChanging) {
-        // Khi chuyển tab, cập nhật future hiện tại
-        setState(() {
-          _currentTabDataLoaded =
-              _dataLoadingCompleters[controller!.index].future;
-        });
-
-        // Bắt đầu tải dữ liệu cho tab mới
-        _loadDataForCurrentTab();
-      }
-
+    // Simulate loading for shimmer effect
+    Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        setState(() {});
+        setState(() {
+          _isLoading = false;
+        });
       }
     });
   }
 
-  void _loadDataForCurrentTab() {
-    final currentTabIndex = controller!.index;
+  @override
+  void dispose() {
+    _tabController.removeListener(_handleTabChange);
+    _tabController.dispose();
+    super.dispose();
+  }
 
-    // Chỉ tải dữ liệu nếu chưa được hoàn thành
-    if (!_dataLoadingCompleters[currentTabIndex].isCompleted) {
-      // Mô phỏng việc tải dữ liệu từ API
-      Future.delayed(const Duration(milliseconds: 1800), () {
-        if (mounted && !_dataLoadingCompleters[currentTabIndex].isCompleted) {
-          // Đánh dấu là đã tải xong dữ liệu
-          _dataLoadingCompleters[currentTabIndex].complete(true);
-
-          if (controller!.index == currentTabIndex) {
-            setState(() {
-              // Cập nhật UI nếu tab hiện tại là tab đang tải
-            });
-          }
-        }
+  void _handleTabChange() {
+    if (_tabController.indexIsChanging) {
+      setState(() {
+        _currentIndex = _tabController.index;
       });
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<bool>(
-      future: _currentTabDataLoaded,
-      builder: (context, snapshot) {
-        // Khi đang tải hoặc chưa có dữ liệu, hiển thị shimmer phù hợp
-        if (!snapshot.hasData || snapshot.data != true) {
-          return ShimmerMainTabView(
-            initialIndex: controller?.index ?? 0,
-            loadingDuration: const Duration(milliseconds: 1500),
-          );
-        }
+  Tab _buildTab({
+    required IconData icon,
+    required String label,
+    required int index,
+  }) {
+    final bool isSelected = _currentIndex == index;
+    Widget tabIcon = Icon(
+      icon,
+      color: isSelected ? Colors.orange : TColor.gray,
+    );
 
-        // Nếu đã tải xong, hiển thị nội dung thật
-        return Scaffold(
-          body: TabBarView(controller: controller, children: const [
-            HomeView(),
-            OrderView(),
-            FarvoriteView(),
-            MyProfileView()
-          ]),
-          bottomNavigationBar: SafeArea(
-            top: false,
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                  ),
-                  child: TabBar(
-                    controller: controller,
-                    labelColor: Colors.orange,
-                    labelPadding: EdgeInsets.zero,
-                    unselectedLabelColor: TColor.gray,
-                    labelStyle: const TextStyle(
-                        fontSize: 10, fontWeight: FontWeight.w700),
-                    unselectedLabelStyle: const TextStyle(
-                        fontSize: 10, fontWeight: FontWeight.w700),
-                    indicatorColor: Colors.transparent,
-                    padding: EdgeInsets.zero,
-                    tabs: [
-                      Tab(
-                        icon: Icon(Icons.home_outlined,
-                            color: controller?.index == 0
-                                ? Colors.orange
-                                : TColor.gray),
-                        text: "Trang chủ",
-                      ),
-                      Tab(
-                        icon: Icon(Icons.receipt_long_outlined,
-                            color: controller?.index == 1
-                                ? Colors.orange
-                                : TColor.gray),
-                        text: "Đơn hàng",
-                      ),
-                      Tab(
-                        icon: Icon(Icons.favorite_border_outlined,
-                            color: controller?.index == 2
-                                ? Colors.orange
-                                : TColor.gray),
-                        text: "Yêu thích",
-                      ),
-                      Tab(
-                        icon: Icon(
-                          Icons.person_outline,
-                          color: controller?.index == 4
-                              ? Colors.orange
-                              : TColor.gray,
-                        ),
-                        text: "Tài khoản",
-                      ),
-                    ],
-                  ),
-                ),
+    // Add notification badge to Order tab (index 1)
+    if (index == 1) {
+      return Tab(
+        icon: Consumer<NotificationViewModel>(
+          builder: (context, notificationViewModel, child) {
+            final unreadCount = notificationViewModel.countNotification;
+            return Badge(
+              label: Text(
+                '$unreadCount',
+                style: const TextStyle(color: Colors.white, fontSize: 10),
               ),
-            ),
-          ),
-          backgroundColor: Colors.white,
-          // Thêm nút refresh (tuỳ chọn)
-        );
-      },
+              isLabelVisible: unreadCount > 0,
+              child: tabIcon,
+            );
+          },
+        ),
+        text: label,
+      );
+    }
+
+    return Tab(
+      icon: tabIcon,
+      text: label,
     );
   }
 
   @override
-  void dispose() {
-    controller?.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _isLoading // Show shimmer while loading
+          ? ShimmerMainTabViewContent(
+              tabController: _tabController, // Pass the main tab controller
+            )
+          : TabBarView(
+              controller: _tabController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: _pages,
+            ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+          ),
+          child: TabBar(
+            controller: _tabController,
+            labelColor: Colors.orange,
+            unselectedLabelColor: TColor.gray,
+            labelPadding: EdgeInsets.zero,
+            indicatorColor: Colors.transparent,
+            labelStyle: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+            ),
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            tabs: [
+              _buildTab(
+                  icon: Icons.home_outlined, label: "Trang chủ", index: 0),
+              _buildTab(
+                  icon: Icons.receipt_long_outlined,
+                  label: "Đơn hàng",
+                  index: 1),
+              _buildTab(
+                  icon: Icons.favorite_border_outlined,
+                  label: "Yêu thích",
+                  index: 2),
+              _buildTab(
+                  icon: Icons.person_outline, label: "Tài khoản", index: 3),
+            ],
+          ),
+        ),
+      ),
+      backgroundColor: Colors.white,
+    );
   }
 }

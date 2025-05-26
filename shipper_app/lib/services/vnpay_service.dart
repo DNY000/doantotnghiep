@@ -57,10 +57,12 @@ class VNPayService {
       };
 
       // Thêm thông tin tùy chọn
-      if (userEmail?.isNotEmpty == true)
+      if (userEmail?.isNotEmpty == true) {
         vnpParams['vnp_Bill_Email'] = userEmail!;
-      if (userPhone?.isNotEmpty == true)
+      }
+      if (userPhone?.isNotEmpty == true) {
         vnpParams['vnp_Bill_Mobile'] = userPhone!;
+      }
       if (appVersion.isNotEmpty) vnpParams['vnp_App_Version'] = appVersion;
 
       // Tạo chữ ký

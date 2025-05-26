@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:foodapp/ultils/const/color_extension.dart';
 import 'package:foodapp/common_widget/shimmer/shimmer_effect.dart';
 
 /// Shimmer cho trang Home
@@ -751,57 +750,47 @@ class ShimmerProfileView extends StatelessWidget {
   }
 }
 
-/// Shimmer MainTabView
-class ShimmerMainTabView extends StatefulWidget {
+/// Shimmer MainTabView (Simplified)
+class ShimmerMainTabViewContent extends StatefulWidget {
   final int initialIndex;
   final Function(bool isLoading)? onLoadingChanged;
   final Duration loadingDuration;
+  final TabController tabController;
 
-  const ShimmerMainTabView({
+  const ShimmerMainTabViewContent({
     Key? key,
+    required this.tabController, // Nhận TabController từ MainTabView
     this.initialIndex = 0,
     this.onLoadingChanged,
-    this.loadingDuration = const Duration(seconds: 2),
+    this.loadingDuration = const Duration(milliseconds: 1500),
   }) : super(key: key);
 
   @override
-  State<ShimmerMainTabView> createState() => _ShimmerMainTabViewState();
+  State<ShimmerMainTabViewContent> createState() =>
+      _ShimmerMainTabViewContentState();
 }
 
-class _ShimmerMainTabViewState extends State<ShimmerMainTabView>
+class _ShimmerMainTabViewContentState extends State<ShimmerMainTabViewContent>
     with TickerProviderStateMixin {
-  late TabController _tabController;
+  late TabController
+      _internalTabController; // Sử dụng tab controller nội bộ cho shimmer
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(
-      length: 5,
+    // Tạo tab controller nội bộ chỉ để đồng bộ index với main tab controller
+    _internalTabController = TabController(
+      length: 4, // Đảm bảo length khớp với số tab
       vsync: this,
       initialIndex: widget.initialIndex,
     );
-    _tabController.addListener(() {
-      if (_tabController.indexIsChanging) {
-        setState(() {
-          _isLoading = true;
-        });
 
-        if (widget.onLoadingChanged != null) {
-          widget.onLoadingChanged!(true);
-        }
-
-        Future.delayed(widget.loadingDuration, () {
-          if (mounted) {
-            setState(() {
-              _isLoading = false;
-            });
-
-            if (widget.onLoadingChanged != null) {
-              widget.onLoadingChanged!(false);
-            }
-          }
-        });
+    // Đồng bộ index từ main tab controller
+    widget.tabController.addListener(() {
+      if (widget.tabController.index != _internalTabController.index) {
+        _internalTabController.index = widget.tabController.index;
+        // Có thể thêm logic setState nếu cần cập nhật UI ngay lập tức khi index đổi
       }
     });
 
@@ -821,89 +810,35 @@ class _ShimmerMainTabViewState extends State<ShimmerMainTabView>
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _internalTabController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: TabBarView(
-        controller: _tabController,
-        physics: const NeverScrollableScrollPhysics(), // Disable swiping
-        children: [
-          _isLoading && _tabController.index == 0
-              ? const ShimmerHomeView()
-              : Container(), // Will be replaced with actual HomeView
-
-          _isLoading && _tabController.index == 1
-              ? const ShimmerOrderView()
-              : Container(), // Will be replaced with actual OrderView
-
-          _isLoading && _tabController.index == 2
-              ? const ShimmerFavoritesView()
-              : Container(), // Will be replaced with actual FavoritesView
-
-          _isLoading && _tabController.index == 3
-              ? const ShimmerNotificationsView()
-              : Container(), // Will be replaced with actual NotificationsView
-
-          _isLoading && _tabController.index == 4
-              ? const ShimmerProfileView()
-              : Container(), // Will be replaced with actual ProfileView
-        ],
-      ),
-      bottomNavigationBar: Theme(
-        data: ThemeData(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-        ),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black,
-                spreadRadius: 1,
-                blurRadius: 10,
-                offset: Offset(0, -3),
-              ),
-            ],
-          ),
-          child: TabBar(
-            controller: _tabController,
-            labelColor: Colors.orange,
-            unselectedLabelColor: TColor.gray,
-            labelStyle: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-            ),
-            indicatorColor: Colors.transparent,
-            tabs: const [
-              Tab(
-                icon: Icon(Icons.home_outlined),
-                text: "Trang chủ",
-              ),
-              Tab(
-                icon: Icon(Icons.receipt_long_outlined),
-                text: "Đơn hàng",
-              ),
-              Tab(
-                icon: Icon(Icons.favorite_border_outlined),
-                text: "Yêu thích",
-              ),
-              Tab(
-                icon: Icon(Icons.notifications_outlined),
-                text: "Thông báo",
-              ),
-              Tab(
-                icon: Icon(Icons.person_outline),
-                text: "Tài khoản",
-              ),
-            ],
-          ),
-        ),
-      ),
+    // Chỉ build TabBarView cho shimmer content
+    return TabBarView(
+      controller: _internalTabController, // Sử dụng internal controller
+      physics: const NeverScrollableScrollPhysics(), // Disable swiping
+      children: [
+        // Hiển thị shimmer view tương ứng với tab hiện tại
+        if (_internalTabController.index == 0)
+          const ShimmerHomeView()
+        else
+          Container(),
+        if (_internalTabController.index == 1)
+          const ShimmerOrderView()
+        else
+          Container(),
+        if (_internalTabController.index == 2)
+          const ShimmerFavoritesView()
+        else
+          Container(),
+        if (_internalTabController.index == 3)
+          const ShimmerProfileView()
+        else
+          Container(),
+      ],
     );
   }
 }

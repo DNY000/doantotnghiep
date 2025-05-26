@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../services/vnpay_service.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -189,10 +188,6 @@ class _DepositScreenState extends State<DepositScreen> {
         shipperId: widget.shipperId,
         amount: amount,
         onComplete: (success, responseCode, message) {
-          print(
-            "DepositScreen: Nhận kết quả: success=$success, code=$responseCode, message=$message",
-          );
-
           if (!mounted) return;
 
           setState(() {
@@ -445,7 +440,7 @@ class _DepositScreenState extends State<DepositScreen> {
               color:
                   _amountController.text ==
                           currencyFormat.format(_predefinedAmounts[index])
-                      ? Theme.of(context).primaryColor.withOpacity(0.1)
+                      ? Theme.of(context).primaryColor
                       : Colors.white,
             ),
             alignment: Alignment.center,
@@ -537,9 +532,7 @@ class _DepositScreenState extends State<DepositScreen> {
           backgroundColor: Theme.of(context).primaryColor,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          disabledBackgroundColor: Theme.of(
-            context,
-          ).primaryColor.withOpacity(0.6),
+          disabledBackgroundColor: Theme.of(context).primaryColor,
         ),
       ),
     );

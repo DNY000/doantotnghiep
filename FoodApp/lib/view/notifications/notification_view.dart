@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foodapp/data/models/notification_model.dart';
-import 'package:foodapp/data/models/order_model.dart';
 import 'package:foodapp/view/order/order_detail_screen.dart';
+import 'package:foodapp/viewmodels/user_viewmodel.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/notification_viewmodel.dart';
 import '../../viewmodels/order_viewmodel.dart';
@@ -20,7 +20,7 @@ class _NotificationsViewState extends State<NotificationsView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback(
       (_) {
-        context.read<NotificationViewModel>().loadNotifications();
+        context.read<NotificationViewModel>().loadNotifications(context.read<UserViewModel>().currentUser!.id);
       },
     );
     // Load notifications when the view is initialized
@@ -61,7 +61,7 @@ class _NotificationsViewState extends State<NotificationsView> {
                 children: [
                   Text(viewModel.error!),
                   ElevatedButton(
-                    onPressed: () => viewModel.loadNotifications(),
+                    onPressed: () => viewModel.loadNotifications(context.read<UserViewModel>().currentUser!.id),
                     child: const Text('Thử lại'),
                   ),
                 ],

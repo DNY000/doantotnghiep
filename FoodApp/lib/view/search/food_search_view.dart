@@ -3,9 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:foodapp/common_widget/card/t_card.dart';
 import 'package:provider/provider.dart';
-import 'package:foodapp/data/models/food_model.dart';
 import 'package:foodapp/viewmodels/food_viewmodel.dart';
-import 'package:foodapp/view/restaurant/single_food_detail.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
 
 class FoodSearchView extends StatefulWidget {

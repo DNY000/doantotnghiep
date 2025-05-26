@@ -61,12 +61,11 @@ class UserRepository {
     }
   }
 
-  Future<void> updateUser(UserModel user) async {
+  Future<void> updateUser(UserModel user, String userId) async {
     try {
-      await _firestore
-          .collection(_collection)
-          .doc(user.id)
-          .update(user.toMap());
+      await _firestore.collection(_collection).doc(userId).update(user.toMap());
+
+      // Kiểm tra sau khi cập nhật
     } catch (e) {
       throw TFormatException('Lỗi khi cập nhật thông tin người dùng: $e');
     }

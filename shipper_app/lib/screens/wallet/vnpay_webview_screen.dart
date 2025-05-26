@@ -8,11 +8,11 @@ class VNPayWebViewScreen extends StatefulWidget {
   final Function(bool success, String? responseCode) onComplete;
 
   const VNPayWebViewScreen({
-    Key? key,
+    super.key,
     required this.paymentUrl,
     required this.shipperId,
     required this.onComplete,
-  }) : super(key: key);
+  });
 
   @override
   State<VNPayWebViewScreen> createState() => _VNPayWebViewScreenState();
@@ -73,9 +73,7 @@ class _VNPayWebViewScreenState extends State<VNPayWebViewScreen> {
             widget.onComplete(responseCode == '00', responseCode);
           }
         }
-      } catch (e) {
-        print('VNPay WebView: Lỗi khi xử lý URL trả về: $e');
-      }
+      } catch (e) {}
     }
   }
 

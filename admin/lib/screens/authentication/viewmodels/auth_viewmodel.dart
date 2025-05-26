@@ -58,7 +58,6 @@ class AuthViewModel extends ChangeNotifier {
         return 'Đăng nhập thất bại';
       }
     } catch (e) {
-      debugPrint('Đăng nhập lỗi: $e');
       return e.toString();
     } finally {
       _isLoading = false;

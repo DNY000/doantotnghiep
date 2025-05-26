@@ -39,7 +39,6 @@ class _ReviewUserState extends State<ReviewUser> {
         }
         return ListView.builder(
           shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
           itemCount: reviewVM.reviews.length,
           itemBuilder: (context, index) {
             final review = reviewVM.reviews[index];

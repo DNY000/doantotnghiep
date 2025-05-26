@@ -18,8 +18,6 @@ class _DoanhThuByRestaurantScreenState
   String _selectedRangeRevenue = 'week'; // 'week' hoặc 'month' cho doanh thu
   Map<String, double> _dailyRevenue = {};
   Map<String, int> _dailyOrderCount = {};
-  double _totalRevenue = 0;
-  int _totalOrders = 0;
   bool _loadingOrder = true;
   bool _loadingRevenue = true;
   String? _errorOrder;
@@ -51,7 +49,6 @@ class _DoanhThuByRestaurantScreenState
             toDate: now,
           );
       setState(() {
-        _totalOrders = stats['totalOrders'] ?? 0;
         // Tính số đơn mỗi ngày
         _dailyOrderCount = {};
         final dailyOrderCount = stats['dailyOrderCount'] ?? {};
@@ -85,7 +82,6 @@ class _DoanhThuByRestaurantScreenState
             toDate: now,
           );
       setState(() {
-        _totalRevenue = stats['totalRevenue'] ?? 0;
         _dailyRevenue = Map<String, double>.from(stats['dailyRevenue'] ?? {});
         _loadingRevenue = false;
       });
@@ -132,8 +128,9 @@ class _DoanhThuByRestaurantScreenState
                     ? Center(child: Text(_errorOrder!))
                     : Expanded(
                         child: SfCartesianChart(
-                          title: ChartTitle(text: 'Số đơn hàng theo ngày'),
-                          primaryXAxis: CategoryAxis(),
+                          title:
+                              const ChartTitle(text: 'Số đơn hàng theo ngày'),
+                          primaryXAxis: const CategoryAxis(),
                           series: <CartesianSeries<MapEntry<String, int>,
                               String>>[
                             ColumnSeries<MapEntry<String, int>, String>(
@@ -175,8 +172,8 @@ class _DoanhThuByRestaurantScreenState
                     ? Center(child: Text(_errorRevenue!))
                     : Expanded(
                         child: SfCartesianChart(
-                          title: ChartTitle(text: 'Doanh thu theo ngày'),
-                          primaryXAxis: CategoryAxis(),
+                          title: const ChartTitle(text: 'Doanh thu theo ngày'),
+                          primaryXAxis: const CategoryAxis(),
                           series: <CartesianSeries<MapEntry<String, double>,
                               String>>[
                             ColumnSeries<MapEntry<String, double>, String>(

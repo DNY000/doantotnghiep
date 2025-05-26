@@ -3,10 +3,8 @@ import 'package:foodapp/common_widget/card/t_card.dart';
 import 'package:foodapp/data/models/order_model.dart';
 import 'package:foodapp/ultils/const/enum.dart';
 import 'package:foodapp/view/order/order_screen.dart';
-import 'package:foodapp/view/restaurant/single_food_detail.dart';
 import 'package:foodapp/viewmodels/user_viewmodel.dart';
 import 'package:provider/provider.dart';
-import 'package:foodapp/common_widget/grid/food_grid_item.dart';
 import 'package:foodapp/viewmodels/order_viewmodel.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
 import 'dart:convert';
@@ -39,11 +37,7 @@ class _OrderViewState extends State<OrderView>
         await userViewModel.loadCurrentUser();
       }
       if (userViewModel.currentUser != null) {
-        print(
-            "Bắt đầu tải đơn hàng cho user: ${userViewModel.currentUser!.id}");
         orderViewModel.loadUserOrders(userViewModel.currentUser!.id);
-      } else {
-        print("Chưa đăng nhập, không thể tải đơn hàng");
       }
       orderViewModel.loadRecommendedFoods();
     });
@@ -91,7 +85,6 @@ class _OrderViewState extends State<OrderView>
         children: [
           _buildOngoingOrdersView(),
           _buildOrderHistoryView(),
-          // _buildEmptyOrderView(),
           _buildEmptyOrderView(),
         ],
       ),
@@ -151,8 +144,6 @@ class _OrderViewState extends State<OrderView>
     final completedOrders = orderViewModel.orders
         .where((order) => order.status == OrderState.delivered)
         .toList();
-
-    print("Số đơn hàng đã hoàn thành: ${completedOrders.length}");
 
     if (completedOrders.isEmpty) {
       return Column(
@@ -416,12 +407,12 @@ class _OrderViewState extends State<OrderView>
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
+                            boxShadow: const [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey,
                                 spreadRadius: 1,
                                 blurRadius: 4,
-                                offset: const Offset(0, 2),
+                                offset: Offset(0, 2),
                               ),
                             ],
                           ),
@@ -466,11 +457,10 @@ class _OrderViewState extends State<OrderView>
                                                   horizontal: 6,
                                                   vertical: 2,
                                                 ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.black
-                                                      .withOpacity(0.7),
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.black,
                                                   borderRadius:
-                                                      const BorderRadius.only(
+                                                      BorderRadius.only(
                                                     topLeft: Radius.circular(8),
                                                   ),
                                                 ),

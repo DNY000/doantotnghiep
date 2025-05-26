@@ -106,12 +106,8 @@ class RestaurantRepository {
       final double minLon = userLocation.longitude - lonChange;
       final double maxLon = userLocation.longitude + lonChange;
 
-      debugPrint(
-          'Bounding box: lat($minLat to $maxLat), lon($minLon to $maxLon)');
-
       // Query restaurants
       final querySnapshot = await _firestore.collection('restaurants').get();
-      debugPrint('Total restaurants in database: ${querySnapshot.docs.length}');
 
       // Filter restaurants within bounding box and calculate distances
       final List<MapEntry<RestaurantModel, double>> restaurantsWithDistances =

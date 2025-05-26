@@ -192,9 +192,4 @@ class ShipperViewModel extends ChangeNotifier {
     _isLoading = value;
     notifyListeners();
   }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }

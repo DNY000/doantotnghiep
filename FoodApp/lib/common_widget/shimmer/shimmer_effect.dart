@@ -2,24 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
 
 class TShimmer extends StatefulWidget {
-  /// Widget con chứa nội dung cần shimmer
   final Widget child;
-
-  /// Màu nền của shimmer (màu tối)
   final Color baseColor;
-
-  /// Màu sáng của shimmer (màu sáng di chuyển qua baseColor)
   final Color highlightColor;
-
-  /// Thời gian của một chu kỳ shimmer (mặc định 1.5 giây)
   final Duration duration;
-
-  /// Hướng di chuyển của shimmer
   final ShimmerDirection direction;
-
-  /// Có bật shimmer hay không (để kiểm soát hiệu ứng)
   final bool enabled;
-
   const TShimmer({
     Key? key,
     required this.child,
@@ -29,8 +17,6 @@ class TShimmer extends StatefulWidget {
     this.direction = ShimmerDirection.ltr,
     this.enabled = true,
   }) : super(key: key);
-
-  /// Tạo shimmer với màu chủ đạo của ứng dụng
   factory TShimmer.color3({
     required Widget child,
     ShimmerDirection direction = ShimmerDirection.ltr,
@@ -44,8 +30,6 @@ class TShimmer extends StatefulWidget {
       child: child,
     );
   }
-
-  /// Tạo shimmer tối cho theme tối
   factory TShimmer.dark({
     required Widget child,
     ShimmerDirection direction = ShimmerDirection.ltr,
@@ -64,25 +48,16 @@ class TShimmer extends StatefulWidget {
   State<TShimmer> createState() => _TShimmerState();
 }
 
-/// Các hướng di chuyển của hiệu ứng shimmer
 enum ShimmerDirection {
-  /// Từ trái sang phải (Left to Right)
   ltr,
-
-  /// Từ phải sang trái (Right to Left)
   rtl,
-
-  /// Từ trên xuống dưới (Top to Bottom)
   ttb,
-
-  /// Từ dưới lên trên (Bottom to Top)
   btt,
 }
 
 class _TShimmerState extends State<TShimmer>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-
   @override
   void initState() {
     super.initState();
@@ -168,7 +143,6 @@ class _TShimmerState extends State<TShimmer>
     if (!widget.enabled) {
       return widget.child;
     }
-
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
@@ -206,7 +180,6 @@ class _TShimmerState extends State<TShimmer>
   }
 }
 
-/// Widget hình chữ nhật với hiệu ứng shimmer
 class TShimmerBox extends StatelessWidget {
   final double width;
   final double height;

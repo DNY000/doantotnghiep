@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:foodapp/common_widget/food_order_controller.dart';
 import 'package:foodapp/data/models/food_model.dart';
 import 'package:foodapp/data/models/cart_item_model.dart';
+import 'package:foodapp/ultils/const/color_extension.dart';
 import 'package:foodapp/view/restaurant/review_user.dart';
 import 'package:foodapp/view/order/order_screen.dart';
 import 'package:foodapp/viewmodels/review_viewmodel.dart';
@@ -468,6 +469,7 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      backgroundColor: Colors.white,
       title: const Text('Đánh giá món ăn'),
       content: SingleChildScrollView(
         child: Column(
@@ -494,9 +496,14 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
             TextField(
               controller: _commentController,
               decoration: const InputDecoration(
-                hintText: 'Viết đánh giá của bạn...',
-                border: OutlineInputBorder(),
-              ),
+                  hintText: 'Viết đánh giá của bạn...',
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(8))),
+                  enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey)),
+                  focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey, width: 0.5),
+                      borderRadius: BorderRadius.all(Radius.circular(8)))),
               maxLines: 3,
             ),
           ],
@@ -504,10 +511,17 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
       ),
       actions: [
         TextButton(
+          style: TextButton.styleFrom(backgroundColor: TColor.orange4),
           onPressed: _isSubmitting ? null : () => Navigator.pop(context),
-          child: const Text('Hủy'),
+          child: const Text(
+            'Hủy',
+            style: TextStyle(
+              color: Colors.black,
+            ),
+          ),
         ),
         ElevatedButton(
+          style: ElevatedButton.styleFrom(backgroundColor: TColor.orange4),
           onPressed: _isSubmitting ? null : _submitReview,
           child: _isSubmitting
               ? const SizedBox(
@@ -515,7 +529,10 @@ class _ReviewInputDialogState extends State<ReviewInputDialog> {
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Gửi'),
+              : const Text(
+                  'Gửi',
+                  style: TextStyle(color: Colors.black),
+                ),
         ),
       ],
     );

@@ -33,13 +33,11 @@ Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  // Cấu hình System UI - Status bar visible, Navigation bar hidden
-  _configureSystemUI();
-
+   
   // Tải biến môi trường từ file .env
   await dotenv.load(fileName: ".env");
-
-  // Khởi tạo Firebase và local storage song song
+  
+  // Khởi tạo Firebase và local storage cdsong song
   await Future.wait([
     TLocalStorage.init('food_app'),
     Firebase.initializeApp(
@@ -77,38 +75,7 @@ Future<void> main() async {
   );
 }
 
-void _configureSystemUI() {
-  if (!kIsWeb) {
-    // QUAN TRỌNG: Sử dụng manual để có control tốt hơn
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.manual,
-      overlays: [
-        SystemUiOverlay.top
-      ], // CHỈ hiển thị status bar, ẩn navigation bar
-    );
 
-    // Cấu hình style cho status bar
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.white, // Màu nền status bar
-        statusBarIconBrightness: Brightness.dark, // Icon màu đen
-        statusBarBrightness: Brightness.light, // Cho iOS
-        // Navigation bar sẽ bị ẩn hoàn toàn
-        systemNavigationBarColor: Colors.black,
-        systemNavigationBarIconBrightness: Brightness.light,
-        systemNavigationBarDividerColor: Colors.transparent,
-      ),
-    );
-
-    // Đảm bảo cấu hình được áp dụng cho Xiaomi/MIUI
-    Future.delayed(const Duration(milliseconds: 100), () {
-      SystemChrome.setEnabledSystemUIMode(
-        SystemUiMode.manual,
-        overlays: [SystemUiOverlay.top], // Chỉ status bar
-      );
-    });
-  }
-}
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -123,11 +90,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // Khởi tạo notifications và cấu hình UI
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         NotificationsService.initialize(context);
-        _ensureSystemUIConfig();
       }
     });
   }
@@ -138,50 +103,18 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-
-    // Đảm bảo UI config được duy trì khi app resume
-    if (state == AppLifecycleState.resumed) {
-      _ensureSystemUIConfig();
-    }
-  }
-
-  void _ensureSystemUIConfig() {
-    if (!kIsWeb) {
-      // Đảm bảo status bar hiển thị, navigation bar ẩn
-      Future.delayed(const Duration(milliseconds: 50), () {
-        if (mounted) {
-          SystemChrome.setEnabledSystemUIMode(
-            SystemUiMode.manual,
-            overlays: [SystemUiOverlay.top], // CHỈ status bar
-          );
-
-          // Đặt lại style cho status bar
-          SystemChrome.setSystemUIOverlayStyle(
-            const SystemUiOverlayStyle(
-              statusBarColor: Colors.white,
-              statusBarIconBrightness: Brightness.dark,
-              statusBarBrightness: Brightness.light,
-            ),
-          );
-        }
-      });
-    }
-  }
-
+  
   @override
   Widget build(BuildContext context) {
-    const overlayStyle = SystemUiOverlayStyle(
-      statusBarColor: Colors.white, // Status bar có màu nền trắng
-      statusBarIconBrightness: Brightness.dark, // Icon màu đen
-      statusBarBrightness: Brightness.light, // Cho iOS
-      // Navigation bar properties (dù bị ẩn)
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarIconBrightness: Brightness.light,
-      systemNavigationBarDividerColor: Colors.transparent,
-    );
+    // const overlayStyle = SystemUiOverlayStyle(
+    //   statusBarColor: Colors.white, // Status bar có màu nền trắng
+    //   statusBarIconBrightness: Brightness.dark, // Icon màu đen
+    //   statusBarBrightness: Brightness.light, // Cho iOS
+    //   // Navigation bar properties (dù bị ẩn)
+    //   systemNavigationBarColor: Colors.transparent,
+    //   systemNavigationBarIconBrightness: Brightness.light,
+    //   systemNavigationBarDividerColor: Colors.transparent,
+    // );
 
     return MaterialApp.router(
       title: 'Food App',
@@ -196,27 +129,27 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           backgroundColor: Colors.white,
           elevation: 0,
           iconTheme: IconThemeData(color: Colors.black),
-          systemOverlayStyle: overlayStyle,
+          // systemOverlayStyle: overlayStyle,
           surfaceTintColor:
               Colors.transparent, // tắt tính năng đổi màu khi vuốt xuống
         ),
       ),
-      builder: (context, child) {
-        return AnnotatedRegion<SystemUiOverlayStyle>(
-          value: overlayStyle,
-          child: MediaQuery(
-            // CHỈ loại bỏ bottom padding (navigation bar area)
-            // GIỮ NGUYÊN top padding cho status bar
-            data: MediaQuery.of(context).copyWith(
-              padding: MediaQuery.of(context).padding.copyWith(
-                    bottom: 0, // Loại bỏ bottom padding
-                    // top: MediaQuery.of(context).padding.top, // Giữ nguyên top padding
-                  ),
-            ),
-            child: child!,
-          ),
-        );
-      },
+      // builder: (context, child) {
+      //   return AnnotatedRegion<SystemUiOverlayStyle>(
+      //     value: overlayStyle,
+      //     child: MediaQuery(
+      //       // CHỈ loại bỏ bottom padding (navigation bar area)
+      //       // GIỮ NGUYÊN top padding cho status bar
+      //       data: MediaQuery.of(context).copyWith(
+      //         padding: MediaQuery.of(context).padding.copyWith(
+      //               bottom: 0, // Loại bỏ bottom padding
+      //               // top: MediaQuery.of(context).padding.top, // Giữ nguyên top padding
+      //             ),
+      //       ),
+      //       child: child!,
+      //     ),
+      //   );
+      // },
     );
   }
 }

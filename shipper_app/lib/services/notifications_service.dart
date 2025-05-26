@@ -161,9 +161,6 @@ class NotificationsService {
 
   // Xử lý khi bấm vào thông báo (từ background)
   static void _handleBackgroundMessage(RemoteMessage message) {
-    print('Background Message tapped: ${message.notification?.title}');
-
-    // TODO: Xử lý điều hướng dựa trên loại thông báo
     final String notificationType = message.data['type'] ?? '';
     final String targetId = message.data['id'] ?? '';
 
@@ -182,10 +179,7 @@ class NotificationsService {
 
   // Xử lý khi bấm vào thông báo từ local notification
   static void _handleNotificationTap(String? payload) {
-    if (payload != null && payload.isNotEmpty) {
-      // TODO: Parse payload và điều hướng
-      print('Local notification tapped with payload: $payload');
-    }
+    if (payload != null && payload.isNotEmpty) {}
   }
 
   // Lấy FCM token
@@ -198,7 +192,6 @@ class NotificationsService {
     final String? token = await getToken();
     if (token != null) {
       print('FCM Token: $token');
-      // TODO: Gửi token lên server
       // await ApiService.registerToken(token);
     }
   }

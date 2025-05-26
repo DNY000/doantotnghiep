@@ -86,7 +86,7 @@ class NotificationsService {
   // Tạo Android Notification Channel
   static Future<void> _createNotificationChannel() async {
     if (Platform.isAndroid) {
-      final AndroidNotificationChannel channel = AndroidNotificationChannel(
+      const AndroidNotificationChannel channel = AndroidNotificationChannel(
         _channelId,
         _channelName,
         description: _channelDescription,
@@ -106,9 +106,6 @@ class NotificationsService {
   // Hiển thị local notification khi app ở foreground
   static Future<void> _handleForegroundMessage(RemoteMessage message) async {
     // In thông tin message cho debug
-    print(
-      'Foreground Message: ${message.notification?.title} - ${message.notification?.body}',
-    );
 
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
@@ -161,11 +158,7 @@ class NotificationsService {
 
   // Xử lý khi bấm vào thông báo (từ background)
   static void _handleBackgroundMessage(RemoteMessage message) {
-    print('Background Message tapped: ${message.notification?.title}');
-
-    // TODO: Xử lý điều hướng dựa trên loại thông báo
     final String notificationType = message.data['type'] ?? '';
-    final String targetId = message.data['id'] ?? '';
 
     switch (notificationType) {
       case 'new_order':
@@ -198,7 +191,6 @@ class NotificationsService {
     final String? token = await getToken();
     if (token != null) {
       print('FCM Token: $token');
-      // TODO: Gửi token lên server
       // await ApiService.registerToken(token);
     }
   }
@@ -253,7 +245,7 @@ class NotificationsService {
     required String body,
     String? payload,
   }) async {
-    final AndroidNotificationDetails androidDetails =
+    const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
       _channelId,
       _channelName,
@@ -268,7 +260,7 @@ class NotificationsService {
       presentSound: true,
     );
 
-    final NotificationDetails platformDetails = NotificationDetails(
+    const NotificationDetails platformDetails = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );

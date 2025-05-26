@@ -46,7 +46,6 @@ class RestaurantContent extends StatefulWidget {
 
 class _RestaurantContentState extends State<RestaurantContent> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedStatus = 'all';
   Uint8List? imageBytes;
 
   @override
@@ -202,9 +201,7 @@ class _RestaurantContentState extends State<RestaurantContent> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: restaurant.isActive
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.red.withOpacity(0.1),
+                    color: restaurant.isActive ? Colors.green : Colors.red,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -227,33 +224,7 @@ class _RestaurantContentState extends State<RestaurantContent> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete),
-                      onPressed: () async {
-                        final confirmed = await showDialog<bool>(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Xác nhận xóa'),
-                            content: Text(
-                              'Bạn có chắc muốn xóa nhà hàng ${restaurant.name}?',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, false),
-                                child: const Text('Hủy'),
-                              ),
-                              TextButton(
-                                onPressed: () async {
-                                  final isDelete = await viewModel
-                                      .deleteRestaurant(restaurant.id);
-
-                                  Navigator.pop(context, true);
-                                },
-                                child: const Text('Xóa'),
-                              ),
-                            ],
-                          ),
-                        );
-                        // TODO: Xử lý xóa nhà hàng nếu cần
-                      },
+                      onPressed: () async {},
                     ),
                   ],
                 ),
@@ -335,9 +306,8 @@ class _RestaurantContentState extends State<RestaurantContent> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: restaurant.isActive
-                              ? Colors.green.withOpacity(0.1)
-                              : Colors.red.withOpacity(0.1),
+                          color:
+                              restaurant.isActive ? Colors.green : Colors.red,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -360,30 +330,7 @@ class _RestaurantContentState extends State<RestaurantContent> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete),
-                            onPressed: () async {
-                              final confirmed = await showDialog<bool>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('Xác nhận xóa'),
-                                  content: Text(
-                                    'Bạn có chắc muốn xóa nhà hàng ${restaurant.name}?',
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context, false),
-                                      child: const Text('Hủy'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context, true),
-                                      child: const Text('Xóa'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                              // TODO: Xử lý xóa nhà hàng nếu cần
-                            },
+                            onPressed: () async {},
                           ),
                         ],
                       ),

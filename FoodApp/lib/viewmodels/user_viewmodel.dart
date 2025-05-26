@@ -44,6 +44,27 @@ class UserViewModel extends ChangeNotifier {
     }
   }
 
+  // Lấy thông tin người dùng hiện tại
+  Future<void> loadCurrentUser() async {
+    try {
+      _setLoading(true);
+      final user = await _repository.getCurrentUser();
+      if (user != null) {
+        _currentUser = user;
+        _error = null;
+      } else {
+        _error = 'Không tìm thấy thông tin người dùng';
+      }
+    } catch (e) {
+      _error = 'Không thể tải thông tin người dùng hiện tại: $e';
+      if (kDebugMode) {
+        print(_error);
+      }
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // Lưu thông tin người dùng
   Future<void> saveUser(UserModel user) async {
     try {
@@ -71,8 +92,9 @@ class UserViewModel extends ChangeNotifier {
   // Cập nhật thông tin cá nhân
   Future<void> updateUser(UserModel user) async {
     try {
+      print('id người dùng update là ${currentUser!.id}');
       _setLoading(true);
-      await _repository.updateUser(user);
+      await _repository.updateUser(user, currentUser!.id);
       _currentUser = user;
       _error = null;
     } catch (e) {
@@ -115,22 +137,6 @@ class UserViewModel extends ChangeNotifier {
       _error = null;
     } catch (e) {
       _error = 'Không thể xóa khỏi danh sách yêu thích: $e';
-      if (kDebugMode) {
-        print(_error);
-      }
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // Lấy thông tin người dùng hiện tại
-  Future<void> loadCurrentUser() async {
-    try {
-      _setLoading(true);
-      _currentUser = await _repository.getCurrentUser();
-      _error = null;
-    } catch (e) {
-      _error = 'Không thể tải thông tin người dùng hiện tại: $e';
       if (kDebugMode) {
         print(_error);
       }

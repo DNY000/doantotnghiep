@@ -4,7 +4,6 @@ import 'package:foodapp/view/authentication/viewmodel/login_viewmodel.dart';
 import 'package:foodapp/view/profile/widget/information_user_view.dart';
 import 'package:foodapp/viewmodels/user_viewmodel.dart';
 import 'package:provider/provider.dart';
-import 'package:foodapp/data/models/user_model.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/cupertino.dart';
 import '../../ultils/const/color_extension.dart';

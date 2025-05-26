@@ -6,9 +6,13 @@ import 'package:foodapp/ultils/exception/format_exception.dart';
 import 'package:foodapp/ultils/exception/platform_exception.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:async';
+import 'package:foodapp/data/models/user_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:foodapp/ultils/const/enum.dart';
 
 class AuthenticationRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   User? get userAuth => _auth.currentUser;
   String? _verificationId;
   int? _resendToken;
@@ -89,10 +93,13 @@ class AuthenticationRepository {
   // Đăng xuất
   Future<void> logout() async {
     try {
+      // Đăng xuất khỏi Firebase Auth
       await _auth.signOut();
+
       // Đăng xuất khỏi Google nếu đã đăng nhập
-      // await GoogleSignIn().signOut();
-      // // Đăng xuất khỏi Facebook nếu đã đăng nhập
+      await GoogleSignIn().signOut();
+
+      // Đăng xuất khỏi Facebook nếu đã đăng nhập
       // await FacebookAuth.instance.logOut();
     } on FirebaseAuthException catch (e) {
       throw TFirebaseAuthException(e.code);
@@ -175,46 +182,79 @@ class AuthenticationRepository {
     }
   }
 
-  Future<UserCredential?> signInWithGoogle() async {
+  Future<UserCredential> signInWithGoogle() async {
     try {
-      // Đăng xuất trước để đảm bảo hiển thị dialog chọn tài khoản
-      await GoogleSignIn().signOut();
+      // Trigger the authentication flow
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-      // Khởi tạo GoogleSignIn với các scopes cần thiết
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        scopes: [
-          'email',
-          'https://www.googleapis.com/auth/userinfo.profile',
-        ],
-      );
-
-      // Hiển thị màn hình chọn tài khoản
-      final GoogleSignInAccount? googleSignInAccount =
-          await googleSignIn.signIn();
-
-      // Người dùng hủy đăng nhập
-      if (googleSignInAccount == null) {
-        throw TPlatformException('sign_in_canceled');
+      if (googleUser == null) {
+        throw TFirebaseException('google-sign-in-cancelled');
       }
 
-      // Lấy thông tin xác thực tài khoản
-      final GoogleSignInAuthentication googleSignInAuthentication =
-          await googleSignInAccount.authentication;
+      // Obtain the auth details from the request
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
-      // Tạo credential
+      // Create a new credential
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleSignInAuthentication.accessToken,
-        idToken: googleSignInAuthentication.idToken,
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
       );
 
-      // Đăng nhập với Firebase
-      return await _auth.signInWithCredential(credential);
+      // Sign in to Firebase with the Google credential
+      final userCredential = await _auth.signInWithCredential(credential);
+
+      // Kiểm tra xem người dùng đã tồn tại trong Firestore chưa
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .get();
+
+      if (!userDoc.exists) {
+        // Nếu chưa tồn tại, tạo mới user trong Firestore
+        final newUser = UserModel(
+          id: userCredential.user!.uid,
+          name: userCredential.user!.displayName ?? '',
+          email: userCredential.user!.email,
+          phoneNumber: userCredential.user!.phoneNumber ?? '',
+          avatarUrl: userCredential.user!.photoURL ?? '',
+          addresses: [],
+          favorites: [],
+          role: Role.user,
+        );
+
+        await _firestore
+            .collection('users')
+            .doc(newUser.id)
+            .set(newUser.toMap());
+      } else {
+        // Nếu đã tồn tại, chỉ cập nhật thông tin cơ bản và giữ nguyên dữ liệu khác
+        final existingUser = UserModel.fromMap(userDoc.data()!, userDoc.id);
+
+        // Tạo bản cập nhật chỉ với các trường cần thiết
+        final updateData = {
+          'avatarUrl': userCredential.user!.photoURL,
+          'name': userCredential.user!.displayName,
+          'email': userCredential.user!.email,
+          'lastUpdated': Timestamp.now(),
+        };
+
+        // Chỉ cập nhật nếu có thay đổi
+        if (existingUser.avatarUrl != userCredential.user!.photoURL ||
+            existingUser.name != userCredential.user!.displayName ||
+            existingUser.email != userCredential.user!.email) {
+          await _firestore
+              .collection('users')
+              .doc(userDoc.id)
+              .update(updateData);
+        }
+      }
+
+      return userCredential;
     } on FirebaseAuthException catch (e) {
-      throw TFirebaseAuthException(e.code);
-    } on FirebaseException catch (e) {
       throw TFirebaseException(e.code);
     } catch (e) {
-      throw TPlatformException('unknown');
+      throw TFormatException('Lỗi khi đăng nhập bằng Google: $e');
     }
   }
 

@@ -74,9 +74,7 @@ class OrderViewModel extends ChangeNotifier {
       error = e.toString();
       isLoading = false;
       notifyListeners();
-    } finally {
-      print("số lượng đơn hàng của shipper ${shipperOrders.length}");
-    }
+    } finally {}
   }
 
   Future<void> checkOrder() async {

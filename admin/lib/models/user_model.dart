@@ -52,8 +52,8 @@ class UserModel {
     DateTime? createdAt,
     DateTime? dateOfBirth,
     this.lastUpdated,
-  }) : this.createdAt = createdAt ?? DateTime.now(),
-       this.dateOfBirth = dateOfBirth ?? DateTime.now();
+  })  : this.createdAt = createdAt ?? DateTime.now(),
+        this.dateOfBirth = dateOfBirth ?? DateTime.now();
 
   static String generateUserName(String fullName) {
     if (fullName.isEmpty) return 'cwt_user';
@@ -189,7 +189,6 @@ class AddressModel {
       try {
         locationMap = Map<double, double>.from(data['location']);
       } catch (e) {
-        print('Lỗi chuyển đổi location: $e');
         // Trong trường hợp lỗi, giữ nguyên map rỗng
       }
     }

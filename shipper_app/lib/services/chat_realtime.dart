@@ -136,7 +136,6 @@ class ChatRealtimeService {
       // Cập nhật trạng thái tin nhắn
       _updateMessageStatus(messageId, ReceiptStatus.sent);
     } catch (e) {
-      print('Lỗi khi gửi tin nhắn: $e');
       rethrow;
     }
   }

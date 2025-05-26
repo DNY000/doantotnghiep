@@ -179,8 +179,6 @@ class LoginViewModel extends ChangeNotifier {
 
       final userCredential = await _authenticationRepository.signInWithGoogle();
 
-      _isLoading = false;
-
       if (userCredential == null) {
         _error = TPlatformException('sign_in_canceled').message;
         notifyListeners();
@@ -191,25 +189,40 @@ class LoginViewModel extends ChangeNotifier {
       notifyListeners();
 
       try {
-        // Tạo UserModel từ thông tin Google
-        final userModel = UserModel(
-          id: userCredential.user!.uid,
-          name: userCredential.user?.displayName ?? '',
-          gender: 'Nam',
-          avatarUrl: userCredential.user?.photoURL ?? '',
-          profilePicture: userCredential.user?.photoURL ?? '',
-          email: userCredential.user?.email ?? '',
-          phoneNumber: userCredential.user?.phoneNumber ?? '',
-          addresses: [],
-          favorites: [],
-          token: userCredential.user!.uid,
-          role: Role.user,
-          createdAt: DateTime.now(),
-          dateOfBirth: DateTime.now(),
-        );
+        // Kiểm tra xem người dùng đã tồn tại chưa
+        final existingUser =
+            await _userViewModel.getUserById(userCredential.user!.uid);
 
-        await _userViewModel.saveUser(userModel);
-        await _userViewModel.saveUser(userModel);
+        if (existingUser == null) {
+          // Nếu chưa tồn tại, tạo mới UserModel
+          final userModel = UserModel(
+            id: userCredential.user!.uid,
+            name: userCredential.user?.displayName ?? '',
+            gender: 'Nam',
+            avatarUrl: userCredential.user?.photoURL ?? '',
+            profilePicture: userCredential.user?.photoURL ?? '',
+            email: userCredential.user?.email ?? '',
+            phoneNumber: userCredential.user?.phoneNumber ?? '',
+            addresses: [],
+            favorites: [],
+            token: userCredential.user!.uid,
+            role: Role.user,
+            createdAt: DateTime.now(),
+            dateOfBirth: DateTime.now(),
+          );
+          await _userViewModel.saveUser(userModel);
+        } else {
+          // Nếu đã tồn tại, chỉ cập nhật thông tin cơ bản
+          final updatedUser = existingUser.copyWith(
+            name: userCredential.user?.displayName ?? existingUser.name,
+            avatarUrl: userCredential.user?.photoURL ?? existingUser.avatarUrl,
+            profilePicture:
+                userCredential.user?.photoURL ?? existingUser.profilePicture,
+            email: userCredential.user?.email ?? existingUser.email,
+          );
+          await _userViewModel.updateUser(updatedUser);
+        }
+
         _isLoading = false;
         notifyListeners();
 
@@ -345,7 +358,7 @@ class LoginViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
 
-      // Gọi callback sau khi đã cập nhật UI
+      // // Gọi callback sau khi đã cập nhật UI
       if (_navigationCallback != null) {
         _navigationCallback!('/login');
       }

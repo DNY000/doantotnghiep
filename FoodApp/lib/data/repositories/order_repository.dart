@@ -31,7 +31,6 @@ class OrderRepository {
         .collection(_collection)
         .where('userId', isEqualTo: userId)
         .get();
-    print("Lấy đơn hàng của người dùng: ${snapshot.docs.length}");
     return snapshot.docs
         .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
         .toList();
@@ -247,7 +246,6 @@ class OrderRepository {
       }
       return foods;
     } catch (e) {
-      print('Exception in getTopSellingFoods: $e');
       throw Exception('Không thể lấy thống kê món ăn bán chạy: $e');
     }
   }
@@ -430,9 +428,7 @@ class OrderRepository {
       for (final id in topFoodIds) {
         try {
           final food = await FoodRepository().getFoodById(id);
-          if (food != null) {
-            foods.add(food);
-          }
+          foods.add(food);
         } catch (e) {
           continue;
         }

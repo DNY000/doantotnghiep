@@ -5,11 +5,12 @@ class NotificationRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String _collection = 'notifications';
 
-  Future<List<NotificationModel>> getNotifications() async {
+  Future<List<NotificationModel>> getNotifications(String userId) async {
     try {
       final QuerySnapshot snapshot = await _firestore
           .collection(_collection)
-          .orderBy('createdAt', descending: true)
+          .where('userId', isEqualTo: userId)
+          // .orderBy('createdAt', descending: true)
           .get();
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;

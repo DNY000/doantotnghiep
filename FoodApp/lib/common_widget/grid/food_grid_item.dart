@@ -175,7 +175,7 @@ class FoodListItem extends StatelessWidget {
           children: [
             const SizedBox(height: 4),
             Text(
-              food.description ?? '',
+              food.description,
               style: const TextStyle(fontSize: 13, color: Colors.grey),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,

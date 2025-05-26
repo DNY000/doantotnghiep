@@ -47,10 +47,10 @@ class NotificationsService {
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const DarwinInitializationSettings iOSSettings =
         DarwinInitializationSettings(
-          requestAlertPermission: true,
-          requestBadgePermission: true,
-          requestSoundPermission: true,
-        );
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
     const InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iOSSettings,
@@ -86,7 +86,7 @@ class NotificationsService {
   // Tạo Android Notification Channel
   static Future<void> _createNotificationChannel() async {
     if (Platform.isAndroid) {
-      final AndroidNotificationChannel channel = AndroidNotificationChannel(
+      const AndroidNotificationChannel channel = AndroidNotificationChannel(
         _channelId,
         _channelName,
         description: _channelDescription,
@@ -98,8 +98,7 @@ class NotificationsService {
 
       await _localNotifications
           .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >()
+              AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(channel);
     }
   }
@@ -107,9 +106,6 @@ class NotificationsService {
   // Hiển thị local notification khi app ở foreground
   static Future<void> _handleForegroundMessage(RemoteMessage message) async {
     // In thông tin message cho debug
-    print(
-      'Foreground Message: ${message.notification?.title} - ${message.notification?.body}',
-    );
 
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
@@ -118,16 +114,16 @@ class NotificationsService {
       // Android notification
       final AndroidNotificationDetails androidDetails =
           AndroidNotificationDetails(
-            _channelId,
-            _channelName,
-            channelDescription: _channelDescription,
-            importance: Importance.max,
-            priority: Priority.high,
-            ticker: 'Thông báo mới',
-            icon: android?.smallIcon ?? '@mipmap/ic_launcher',
-            color: Colors.orange,
-            showWhen: true,
-          );
+        _channelId,
+        _channelName,
+        channelDescription: _channelDescription,
+        importance: Importance.max,
+        priority: Priority.high,
+        ticker: 'Thông báo mới',
+        icon: android?.smallIcon ?? '@mipmap/ic_launcher',
+        color: Colors.orange,
+        showWhen: true,
+      );
 
       // iOS notification
       const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
@@ -162,11 +158,7 @@ class NotificationsService {
 
   // Xử lý khi bấm vào thông báo (từ background)
   static void _handleBackgroundMessage(RemoteMessage message) {
-    print('Background Message tapped: ${message.notification?.title}');
-
-    // TODO: Xử lý điều hướng dựa trên loại thông báo
     final String notificationType = message.data['type'] ?? '';
-    final String targetId = message.data['id'] ?? '';
 
     switch (notificationType) {
       case 'new_order':
@@ -199,7 +191,6 @@ class NotificationsService {
     final String? token = await getToken();
     if (token != null) {
       print('FCM Token: $token');
-      // TODO: Gửi token lên server
       // await ApiService.registerToken(token);
     }
   }
@@ -219,23 +210,22 @@ class NotificationsService {
   static void _showXiaomiPermissionDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Cài đặt thêm cho thiết bị Xiaomi/Redmi'),
-            content: const Text(
-              'Để nhận thông báo đầy đủ, vui lòng:\n\n'
-              '1. Vào Cài đặt > Ứng dụng > Quản lý ứng dụng\n'
-              '2. Tìm ứng dụng này\n'
-              '3. Bật "Tự động khởi động" và "Chạy nền"\n'
-              '4. Vào mục "Tiết kiệm pin" và chọn "Không giới hạn"',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Đã hiểu'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Cài đặt thêm cho thiết bị Xiaomi/Redmi'),
+        content: const Text(
+          'Để nhận thông báo đầy đủ, vui lòng:\n\n'
+          '1. Vào Cài đặt > Ứng dụng > Quản lý ứng dụng\n'
+          '2. Tìm ứng dụng này\n'
+          '3. Bật "Tự động khởi động" và "Chạy nền"\n'
+          '4. Vào mục "Tiết kiệm pin" và chọn "Không giới hạn"',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đã hiểu'),
           ),
+        ],
+      ),
     );
   }
 
@@ -255,14 +245,14 @@ class NotificationsService {
     required String body,
     String? payload,
   }) async {
-    final AndroidNotificationDetails androidDetails =
+    const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-          _channelId,
-          _channelName,
-          channelDescription: _channelDescription,
-          importance: Importance.max,
-          priority: Priority.high,
-        );
+      _channelId,
+      _channelName,
+      channelDescription: _channelDescription,
+      importance: Importance.max,
+      priority: Priority.high,
+    );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
@@ -270,7 +260,7 @@ class NotificationsService {
       presentSound: true,
     );
 
-    final NotificationDetails platformDetails = NotificationDetails(
+    const NotificationDetails platformDetails = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );

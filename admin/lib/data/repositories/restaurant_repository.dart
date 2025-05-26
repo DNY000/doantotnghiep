@@ -1,7 +1,6 @@
 import 'package:admin/models/restaurant_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
 
 class RestaurantRepository {
   final FirebaseFirestore _firestore;
@@ -35,7 +34,6 @@ class RestaurantRepository {
         doc.id,
       );
     } catch (e) {
-      print('Error getting restaurant: $e');
       return null;
     }
   }
@@ -69,7 +67,6 @@ class RestaurantRepository {
       final snapshot = await query.get();
 
       if (snapshot.docs.isEmpty) {
-        debugPrint('No restaurants found');
         return [];
       }
 
@@ -95,10 +92,6 @@ class RestaurantRepository {
     int limit = 10,
   }) async {
     try {
-      debugPrint(
-        'User location: ${userLocation.latitude}, ${userLocation.longitude}, radius: ${radiusInKm}km',
-      );
-
       // Calculate bounding box
       final double latChange =
           radiusInKm / 111.32; // 1 degree latitude ≈ 111.32 km
@@ -110,13 +103,8 @@ class RestaurantRepository {
       final double minLon = userLocation.longitude - lonChange;
       final double maxLon = userLocation.longitude + lonChange;
 
-      debugPrint(
-        'Bounding box: lat($minLat to $maxLat), lon($minLon to $maxLon)',
-      );
-
       // Query restaurants
       final querySnapshot = await _firestore.collection('restaurants').get();
-      debugPrint('Total restaurants in database: ${querySnapshot.docs.length}');
 
       // Filter restaurants within bounding box and calculate distances
       final List<MapEntry<RestaurantModel, double>> restaurantsWithDistances =
@@ -160,8 +148,7 @@ class RestaurantRepository {
             invalidLocationCount++;
           }
         } catch (e) {
-          debugPrint('Error processing restaurant: ${doc.id}, error: $e');
-          continue;
+          rethrow;
         }
       }
 
@@ -171,7 +158,6 @@ class RestaurantRepository {
 
       return limitedRestaurants.map((entry) => entry.key).toList();
     } catch (e) {
-      debugPrint('Error in getNearbyRestaurants: $e');
       rethrow;
     }
   }
@@ -189,7 +175,6 @@ class RestaurantRepository {
           .trim();
       return double.parse(cleanStr);
     } catch (e) {
-      debugPrint('Invalid coordinate format: $coordinateStr');
       throw Exception('Invalid coordinate format: $coordinateStr');
     }
   }
@@ -197,7 +182,6 @@ class RestaurantRepository {
   // Convert location if needed
   GeoPoint? _ensureGeoPoint(dynamic location) {
     if (location == null) {
-      debugPrint('Location is null');
       return null;
     }
 
@@ -210,7 +194,6 @@ class RestaurantRepository {
         // Check if latitude and longitude exist
         if (!location.containsKey('latitude') ||
             !location.containsKey('longitude')) {
-          debugPrint('Location missing latitude or longitude: $location');
           return null;
         }
 
@@ -220,9 +203,6 @@ class RestaurantRepository {
         } else if (location['latitude'] is num) {
           lat = location['latitude'].toDouble();
         } else {
-          debugPrint(
-            'Invalid latitude type: ${location['latitude'].runtimeType}',
-          );
           return null;
         }
 
@@ -232,26 +212,20 @@ class RestaurantRepository {
         } else if (location['longitude'] is num) {
           lng = location['longitude'].toDouble();
         } else {
-          debugPrint(
-            'Invalid longitude type: ${location['longitude'].runtimeType}',
-          );
           return null;
         }
 
         // Validate coordinates
         if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-          debugPrint('Coordinates out of range: lat=$lat, lng=$lng');
           return null;
         }
 
         return GeoPoint(lat, lng);
       } catch (e) {
-        debugPrint('Error converting location: $e');
         return null;
       }
     }
 
-    debugPrint('Unsupported location type: ${location.runtimeType}');
     return null;
   }
 
@@ -316,7 +290,6 @@ class RestaurantRepository {
       await _firestore.collection('restaurants').doc(restaurantId).delete();
       return true;
     } catch (e) {
-      print('Lỗi xóa nhà hàng: $e'); // Thêm log để dễ debug
       return false;
     }
   }

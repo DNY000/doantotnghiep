@@ -49,7 +49,7 @@ class OrderViewModel extends ChangeNotifier {
   // Tạo đơn hàng mới
   Future<void> createOrder({
     required BuildContext context, // 👈 thêm dòng này
-
+    // required String nameRestaurant,
     required String userId,
     required String restaurantId,
     required List<CartItemModel> items,
@@ -57,6 +57,7 @@ class OrderViewModel extends ChangeNotifier {
     required PaymentMethod paymentMethod,
     String? note,
     UserModel? currentUser,
+    required String restaurantName,
   }) async {
     try {
       final _notificationViewModel = NotificationViewModel();
@@ -76,9 +77,6 @@ class OrderViewModel extends ChangeNotifier {
         final userRepository = UserRepository();
         user = await userRepository.getUserById(userId);
       }
-
-      // Lấy vị trí nhà hàng cố định từ Firestore
-      String restaurantName = '';
       GeoPoint? restaurantLocation;
       final doc = await FirebaseFirestore.instance
           .collection('restaurants')
@@ -88,7 +86,6 @@ class OrderViewModel extends ChangeNotifier {
         final data = doc.data();
         if (data != null && data['location'] is GeoPoint) {
           restaurantLocation = data['location'] as GeoPoint;
-          restaurantName = data['name'] ?? '';
         }
       }
 
@@ -470,7 +467,9 @@ class OrderViewModel extends ChangeNotifier {
   // Thêm phương thức để lấy tổng số lượng món đã bán
   int getTotalQuantitySold() {
     return _topSellingFoods.fold(
-        0, (sum, food) => sum + (food['quantity'] as int));
+        // ignore: avoid_types_as_parameter_names
+        0,
+        (sum, food) => sum + (food['quantity'] as int));
   }
 
   Future<void> loadRecommendedFoods() async {

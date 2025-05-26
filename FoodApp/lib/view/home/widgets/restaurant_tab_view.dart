@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:foodapp/common_widget/card/t_card.dart';
-import 'package:foodapp/data/models/food_model.dart';
 import 'package:foodapp/view/restaurant/restaurant_detail_view.dart';
-import 'package:foodapp/view/restaurant/single_food_detail.dart';
 import 'package:foodapp/viewmodels/food_viewmodel.dart';
 import 'package:foodapp/viewmodels/order_viewmodel.dart';
 import 'package:provider/provider.dart';

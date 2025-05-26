@@ -113,6 +113,7 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
                           MaterialPageRoute(
                               builder: (context) => SingleFoodDetail(
                                     foodItem: food,
+                                    restaurantId: food.restaurantId,
                                   )));
                     },
                     child: Container(

@@ -8,18 +8,17 @@ class NotificationViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   int _countNotification = 0;
-
   List<NotificationModel> get notifications => _notifications;
   bool get isLoading => _isLoading;
   String? get error => _error;
   int get countNotification => _countNotification;
-  Future<void> loadNotifications() async {
+  Future<void> loadNotifications(String id) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _notifications = await _repository.getNotifications();
+      _notifications = await _repository.getNotifications(id);
     } catch (e) {
       _error = 'Failed to load notifications';
       print('Error loading notifications: $e');

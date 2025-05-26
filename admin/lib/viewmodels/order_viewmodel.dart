@@ -142,7 +142,7 @@ class OrderViewModel extends ChangeNotifier {
 
     try {
       final orders = await _repository.getUserOrders(userId);
-      _orders = orders ?? [];
+      _orders = orders;
       _isLoading = false;
       notifyListeners();
       return true;

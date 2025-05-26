@@ -21,14 +21,10 @@ class CategoryViewModel extends ChangeNotifier {
 
       _categories = await _repository.getCategories();
 
-      if (kDebugMode) {
-        print('Loaded ${_categories.length} categories');
-      }
+      if (kDebugMode) {}
     } catch (e) {
       _error = e.toString();
-      if (kDebugMode) {
-        print('Error loading categories: $_error');
-      }
+      if (kDebugMode) {}
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -44,14 +40,10 @@ class CategoryViewModel extends ChangeNotifier {
       await _repository.deleteCategory(id);
       _categories.removeWhere((category) => category.id == id);
 
-      if (kDebugMode) {
-        print('Deleted category with id: $id');
-      }
+      if (kDebugMode) {}
     } catch (e) {
       _error = e.toString();
-      if (kDebugMode) {
-        print('Error deleting category: $_error');
-      }
+      if (kDebugMode) {}
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -68,14 +60,10 @@ class CategoryViewModel extends ChangeNotifier {
       _categories.removeWhere((category) => category.id == id);
       _categories.add(category);
 
-      if (kDebugMode) {
-        print('Updated category with id: $id');
-      }
+      if (kDebugMode) {}
     } catch (e) {
       _error = e.toString();
-      if (kDebugMode) {
-        print('Error updating category: $_error');
-      }
+      if (kDebugMode) {}
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -91,14 +79,10 @@ class CategoryViewModel extends ChangeNotifier {
       await _repository.addCategory(category);
       _categories.add(category);
 
-      if (kDebugMode) {
-        print('Added category: ${category.name}');
-      }
+      if (kDebugMode) {}
     } catch (e) {
       _error = e.toString();
-      if (kDebugMode) {
-        print('Error adding category: $_error');
-      }
+      if (kDebugMode) {}
     } finally {
       _isLoading = false;
       notifyListeners();

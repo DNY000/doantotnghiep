@@ -15,14 +15,9 @@ class UserRepository {
     try {
       await _firestore.collection(_collection).doc(user.id).set(user.toMap());
     } on FirebaseException catch (e) {
-      if (kDebugMode) {
-        print("FirebaseException khi lưu user: ${e.code} - ${e.message}");
-      }
+      if (kDebugMode) {}
       throw TFirebaseException(e.code);
     } catch (e) {
-      if (kDebugMode) {
-        print("Lỗi không xác định khi lưu user: $e");
-      }
       throw TFormatException('Lỗi khi lưu thông tin người dùng: $e');
     }
   }

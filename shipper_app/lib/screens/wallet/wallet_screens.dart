@@ -20,12 +20,7 @@ class _WalletScreensState extends State<WalletScreens> {
         title: const Text('Ví của tôi'),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              // TODO: Navigate to wallet settings
-            },
-          ),
+          IconButton(icon: const Icon(Icons.settings), onPressed: () {}),
         ],
       ),
       body: SingleChildScrollView(
@@ -84,7 +79,6 @@ class _WalletScreensState extends State<WalletScreens> {
 
                         // Nếu nạp tiền thành công, cập nhật lại giao diện
                         if (result == true) {
-                          // TODO: Gọi API để lấy số dư mới
                           setState(() {
                             // Demo: Tăng số dư 100,000 đ
                             _walletBalance += 100000;
@@ -98,9 +92,7 @@ class _WalletScreensState extends State<WalletScreens> {
                     child: _buildActionButton(
                       icon: Icons.account_balance_wallet,
                       label: 'Rút tiền',
-                      onTap: () {
-                        // TODO: Navigate to withdraw screen
-                      },
+                      onTap: () {},
                     ),
                   ),
                 ],
@@ -115,30 +107,22 @@ class _WalletScreensState extends State<WalletScreens> {
               icon: Icons.account_balance,
               title: 'Tài khoản kỳ quỹ',
               trailing: '0đ',
-              onTap: () {
-                // TODO: Navigate to deposit account screen
-              },
+              onTap: () {},
             ),
             _buildMenuItem(
               icon: Icons.receipt_long,
               title: 'Giao dịch',
-              onTap: () {
-                // TODO: Navigate to transactions screen
-              },
+              onTap: () {},
             ),
             _buildMenuItem(
               icon: Icons.bar_chart,
               title: 'Báo cáo thu nhập',
-              onTap: () {
-                // TODO: Navigate to income report screen
-              },
+              onTap: () {},
             ),
             _buildMenuItem(
               icon: Icons.history,
               title: 'Lịch sử nạp & rút tiền',
-              onTap: () {
-                // TODO: Navigate to transaction history screen
-              },
+              onTap: () {},
             ),
           ],
         ),

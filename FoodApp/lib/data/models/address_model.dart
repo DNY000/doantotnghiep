@@ -2,10 +2,8 @@ import 'package:geocoding/geocoding.dart';
 
 class AddressModel {
   String street;
-
   Map<double, double>? location;
   bool isDefault;
-
   AddressModel({
     required this.street,
     this.location,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
 import 'package:provider/provider.dart';
 import '../viewmodel/signup_viewmodel.dart';
-import '../../../common_widget/line_textfield.dart';
 import '../../../common_widget/round_button.dart';
 
 class SignUpView extends StatelessWidget {
