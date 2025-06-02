@@ -1,17 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:foodapp/data/models/cart_item_model.dart';
 import 'package:foodapp/data/models/user_model.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
 import 'package:foodapp/ultils/const/enum.dart';
+import 'package:foodapp/view/main_tab/main_tab_view.dart';
 import 'package:foodapp/viewmodels/order_viewmodel.dart';
 import 'package:foodapp/viewmodels/restaurant_viewmodel.dart';
 import 'package:foodapp/viewmodels/user_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:foodapp/core/services/webview.dart';
-import 'package:go_router/go_router.dart';
 
 class OrderScreen extends StatefulWidget {
   final List<CartItemModel> cartItems;
@@ -46,7 +45,6 @@ class _OrderScreenState extends State<OrderScreen> {
             .selectRestaurant(widget.restaurantId);
       },
     );
- 
   }
 
   @override
@@ -110,24 +108,13 @@ class _OrderScreenState extends State<OrderScreen> {
           currentUser: currentUser,
           restaurantName: restaurant!.name);
 
-      if (mounted) {
-        // Hiển thị thông báo thành công
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   const SnackBar(content: Text('Đặt hàng thành công')),
-        // );
-
-        // Đợi một chút để người dùng thấy thông báo
-        await Future.delayed(const Duration(milliseconds: 500));
-        // Navigator.push(
-        //     context,
-        //     MaterialPageRoute(
-        //       builder: (context) => const MainTabView(),
-        //     ));
-        // Chuyển về màn hình chính KHÔNG hiển thị loading
-        if (mounted) {
-          context.go('/main-tab');
-        }
-      }
+      // context.go('/main_tab');
+      Navigator.push(
+          // ignore: use_build_context_synchronously
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MainTabView(),
+          ));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -168,16 +155,15 @@ class _OrderScreenState extends State<OrderScreen> {
             horizontal: 16,
             vertical: 24,
           ),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: const BorderRadius.vertical(
+            borderRadius: BorderRadius.vertical(
               top: Radius.circular(16),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black,
                 blurRadius: 10,
-                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -203,6 +189,15 @@ class _OrderScreenState extends State<OrderScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide(
+                          color: Colors.grey[300]!, // Màu xám nhạt khi focus
+                          width: 1,
+                        ),
+                      ),
+                      labelStyle: const TextStyle(color: Colors.black),
+                      floatingLabelStyle: const TextStyle(color: Colors.black),
                     ),
                     keyboardType: TextInputType.phone,
                   ),
@@ -215,6 +210,15 @@ class _OrderScreenState extends State<OrderScreen> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(
+                        color: Colors.grey[300]!, // Màu xám nhạt khi focus
+                        width: 1,
+                      ),
+                    ),
+                    floatingLabelStyle: const TextStyle(color: Colors.black),
+                    labelStyle: const TextStyle(color: Colors.black),
                   ),
                   maxLines: 2,
                 ),
@@ -223,25 +227,29 @@ class _OrderScreenState extends State<OrderScreen> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Hủy'),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: TColor.color3,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.grey,
+                        foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text('Lưu'),
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Hủy',
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: TColor.color3,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Lưu',
+                          style: TextStyle(color: Colors.white)),
                     ),
                   ],
                 ),
@@ -543,8 +551,17 @@ class _OrderScreenState extends State<OrderScreen> {
         controller: _noteController,
         decoration: InputDecoration(
           labelText: 'Ghi chú ',
-          prefixIcon: const Icon(Icons.note_outlined),
+          prefixIcon: const Icon(Icons.edit),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: Colors.grey[300]!, // Màu xám nhạt khi focus
+              width: 1,
+            ),
+          ),
+          floatingLabelStyle: const TextStyle(color: Colors.black),
+          labelStyle: const TextStyle(color: Colors.black),
         ),
         maxLines: 2,
         onChanged: (value) {
@@ -566,6 +583,7 @@ class _OrderScreenState extends State<OrderScreen> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           RadioListTile<PaymentMethod>(
+            activeColor: TColor.orange4,
             value: PaymentMethod.thanhtoankhinhanhang,
             groupValue: _selectedPaymentMethod,
             onChanged: (value) {
@@ -577,6 +595,7 @@ class _OrderScreenState extends State<OrderScreen> {
           ),
           RadioListTile<PaymentMethod>(
             value: PaymentMethod.qr,
+            activeColor: TColor.orange4,
             groupValue: _selectedPaymentMethod,
             onChanged: (value) {
               setState(() {
@@ -637,6 +656,7 @@ class _OrderScreenState extends State<OrderScreen> {
                                         if (context.mounted) {
                                           await _placeOrder();
                                           Navigator.pop(
+                                              // ignore: use_build_context_synchronously
                                               context); // Close VNPay WebView
                                         }
                                       } else {

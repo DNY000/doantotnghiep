@@ -73,7 +73,9 @@ class _VNPayWebViewScreenState extends State<VNPayWebViewScreen> {
             widget.onComplete(responseCode == '00', responseCode);
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        throw Exception('Lỗi khi xử lý URL: $e');
+      }
     }
   }
 

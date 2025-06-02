@@ -43,28 +43,22 @@ class CategoryGridItem extends StatelessWidget {
               // color: _getRandomPastelColor(),
               borderRadius: BorderRadius.circular(
                   45), // Giảm border radius từ 18 xuống 14
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 6, // Giảm blur từ 10 xuống 6
-                  offset:
-                      const Offset(0, 2), // Giảm offset từ (0,3) xuống (0,2)
-                ),
-              ],
+              // boxShadow: const [
+              //   BoxShadow(
+              //     color: Colors.black.withOpacity(0.1),
+              //     blurRadius: 6, // Giảm blur từ 10 xuống 6
+              //     offset: Offset(0, 2), // Giảm offset từ (0,3) xuống (0,2)
+              //   ),
+              // ],
             ),
-            child: ClipRRect(
-              // Bỏ padding 2.0 bên ngoài để ảnh lớn hơn
-              // borderRadius: BorderRadius.circular(
-              //     45), // Giảm border radius từ 16 xuống 14
-              child: Image.asset(
-                category.image,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Center(
-                  child: Icon(
-                    Icons.restaurant,
-                    size: itemSize * 0.5,
-                    color: TColor.orange5,
-                  ),
+            child: Image.asset(
+              category.image,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Center(
+                child: Icon(
+                  Icons.restaurant,
+                  size: itemSize * 0.5,
+                  color: TColor.orange5,
                 ),
               ),
             ),

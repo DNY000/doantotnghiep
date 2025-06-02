@@ -92,7 +92,7 @@ class ListFoodYouMaybeLike extends StatelessWidget {
               return ListView.builder(
                 scrollDirection: Axis.horizontal,
                 clipBehavior: Clip.hardEdge,
-                cacheExtent: 1000, // Cache more items for smoother scrolling
+                cacheExtent: 1000,
                 padding: const EdgeInsets.symmetric(horizontal: 7),
                 itemCount: foods.length,
                 itemBuilder: (context, index) {

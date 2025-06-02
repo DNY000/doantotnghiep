@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:foodapp/data/models/restaurant_model.dart';
 import 'package:foodapp/data/repositories/restaurant_repository.dart';
 import 'package:geolocator/geolocator.dart';
@@ -218,7 +217,6 @@ class RestaurantViewModel extends ChangeNotifier {
     if (_userLocation == null) return double.infinity;
 
     final location = restaurant.location;
-    if (location == null) return double.infinity;
 
     return Geolocator.distanceBetween(
       _userLocation!.latitude,

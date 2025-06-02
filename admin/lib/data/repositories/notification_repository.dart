@@ -25,13 +25,17 @@ class NotificationRepository {
       await _firestore.collection(_collection).doc(notificationId).update({
         'isRead': true,
       });
-    } catch (e) {}
+    } catch (e) {
+      throw Exception('Không thể đánh dấu đã đọc thông báo: $e');
+    }
   }
 
   Future<void> deleteNotification(String notificationId) async {
     try {
       await _firestore.collection(_collection).doc(notificationId).delete();
-    } catch (e) {}
+    } catch (e) {
+      throw Exception('Không thể xóa thông báo: $e');
+    }
   }
 
   Future<void> createNotification(NotificationModel notification) async {
@@ -39,6 +43,8 @@ class NotificationRepository {
       final docRef =
           await _firestore.collection(_collection).add(notification.toMap());
       await docRef.update({'id': docRef.id});
-    } catch (e) {}
+    } catch (e) {
+      throw Exception('Không thể tạo thông báo: $e');
+    }
   }
 }

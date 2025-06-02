@@ -18,12 +18,12 @@ class StorageDetails extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             "Thông tin lưu trữ",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
           ),
-          SizedBox(height: defaultPadding),
-          Chart(),
+          const SizedBox(height: defaultPadding),
+          const Chart(),
           WidgetScreen(
             svgSrc: "assets/icons/Documents.svg",
             title: "Documents Files",

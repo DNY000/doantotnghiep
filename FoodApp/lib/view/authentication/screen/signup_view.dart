@@ -42,16 +42,16 @@ class SignUpView extends StatelessWidget {
                   children: [
                     // Logo Container
                     Container(
-                        height: 100,
-                        width: 100,
+                        height: 150,
+                        width: 150,
                         padding: const EdgeInsets.all(16),
                         decoration: const BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
                         ),
                         child: Image.asset(
-                          "assets/images/logo/foodapp.jpg",
-                          fit: BoxFit.fill,
+                          "assets/images/logo/logoappfood.png",
+                          fit: BoxFit.cover,
                         )),
                     SizedBox(height: media.width * 0.05),
 
@@ -227,9 +227,7 @@ class SignUpView extends StatelessWidget {
                               color: TColor.gray,
                               size: 20,
                             ),
-                            onPressed: () {
-                              // TODO: Implement password visibility toggle
-                            },
+                            onPressed: () {},
                           ),
                         ),
                       ),
@@ -287,9 +285,7 @@ class SignUpView extends StatelessWidget {
                               color: TColor.gray,
                               size: 20,
                             ),
-                            onPressed: () {
-                              // TODO: Implement password visibility toggle
-                            },
+                            onPressed: () {},
                           ),
                         ),
                       ),
@@ -301,7 +297,7 @@ class SignUpView extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
+                          color: Colors.red,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(

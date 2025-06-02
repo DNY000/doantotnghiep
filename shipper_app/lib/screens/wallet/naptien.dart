@@ -67,8 +67,9 @@ class _DepositScreenState extends State<DepositScreen> {
   }
 
   String _getErrorMessage(String? code) {
-    if (code == null)
+    if (code == null) {
       return 'Lỗi không xác định. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.';
+    }
 
     switch (code) {
       case '99':
@@ -201,7 +202,6 @@ class _DepositScreenState extends State<DepositScreen> {
             _isProcessing = false;
 
             if (success) {
-              print("DepositScreen: Thanh toán thành công, sẽ đóng sau 2s");
               _loadWalletBalance(); // Cập nhật số dư sau khi nạp tiền thành công
               Future.delayed(const Duration(seconds: 2), () {
                 if (!mounted) return;
@@ -212,7 +212,6 @@ class _DepositScreenState extends State<DepositScreen> {
         },
       );
     } catch (e) {
-      print("DepositScreen: Lỗi xử lý: $e");
       if (!mounted) return;
       setState(() {
         _isLoading = false;

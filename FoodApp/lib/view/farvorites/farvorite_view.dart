@@ -35,6 +35,10 @@ class _FarvoriteViewState extends State<FarvoriteView> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        centerTitle: true,
+        leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back)),
         backgroundColor: Colors.white,
         elevation: 0,
       ),
@@ -61,21 +65,17 @@ class _FarvoriteViewState extends State<FarvoriteView> {
                     ],
                   ),
                 )
-              : GridView.builder(
+              : ListView.builder(
                   padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    // childAspectRatio: 0.8,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    mainAxisExtent: 180,
-                  ),
                   itemCount: favoriteViewModel.favorites.length,
                   itemBuilder: (context, index) {
                     final food = favoriteViewModel.favorites[index];
-                    return FoodGridItem(
-                      food: food,
-                      showButtonAddToCart: true,
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: FoodListItem(
+                        food: food,
+                        showButtonAddToCart: true,
+                      ),
                     );
                   },
                 ),

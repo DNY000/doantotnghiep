@@ -1,14 +1,12 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:foodapp/common_widget/shimmer/shimmer_main_tab.dart';
-import 'package:foodapp/core/services/notifications_service.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
+import 'package:foodapp/ultils/const/enum.dart';
 import 'package:foodapp/view/farvorites/farvorite_view.dart';
 import 'package:foodapp/view/order/order_view.dart';
 import 'package:foodapp/view/profile/my_profile_view.dart';
-import 'package:foodapp/viewmodels/notification_viewmodel.dart';
+import 'package:foodapp/viewmodels/order_viewmodel.dart';
 import 'package:provider/provider.dart';
 import '../home/home_view.dart';
 
@@ -83,15 +81,17 @@ class _MainTabViewState extends State<MainTabView>
     // Add notification badge to Order tab (index 1)
     if (index == 1) {
       return Tab(
-        icon: Consumer<NotificationViewModel>(
-          builder: (context, notificationViewModel, child) {
-            final unreadCount = notificationViewModel.countNotification;
+        icon: Consumer<OrderViewModel>(
+          builder: (context, orderViewModel, child) {
+            final ongoingOrders = orderViewModel.orders
+                .where((order) => order.status != OrderState.delivered)
+                .length;
             return Badge(
               label: Text(
-                '$unreadCount',
+                '$ongoingOrders',
                 style: const TextStyle(color: Colors.white, fontSize: 10),
               ),
-              isLabelVisible: unreadCount > 0,
+              isLabelVisible: ongoingOrders > 0,
               child: tabIcon,
             );
           },
@@ -121,8 +121,8 @@ class _MainTabViewState extends State<MainTabView>
       bottomNavigationBar: SafeArea(
         top: false,
         child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+          decoration: const BoxDecoration(
+            color: Colors.white,
           ),
           child: TabBar(
             controller: _tabController,

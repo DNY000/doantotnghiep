@@ -12,6 +12,8 @@ class NotificationViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   int get countNotification => _countNotification;
+  int _countOrder = 0;
+  int get countOrder => _countOrder;
   Future<void> loadNotifications(String id) async {
     _isLoading = true;
     _error = null;
@@ -21,7 +23,6 @@ class NotificationViewModel extends ChangeNotifier {
       _notifications = await _repository.getNotifications(id);
     } catch (e) {
       _error = 'Failed to load notifications';
-      print('Error loading notifications: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -38,7 +39,7 @@ class NotificationViewModel extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Error marking notification as read: $e');
+      throw Exception('Error marking notification as read: $e');
     }
   }
 
@@ -49,7 +50,7 @@ class NotificationViewModel extends ChangeNotifier {
       _notifications.removeWhere((n) => n.id == notificationId);
       notifyListeners();
     } catch (e) {
-      print('Error deleting notification: $e');
+      throw Exception('Error deleting notification: $e');
     }
   }
 
@@ -68,12 +69,13 @@ class NotificationViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> getUnreadNotificationsCount() async {
+  Future<void> getUnreadNotificationsCount(String userId) async {
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
-      _countNotification = await _repository.getUnreadNotificationsCount();
+      _countNotification =
+          await _repository.getUnreadNotificationsCount(userId);
       _isLoading = false;
       notifyListeners();
     } catch (e) {

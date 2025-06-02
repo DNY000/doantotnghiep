@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:foodapp/data/models/food_model.dart';
-import 'package:foodapp/data/models/user_model.dart';
 import 'package:foodapp/data/repositories/favorite_repository.dart';
 import 'package:foodapp/data/repositories/user_repository.dart';
 

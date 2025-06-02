@@ -33,8 +33,7 @@ class RestaurantRepository {
       return RestaurantModel.fromMap(
           doc.data() as Map<String, dynamic>, doc.id);
     } catch (e) {
-      print('Error getting restaurant: $e');
-      return null;
+      throw Exception('Không thể lấy nhà hàng theo id: $e');
     }
   }
 

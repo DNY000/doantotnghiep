@@ -168,8 +168,8 @@ class _RestaurantTabViewState extends State<RestaurantTabView>
           Container(
             width: 120,
             height: 120,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+            decoration: const BoxDecoration(
+              color: Colors.white,
               shape: BoxShape.circle,
             ),
             child: Center(

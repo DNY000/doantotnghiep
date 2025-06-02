@@ -54,14 +54,7 @@ class _ShipperProfileScreenState extends State<ShipperProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Thông tin cá nhân'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              // TODO: Navigate to edit profile screen
-            },
-          ),
-        ],
+        actions: [IconButton(icon: const Icon(Icons.edit), onPressed: () {})],
       ),
       body:
           _isLoading
@@ -114,7 +107,7 @@ class _ShipperProfileScreenState extends State<ShipperProfileScreen> {
                       ),
                       _buildInfoItem(
                         'Địa chỉ',
-                        _shipper!.address ?? 'Chưa cập nhật',
+                        _shipper!.address,
                         Icons.location_on,
                       ),
                       _buildInfoItem(

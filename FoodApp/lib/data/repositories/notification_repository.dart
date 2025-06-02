@@ -17,8 +17,7 @@ class NotificationRepository {
         return NotificationModel.fromMap(data, doc.id);
       }).toList();
     } catch (e) {
-      print('Error getting notifications: $e');
-      return [];
+      throw Exception('Error getting notifications: $e');
     }
   }
 
@@ -29,7 +28,7 @@ class NotificationRepository {
           .doc(notificationId)
           .update({'isRead': true});
     } catch (e) {
-      print('Error marking notification as read: $e');
+      throw Exception('Error marking notification as read: $e');
     }
   }
 
@@ -37,38 +36,35 @@ class NotificationRepository {
     try {
       await _firestore.collection(_collection).doc(notificationId).delete();
     } catch (e) {
-      print('Error deleting notification: $e');
+      throw Exception('Error deleting notification: $e');
     }
   }
 
   Future<void> createNotification(NotificationModel notification) async {
     try {
-      print('Tạo notification với dữ liệu: ' + notification.toMap().toString());
       final docRef =
           await _firestore.collection(_collection).add(notification.toMap());
-      print('Đã tạo notification với docID: ' + docRef.id);
       await docRef.update({'id': docRef.id});
-      print('Đã cập nhật trường id cho notification');
     } catch (e) {
-      print('Error creating notification: $e');
+      throw Exception('Error creating notification: $e');
     }
   }
 
-  Future<int> getUnreadNotificationsCount() async {
+  Future<int> getUnreadNotificationsCount(String userId) async {
     try {
       final AggregateQuerySnapshot snapshot = await _firestore
           .collection(_collection)
           .where('isRead', isEqualTo: false)
+          .where('userId', isEqualTo: userId) // Lọc theo userId
+
           .count()
           .get();
 
       // Access the count value and ensure it's non-nullable
       final count = snapshot.count ??
           0; // Use null-aware operator to handle potential null
-      print('Unread notifications count: $count');
       return count;
     } catch (e) {
-      print('Error getting unread notifications count: $e');
       return 0; // Return 0 in case of error
     }
   }

@@ -43,12 +43,11 @@ class _DashboardViewState extends State<DashboardView> {
           ),
           PopupMenuButton(
             icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black54),
-            itemBuilder:
-                (_) => [
-                  const PopupMenuItem(child: Text('Profile')),
-                  const PopupMenuItem(child: Text('Settings')),
-                  const PopupMenuItem(child: Text('Logout')),
-                ],
+            itemBuilder: (_) => [
+              const PopupMenuItem(child: Text('Profile')),
+              const PopupMenuItem(child: Text('Settings')),
+              const PopupMenuItem(child: Text('Logout')),
+            ],
           ),
           const SizedBox(width: 16),
         ],
@@ -165,16 +164,15 @@ class _DashboardViewState extends State<DashboardView> {
                                 physics: const NeverScrollableScrollPhysics(),
                                 gridDelegate:
                                     SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount:
-                                          Responsive.isDesktop(context)
-                                              ? 4
-                                              : Responsive.isTablet(context)
-                                              ? 2
-                                              : 1,
-                                      crossAxisSpacing: 16,
-                                      mainAxisSpacing: 16,
-                                      childAspectRatio: 1.3,
-                                    ),
+                                  crossAxisCount: Responsive.isDesktop(context)
+                                      ? 4
+                                      : Responsive.isTablet(context)
+                                          ? 2
+                                          : 1,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 16,
+                                  childAspectRatio: 1.3,
+                                ),
                                 itemCount: 4,
                                 itemBuilder: (context, index) {
                                   List<Map<String, dynamic>> fileCards = [
@@ -221,26 +219,26 @@ class _DashboardViewState extends State<DashboardView> {
                               // Recent Files and Storage
                               Responsive.isDesktop(context)
                                   ? Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: _buildRecentFilesSection(),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: _buildStorageDetailsSection(),
-                                      ),
-                                    ],
-                                  )
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          flex: 2,
+                                          child: _buildRecentFilesSection(),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: _buildStorageDetailsSection(),
+                                        ),
+                                      ],
+                                    )
                                   : Column(
-                                    children: [
-                                      _buildRecentFilesSection(),
-                                      const SizedBox(height: 16),
-                                      _buildStorageDetailsSection(),
-                                    ],
-                                  ),
+                                      children: [
+                                        _buildRecentFilesSection(),
+                                        const SizedBox(height: 16),
+                                        _buildStorageDetailsSection(),
+                                      ],
+                                    ),
                             ],
                           ),
                         );
@@ -276,22 +274,21 @@ class _DashboardViewState extends State<DashboardView> {
         selected: isActive,
         onTap: () {
           setState(() {
-            _selectedIndex =
-                title == 'Dashboard'
-                    ? 0
-                    : title == 'Transaction'
+            _selectedIndex = title == 'Dashboard'
+                ? 0
+                : title == 'Transaction'
                     ? 1
                     : title == 'Task'
-                    ? 2
-                    : title == 'Documents'
-                    ? 3
-                    : title == 'Store'
-                    ? 4
-                    : title == 'Notification'
-                    ? 5
-                    : title == 'Settings'
-                    ? 6
-                    : 7;
+                        ? 2
+                        : title == 'Documents'
+                            ? 3
+                            : title == 'Store'
+                                ? 4
+                                : title == 'Notification'
+                                    ? 5
+                                    : title == 'Settings'
+                                        ? 6
+                                        : 7;
           });
 
           // Show a snackbar when menu item is clicked
@@ -351,7 +348,7 @@ class _DashboardViewState extends State<DashboardView> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: color),
@@ -365,7 +362,7 @@ class _DashboardViewState extends State<DashboardView> {
           Container(
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.2),
+              color: Colors.blue,
               borderRadius: BorderRadius.circular(2),
             ),
             child: Row(
@@ -474,7 +471,7 @@ class _DashboardViewState extends State<DashboardView> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: iconColor.withOpacity(0.1),
+                    color: iconColor,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
@@ -549,7 +546,7 @@ class _DashboardViewState extends State<DashboardView> {
               ),
               circularStrokeCap: CircularStrokeCap.round,
               progressColor: Colors.blue,
-              backgroundColor: Colors.blue.withOpacity(0.2),
+              backgroundColor: Colors.blue,
               arcBackgroundColor: Colors.red,
               arcType: ArcType.HALF,
               startAngle: 150,
@@ -595,17 +592,17 @@ class _DashboardViewState extends State<DashboardView> {
             height: 40,
             width: 40,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               title.contains('Documents')
                   ? Icons.article
                   : title.contains('Media')
-                  ? Icons.video_library
-                  : title.contains('Other')
-                  ? Icons.folder
-                  : Icons.help_outline,
+                      ? Icons.video_library
+                      : title.contains('Other')
+                          ? Icons.folder
+                          : Icons.help_outline,
               color: color,
               size: 20,
             ),

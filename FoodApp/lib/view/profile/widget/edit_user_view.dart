@@ -194,8 +194,8 @@ class _EditUserViewState extends State<EditUserView> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
-                                borderSide:
-                                    BorderSide(color: Colors.grey, width: 1.5),
+                                borderSide: const BorderSide(
+                                    color: Colors.grey, width: 1.5),
                               ),
                               errorBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
@@ -248,8 +248,8 @@ class _EditUserViewState extends State<EditUserView> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
-                                borderSide:
-                                    BorderSide(color: Colors.grey, width: 1.5),
+                                borderSide: const BorderSide(
+                                    color: Colors.grey, width: 1.5),
                               ),
                               filled: true,
                               fillColor: Colors.white,
@@ -306,7 +306,7 @@ class _EditUserViewState extends State<EditUserView> {
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(15),
-                                  borderSide: BorderSide(
+                                  borderSide: const BorderSide(
                                       color: Colors.black, width: 1.5),
                                 ),
                                 filled: true,
@@ -374,8 +374,8 @@ class _EditUserViewState extends State<EditUserView> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
-                                borderSide:
-                                    BorderSide(color: Colors.grey, width: 1.5),
+                                borderSide: const BorderSide(
+                                    color: Colors.grey, width: 1.5),
                               ),
                               errorBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
@@ -429,8 +429,8 @@ class _EditUserViewState extends State<EditUserView> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
-                                borderSide:
-                                    BorderSide(color: Colors.grey, width: 1.5),
+                                borderSide: const BorderSide(
+                                    color: Colors.grey, width: 1.5),
                               ),
                               errorBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
@@ -450,10 +450,12 @@ class _EditUserViewState extends State<EditUserView> {
                             ),
                             keyboardType: TextInputType.emailAddress,
                             validator: (value) {
-                              if (value?.isEmpty ?? true)
+                              if (value?.isEmpty ?? true) {
                                 return 'Vui lòng nhập email';
-                              if (!value!.contains('@'))
+                              }
+                              if (!value!.contains('@')) {
                                 return 'Email không hợp lệ';
+                              }
                               return null;
                             },
                             style: const TextStyle(
@@ -488,8 +490,8 @@ class _EditUserViewState extends State<EditUserView> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
-                                borderSide:
-                                    BorderSide(color: Colors.grey, width: 1.5),
+                                borderSide: const BorderSide(
+                                    color: Colors.grey, width: 1.5),
                               ),
                               errorBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),

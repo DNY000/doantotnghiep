@@ -19,12 +19,9 @@ class _LoginViewState extends State<LoginView> {
   @override
   void initState() {
     super.initState();
-    // Gọi autoLogin sau khi frame được build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final viewModel = Provider.of<LoginViewModel>(context, listen: false);
-
-        // Đặt callback điều hướng cho ViewModel
         viewModel.navigationCallback = (String route) {
           if (mounted) {
             context.go(route);
@@ -67,7 +64,7 @@ class _LoginViewState extends State<LoginView> {
                             ),
                             child: ClipOval(
                               child: Image.asset(
-                                'assets/images/logo/foodapp.jpg',
+                                'assets/images/logo/logoappfood.png',
                                 filterQuality: FilterQuality.high,
                                 fit: BoxFit.cover,
                               ),
@@ -75,15 +72,7 @@ class _LoginViewState extends State<LoginView> {
                           ),
 
                           SizedBox(height: media.width * 0.06),
-                          // Text(
-                          //   "Food APP",
-                          //   style: TextStyle(
-                          //     color: TColor.text,
-                          //     fontSize: 28,
-                          //     fontWeight: FontWeight.w700,
-                          //   ),
-                          // ),
-                          // SizedBox(height: media.width * 0.02),
+
                           Text(
                             "Đăng nhập để tiếp tục",
                             style: TextStyle(
@@ -95,7 +84,7 @@ class _LoginViewState extends State<LoginView> {
                           SizedBox(height: media.width * 0.12),
 
                           // Email Field
-                          Container(
+                          SizedBox(
                             height: 50,
                             child: TextFormField(
                               controller: viewModel.txtEmail,
@@ -145,7 +134,7 @@ class _LoginViewState extends State<LoginView> {
                           const SizedBox(height: 24),
 
                           // Password Field
-                          Container(
+                          SizedBox(
                             height: 50,
                             child: TextFormField(
                               controller: viewModel.txtPassword,

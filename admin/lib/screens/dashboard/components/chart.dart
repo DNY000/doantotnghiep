@@ -20,7 +20,7 @@ class Chart extends StatelessWidget {
                 pointColorMapper: (ChartData data, _) => data.color,
                 innerRadius: '70%',
                 radius: '90%',
-                dataLabelSettings: DataLabelSettings(isVisible: false),
+                dataLabelSettings: const DataLabelSettings(isVisible: false),
               ),
             ],
           ),
@@ -31,9 +31,9 @@ class Chart extends StatelessWidget {
                 Text(
                   "29.1",
                   style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                    fontWeight: FontWeight.w600,
-                    height: 0.5,
-                  ),
+                        fontWeight: FontWeight.w600,
+                        height: 0.5,
+                      ),
                 ),
                 const Text("of 128GB"),
               ],
@@ -57,5 +57,5 @@ final List<ChartData> chartData = [
   ChartData('Media', 20, const Color(0xFF26E5FF)),
   ChartData('Other', 10, const Color(0xFFFFCF26)),
   ChartData('Unknown', 15, const Color(0xFFEE2727)),
-  ChartData('Free', 30, Colors.blue.withOpacity(0.1)),
+  ChartData('Free', 30, Colors.blue),
 ];

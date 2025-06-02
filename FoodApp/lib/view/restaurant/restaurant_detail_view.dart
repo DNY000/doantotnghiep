@@ -187,12 +187,11 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
             flexibleSpace: FlexibleSpaceBar(
               background: Image.asset(
                 widget.restaurant.mainImage,
-                width: media.width,
                 fit: BoxFit.cover,
               ),
             ),
             leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: TColor.color3),
+              icon: const Icon(Icons.arrow_back),
               onPressed: () {
                 Navigator.pop(context);
               },

@@ -16,11 +16,11 @@ class ShipperScreen extends StatelessWidget {
         children: [
           if (Responsive.isDesktop(context))
             const Expanded(flex: 1, child: SideMenu()),
-          Expanded(
+          const Expanded(
             flex: 5,
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: EdgeInsets.all(16.0),
                 child: ShipperContent(),
               ),
             ),
@@ -68,9 +68,7 @@ class _ShipperContentState extends State<ShipperContent> {
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             ElevatedButton.icon(
-              onPressed: () {
-                // TODO: Navigate to add shipper screen
-              },
+              onPressed: () {},
               icon: const Icon(Icons.add),
               label: const Text('Thêm Shipper'),
               style: ElevatedButton.styleFrom(
@@ -128,8 +126,8 @@ class _ShipperContentState extends State<ShipperContent> {
                         child: Text('Không hoạt động'),
                       ),
                     ],
-                    onChanged:
-                        (value) => setState(() => _selectedStatus = value!),
+                    onChanged: (value) =>
+                        setState(() => _selectedStatus = value!),
                   ),
                 ),
               ),
@@ -172,10 +170,9 @@ class _ShipperContentState extends State<ShipperContent> {
 
               // Apply status filter
               if (_selectedStatus != 'all') {
-                filteredShippers =
-                    filteredShippers
-                        .where((shipper) => shipper.status == _selectedStatus)
-                        .toList();
+                filteredShippers = filteredShippers
+                    .where((shipper) => shipper.status == _selectedStatus)
+                    .toList();
               }
 
               if (filteredShippers.isEmpty) {
@@ -206,103 +203,92 @@ class _ShipperContentState extends State<ShipperContent> {
           DataColumn(label: Text('Trạng thái')),
           DataColumn(label: Text('Thao tác')),
         ],
-        rows:
-            shippers.map((shipper) {
-              return DataRow(
-                cells: [
-                  DataCell(
-                    CircleAvatar(
-                      backgroundImage:
-                          shipper.avatarUrl.isNotEmpty
-                              ? NetworkImage(shipper.avatarUrl)
-                              : null,
-                      child:
-                          shipper.avatarUrl.isEmpty
-                              ? Text(
-                                shipper.name.isNotEmpty
-                                    ? shipper.name[0].toUpperCase()
-                                    : '?',
-                                style: const TextStyle(fontSize: 24),
-                              )
-                              : null,
+        rows: shippers.map((shipper) {
+          return DataRow(
+            cells: [
+              DataCell(
+                CircleAvatar(
+                  backgroundImage: shipper.avatarUrl.isNotEmpty
+                      ? NetworkImage(shipper.avatarUrl)
+                      : null,
+                  child: shipper.avatarUrl.isEmpty
+                      ? Text(
+                          shipper.name.isNotEmpty
+                              ? shipper.name[0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(fontSize: 24),
+                        )
+                      : null,
+                ),
+              ),
+              DataCell(Text(shipper.name)),
+              DataCell(Text(shipper.phoneNumber)),
+              DataCell(Text(shipper.email)),
+              DataCell(
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        shipper.status == 'active' ? Colors.green : Colors.red,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    shipper.status == 'active'
+                        ? 'Đang hoạt động'
+                        : 'Không hoạt động',
+                    style: TextStyle(
+                      color: shipper.status == 'active'
+                          ? Colors.green
+                          : Colors.red,
                     ),
                   ),
-                  DataCell(Text(shipper.name)),
-                  DataCell(Text(shipper.phoneNumber)),
-                  DataCell(Text(shipper.email)),
-                  DataCell(
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            shipper.status == 'active'
-                                ? Colors.green.withOpacity(0.1)
-                                : Colors.red.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        shipper.status == 'active'
-                            ? 'Đang hoạt động'
-                            : 'Không hoạt động',
-                        style: TextStyle(
-                          color:
-                              shipper.status == 'active'
-                                  ? Colors.green
-                                  : Colors.red,
-                        ),
-                      ),
+                ),
+              ),
+              DataCell(
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () {},
                     ),
-                  ),
-                  DataCell(
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () {
-                            // TODO: Navigate to edit screen
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
-                            final confirmed = await showDialog<bool>(
-                              context: context,
-                              builder:
-                                  (context) => AlertDialog(
-                                    title: const Text('Xác nhận xóa'),
-                                    content: Text(
-                                      'Bạn có chắc muốn xóa shipper ${shipper.name}?',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.pop(context, false),
-                                        child: const Text('Hủy'),
-                                      ),
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.pop(context, true),
-                                        child: const Text('Xóa'),
-                                      ),
-                                    ],
-                                  ),
-                            );
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Xác nhận xóa'),
+                            content: Text(
+                              'Bạn có chắc muốn xóa shipper ${shipper.name}?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Hủy'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('Xóa'),
+                              ),
+                            ],
+                          ),
+                        );
 
-                            if (confirmed == true) {
-                              await viewModel.deleteShipper(shipper.id);
-                            }
-                          },
-                        ),
-                      ],
+                        if (confirmed == true) {
+                          await viewModel.deleteShipper(shipper.id);
+                        }
+                      },
                     ),
-                  ),
-                ],
-              );
-            }).toList(),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }).toList(),
       ),
     );
   }
@@ -326,19 +312,17 @@ class _ShipperContentState extends State<ShipperContent> {
                   children: [
                     CircleAvatar(
                       radius: 30,
-                      backgroundImage:
-                          shipper.avatarUrl.isNotEmpty
-                              ? NetworkImage(shipper.avatarUrl)
-                              : null,
-                      child:
-                          shipper.avatarUrl.isEmpty
-                              ? Text(
-                                shipper.name.isNotEmpty
-                                    ? shipper.name[0].toUpperCase()
-                                    : '?',
-                                style: const TextStyle(fontSize: 24),
-                              )
-                              : null,
+                      backgroundImage: shipper.avatarUrl.isNotEmpty
+                          ? NetworkImage(shipper.avatarUrl)
+                          : null,
+                      child: shipper.avatarUrl.isEmpty
+                          ? Text(
+                              shipper.name.isNotEmpty
+                                  ? shipper.name[0].toUpperCase()
+                                  : '?',
+                              style: const TextStyle(fontSize: 24),
+                            )
+                          : null,
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -370,10 +354,9 @@ class _ShipperContentState extends State<ShipperContent> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color:
-                            shipper.status == 'active'
-                                ? Colors.green.withOpacity(0.1)
-                                : Colors.red.withOpacity(0.1),
+                        color: shipper.status == 'active'
+                            ? Colors.green
+                            : Colors.red,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -381,10 +364,9 @@ class _ShipperContentState extends State<ShipperContent> {
                             ? 'Đang hoạt động'
                             : 'Không hoạt động',
                         style: TextStyle(
-                          color:
-                              shipper.status == 'active'
-                                  ? Colors.green
-                                  : Colors.red,
+                          color: shipper.status == 'active'
+                              ? Colors.green
+                              : Colors.red,
                         ),
                       ),
                     ),
@@ -392,34 +374,31 @@ class _ShipperContentState extends State<ShipperContent> {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.edit),
-                          onPressed: () {
-                            // TODO: Navigate to edit screen
-                          },
+                          onPressed: () {},
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete),
                           onPressed: () async {
                             final confirmed = await showDialog<bool>(
                               context: context,
-                              builder:
-                                  (context) => AlertDialog(
-                                    title: const Text('Xác nhận xóa'),
-                                    content: Text(
-                                      'Bạn có chắc muốn xóa shipper ${shipper.name}?',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.pop(context, false),
-                                        child: const Text('Hủy'),
-                                      ),
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.pop(context, true),
-                                        child: const Text('Xóa'),
-                                      ),
-                                    ],
+                              builder: (context) => AlertDialog(
+                                title: const Text('Xác nhận xóa'),
+                                content: Text(
+                                  'Bạn có chắc muốn xóa shipper ${shipper.name}?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
+                                    child: const Text('Hủy'),
                                   ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
+                                    child: const Text('Xóa'),
+                                  ),
+                                ],
+                              ),
                             );
 
                             if (confirmed == true) {

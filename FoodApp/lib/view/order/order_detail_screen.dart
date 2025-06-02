@@ -19,12 +19,9 @@ class OrderDetailScreen extends StatefulWidget {
 }
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
-  late OrderModel _currentOrder;
-
   @override
   void initState() {
     super.initState();
-    _currentOrder = widget.order;
     // Bắt đầu lắng nghe thay đổi trạng thái đơn hàng
     context.read<OrderViewModel>().listenToOrderStatus(widget.order.id);
   }

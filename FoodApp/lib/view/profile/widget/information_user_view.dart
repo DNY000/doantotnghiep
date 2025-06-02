@@ -46,7 +46,7 @@ class _InformationUserViewState extends State<InformationUserView> {
           onPressed: () {
             Navigator.pop(context);
           },
-          icon: Icon(Icons.arrow_back_ios, color: TColor.gray, size: 22),
+          icon: const Icon(Icons.arrow_back),
         ),
         elevation: 0.5,
       ),
@@ -118,18 +118,18 @@ class _InformationUserViewState extends State<InformationUserView> {
                                 context.read<UserViewModel>().loadCurrentUser();
                               }
                             },
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.edit,
-                              color: TColor.orange5,
+                              color: Colors.grey,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        // const SizedBox(height: 16),
                         Stack(
                           children: [
                             Container(
-                              height: 110,
-                              width: 110,
+                              height: 100,
+                              width: 100,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(55),
                                 border:
@@ -171,21 +171,25 @@ class _InformationUserViewState extends State<InformationUserView> {
                               child: GestureDetector(
                                 onTap: () {
                                   showModalBottomSheet(
+                                    backgroundColor: Colors.white,
                                     context: context,
                                     builder: (context) => SafeArea(
                                       child: Wrap(
                                         children: [
                                           ListTile(
-                                            leading: Icon(Icons.photo_library),
-                                            title: Text('Chọn từ thư viện'),
+                                            leading:
+                                                const Icon(Icons.photo_library),
+                                            title:
+                                                const Text('Chọn từ thư viện'),
                                             onTap: () {
                                               Navigator.pop(context);
                                               _pickImage(ImageSource.gallery);
                                             },
                                           ),
                                           ListTile(
-                                            leading: Icon(Icons.camera_alt),
-                                            title: Text('Chụp ảnh'),
+                                            leading:
+                                                const Icon(Icons.camera_alt),
+                                            title: const Text('Chụp ảnh'),
                                             onTap: () {
                                               Navigator.pop(context);
                                               _pickImage(ImageSource.camera);
@@ -200,7 +204,7 @@ class _InformationUserViewState extends State<InformationUserView> {
                                   height: 32,
                                   width: 32,
                                   decoration: BoxDecoration(
-                                    color: TColor.orange5,
+                                    color: Colors.grey,
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
                                         color: Colors.white, width: 2),
@@ -244,7 +248,7 @@ class _InformationUserViewState extends State<InformationUserView> {
                   _buildSectionContainer(
                     title: 'Thông tin cá nhân',
                     icon: CupertinoIcons.person_fill,
-                    iconColor: TColor.color2,
+                    iconColor: Colors.black.withOpacity(0.2),
                     content: Column(
                       children: [
                         _buildInfoRow(
@@ -275,7 +279,7 @@ class _InformationUserViewState extends State<InformationUserView> {
                   _buildSectionContainer(
                     title: 'Thông tin liên hệ',
                     icon: CupertinoIcons.mail_solid,
-                    iconColor: TColor.rating,
+                    iconColor: Colors.black.withOpacity(0.2),
                     content: Column(
                       children: [
                         _buildInfoRow(
@@ -311,11 +315,10 @@ class _InformationUserViewState extends State<InformationUserView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: Colors.black,
+            offset: Offset(0, 3),
           ),
         ],
       ),
@@ -330,7 +333,7 @@ class _InformationUserViewState extends State<InformationUserView> {
                   height: 36,
                   width: 36,
                   decoration: BoxDecoration(
-                    color: iconColor.withOpacity(0.1),
+                    color: iconColor,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -436,7 +439,7 @@ class _InformationUserViewState extends State<InformationUserView> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Cập nhật ảnh đại diện thành công!')),
+          const SnackBar(content: Text('Cập nhật ảnh đại diện thành công!')),
         );
         // Load lại user data để cập nhật UI
         await context.read<UserViewModel>().loadCurrentUser();

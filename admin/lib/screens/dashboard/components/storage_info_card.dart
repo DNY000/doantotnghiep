@@ -25,7 +25,7 @@ class WidgetScreen extends StatelessWidget {
         margin: const EdgeInsets.only(top: defaultPadding),
         padding: const EdgeInsets.all(defaultPadding),
         decoration: BoxDecoration(
-          border: Border.all(width: 2, color: primaryColor.withOpacity(0.15)),
+          border: Border.all(width: 2, color: primaryColor),
           borderRadius: const BorderRadius.all(Radius.circular(defaultPadding)),
         ),
         child: Row(

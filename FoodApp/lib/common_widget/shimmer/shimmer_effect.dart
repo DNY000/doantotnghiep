@@ -23,8 +23,8 @@ class TShimmer extends StatefulWidget {
     bool enabled = true,
   }) {
     return TShimmer(
-      baseColor: TColor.gray.withOpacity(0.2),
-      highlightColor: TColor.gray.withOpacity(0.05),
+      baseColor: TColor.gray,
+      highlightColor: TColor.gray,
       direction: direction,
       enabled: enabled,
       child: child,

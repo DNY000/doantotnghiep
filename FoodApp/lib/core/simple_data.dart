@@ -504,7 +504,7 @@ class SampleData {
           }
         },
         'status': 'active',
-        'location': GeoPoint(10.762622, 106.660172),
+        'location': const GeoPoint(10.762622, 106.660172),
         'rating': 4.8,
         'totalDeliveries': 150,
         'currentOrderId': 'order1',
@@ -530,7 +530,7 @@ class SampleData {
           }
         },
         'status': 'active',
-        'location': GeoPoint(10.776543, 106.654321),
+        'location': const GeoPoint(10.776543, 106.654321),
         'rating': 4.5,
         'totalDeliveries': 80,
         'currentOrderId': null,

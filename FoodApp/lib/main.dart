@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:foodapp/viewmodels/banner_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
@@ -33,10 +34,9 @@ Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-   
   // Tải biến môi trường từ file .env
   await dotenv.load(fileName: ".env");
-  
+
   // Khởi tạo Firebase và local storage cdsong song
   await Future.wait([
     TLocalStorage.init('food_app'),
@@ -69,13 +69,12 @@ Future<void> main() async {
             create: (_) => OrderViewModel(OrderRepository(),
                 foodRepository: FoodRepository())),
         ChangeNotifierProvider(create: (_) => UserViewModel(UserRepository())),
+        ChangeNotifierProvider(create: (_) => BannerViewmodel()),
       ],
       child: const SimpleProviders(child: MyApp()),
     ),
   );
 }
-
-
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -103,7 +102,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  
   @override
   Widget build(BuildContext context) {
     // const overlayStyle = SystemUiOverlayStyle(

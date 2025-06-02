@@ -126,7 +126,7 @@ class _MapScreenState extends State<MapScreen> {
                     Text(
                       "0.5km",
                       style: TextStyle(fontWeight: FontWeight.bold),
-                    ), // TODO: Tính khoảng cách thực tế
+                    ),
                     const Spacer(),
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -138,7 +138,7 @@ class _MapScreenState extends State<MapScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Text(
-                        "Giao: 11:00", // TODO: Lấy giờ giao thực tế
+                        "Giao: 11:00",
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -365,7 +365,7 @@ class _MapScreenState extends State<MapScreen> {
           ),
           if (isLoading)
             Container(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black,
               child: const Center(
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),

@@ -7,7 +7,6 @@ import 'package:foodapp/data/repositories/order_repository.dart';
 import 'package:foodapp/data/models/food_model.dart';
 import 'package:foodapp/data/repositories/food_repository.dart';
 import 'package:flutter/foundation.dart';
-import 'package:foodapp/routes/name_router.dart';
 import 'package:foodapp/ultils/const/enum.dart';
 import 'package:foodapp/data/models/cart_item_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,8 +14,6 @@ import 'package:foodapp/data/models/user_model.dart';
 import 'package:foodapp/data/repositories/user_repository.dart';
 import 'package:foodapp/viewmodels/notification_viewmodel.dart';
 import 'dart:async';
-
-import 'package:go_router/go_router.dart';
 
 class OrderViewModel extends ChangeNotifier {
   final OrderRepository _repository;
@@ -48,7 +45,7 @@ class OrderViewModel extends ChangeNotifier {
 
   // Tạo đơn hàng mới
   Future<void> createOrder({
-    required BuildContext context, // 👈 thêm dòng này
+    required BuildContext context,
     // required String nameRestaurant,
     required String userId,
     required String restaurantId,
@@ -65,13 +62,12 @@ class OrderViewModel extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      // Tính tổng tiền
       final totalAmount = items.fold<double>(
         0,
+        // ignore: avoid_types_as_parameter_names
         (sum, item) => sum + item.totalAmount,
       );
 
-      // Lấy thông tin người dùng hiện tại nếu chưa được cung cấp
       UserModel? user = currentUser;
       if (user == null) {
         final userRepository = UserRepository();
@@ -97,7 +93,6 @@ class OrderViewModel extends ChangeNotifier {
         'createdAt': Timestamp.now(),
       };
 
-      // Tạo đơn hàng mới
       final order = OrderModel(
         id: '',
         userId: userId,
@@ -115,10 +110,8 @@ class OrderViewModel extends ChangeNotifier {
         restaurantLocation: restaurantLocation,
       );
 
-      // Tạo đơn hàng và lấy ID
       final orderId = await _repository.createOrder(order);
 
-      // Tạo thông báo với order ID
       final notification = NotificationModel(
         id: '',
         userId: userId,
@@ -140,7 +133,6 @@ class OrderViewModel extends ChangeNotifier {
             'Đơn hàng của bạn đã được đặt thành công! Cảm ơn bạn đã sử dụng dịch vụ.',
         payload: orderId,
       );
-      context.go("/home");
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -160,7 +152,7 @@ class OrderViewModel extends ChangeNotifier {
 
     try {
       final orders = await _repository.getUserOrders(userId);
-      _orders = orders ?? [];
+      _orders = orders;
       _isLoading = false;
       notifyListeners();
       return true;
@@ -681,7 +673,6 @@ class OrderViewModel extends ChangeNotifier {
       _error = null;
       notifyListeners();
       _selectedOrder = await _repository.getOrderById(id);
-      print('có data ${_selectedOrder?.id}');
       _isLoading = false;
       notifyListeners();
     } catch (e) {

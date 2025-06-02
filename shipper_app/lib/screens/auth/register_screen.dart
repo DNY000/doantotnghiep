@@ -19,7 +19,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
       try {
-        print('Starting registration process...');
         await context.read<ShipperViewModel>().register(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
@@ -29,7 +28,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
 
         if (mounted) {
-          print('Registration successful, showing success message');
           // Hiển thị thông báo đăng ký thành công
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -47,11 +45,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           }
         }
       } catch (e) {
-        print('Registration error: $e');
         if (mounted) {
           final errorMessage =
               context.read<ShipperViewModel>().error ?? 'Đã xảy ra lỗi';
-          print('Error message: $errorMessage');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),

@@ -27,7 +27,6 @@ class AddressModel {
       try {
         locationMap = Map<double, double>.from(data['location']);
       } catch (e) {
-        print('Lỗi chuyển đổi location: $e');
         // Trong trường hợp lỗi, giữ nguyên map rỗng
       }
     }

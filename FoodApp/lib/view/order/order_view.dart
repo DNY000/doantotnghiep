@@ -60,6 +60,10 @@ class _OrderViewState extends State<OrderView>
             fontWeight: FontWeight.bold,
           ),
         ),
+        centerTitle: true,
+        leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back)),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -167,7 +171,7 @@ class _OrderViewState extends State<OrderView>
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
             child: Text(
-              "Các đơn hàng đã hoàn thành sẽ hiển thị ở đây. Hiện tại bạn chưa có đơn hàng nào đã hoàn thành.",
+              "Hiện tại bạn chưa có đơn hàng nào đã hoàn thành.",
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -181,7 +185,7 @@ class _OrderViewState extends State<OrderView>
 
     return ListView.builder(
       itemCount: completedOrders.length,
-      padding: const EdgeInsets.all(16),
+      // padding: const EdgeInsets.all(16),
       itemBuilder: (context, index) {
         final order = completedOrders[index];
         return _buildOrderCard(order);
@@ -212,11 +216,11 @@ class _OrderViewState extends State<OrderView>
         );
       },
       child: Card(
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: const EdgeInsets.only(bottom: 8),
         color: Colors.white,
-        elevation: 5,
+        elevation: 1,
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -234,22 +238,31 @@ class _OrderViewState extends State<OrderView>
                 ],
               ),
               const Divider(),
-              const SizedBox(height: 8),
               Row(
-                mainAxisSize: MainAxisSize.min,
+                // mainAxisSize: MainAxisSize.min,
                 children: [
                   Expanded(
-                      flex: 1,
-                      child: ClipRRect(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(10)),
-                        child: Image.asset(
-                          order.items.first.image,
-                          fit: BoxFit.cover,
-                        ),
-                      )),
-                  Expanded(
                       flex: 2,
+                      child: order.items.isNotEmpty
+                          ? ClipRRect(
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(4)),
+                              child: Image.asset(
+                                (order.items.first.image != null &&
+                                        order.items.first.image.isNotEmpty)
+                                    ? order.items.first.image
+                                    : 'assets/img/placeholder.png',
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : Container(
+                              width: 60,
+                              height: 60,
+                              color: Colors.grey[300],
+                              child: const Icon(Icons.fastfood),
+                            )),
+                  Expanded(
+                      flex: 5,
                       child: Column(
                         children: [
                           Text(
@@ -337,7 +350,7 @@ class _OrderViewState extends State<OrderView>
         // ignore: deprecated_member_use
         color: color.withOpacity(0.2),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color),
       ),
       child: Text(
         label,
@@ -442,7 +455,12 @@ class _OrderViewState extends State<OrderView>
                                       child: Stack(
                                         children: [
                                           Image.asset(
-                                            items.first.image,
+                                            (items.isNotEmpty &&
+                                                    items.first.image != null &&
+                                                    items
+                                                        .first.image.isNotEmpty)
+                                                ? items.first.image
+                                                : 'assets/img/placeholder.png',
                                             width: 80,
                                             height: 80,
                                             fit: BoxFit.cover,
@@ -485,7 +503,7 @@ class _OrderViewState extends State<OrderView>
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Đơn nháp nhà hàng $restaurantId',
+                                            ' Nhà hàng $restaurantId',
                                             style: const TextStyle(
                                               fontSize: 15,
                                               fontWeight: FontWeight.bold,
@@ -534,15 +552,14 @@ class _OrderViewState extends State<OrderView>
                                             vertical: 4,
                                           ),
                                           decoration: BoxDecoration(
-                                            color:
-                                                Colors.orange.withOpacity(0.1),
+                                            color: Colors.orange,
                                             borderRadius:
                                                 BorderRadius.circular(4),
                                           ),
                                           child: const Text(
                                             'Tiếp tục',
                                             style: TextStyle(
-                                              color: Colors.orange,
+                                              color: Colors.white,
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
                                             ),

@@ -92,7 +92,6 @@ class UserViewModel extends ChangeNotifier {
   // Cập nhật thông tin cá nhân
   Future<void> updateUser(UserModel user) async {
     try {
-      print('id người dùng update là ${currentUser!.id}');
       _setLoading(true);
       await _repository.updateUser(user, currentUser!.id);
       _currentUser = user;
@@ -210,7 +209,7 @@ class UserViewModel extends ChangeNotifier {
 
   // Lọc người dùng theo vai trò
   List<UserModel> filterByRole(String role) {
-    return _users.where((user) => user.role == role).toList();
+    return _users.where((user) => user.role.name == role).toList();
   }
 
   // Lọc người dùng theo trạng thái

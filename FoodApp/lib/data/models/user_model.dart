@@ -54,8 +54,8 @@ class UserModel {
     DateTime? createdAt,
     DateTime? dateOfBirth,
     this.lastUpdated,
-  })  : this.createdAt = createdAt ?? DateTime.now(),
-        this.dateOfBirth = dateOfBirth ?? DateTime.now();
+  })  : createdAt = createdAt ?? DateTime.now(),
+        dateOfBirth = dateOfBirth ?? DateTime.now();
 
   static String generateUserName(String fullName) {
     if (fullName.isEmpty) return 'cwt_user';

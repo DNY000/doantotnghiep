@@ -4,7 +4,6 @@ import 'package:foodapp/routes/name_router.dart';
 import 'package:foodapp/view/authentication/screen/login_view.dart';
 import 'package:foodapp/view/authentication/screen/signup_view.dart';
 import 'package:foodapp/view/authentication/screen/forgot_password_view.dart';
-import 'package:foodapp/view/home/home_view.dart';
 import 'package:foodapp/view/main_tab/main_tab_view.dart';
 import 'package:foodapp/view/notifications/notification_view.dart';
 import 'package:foodapp/view/on_boarding/on_boarding_view.dart';
@@ -59,10 +58,10 @@ final GoRouter goRouter = GoRouter(
       ),
 
       // Home
-      GoRoute(
-        path: NameRouter.home,
-        builder: (context, state) => const HomeView(),
-      ),
+      // GoRoute(
+      //   path: NameRouter.home,
+      //   builder: (context, state) => const HomeView(),
+      // ),
 
       // Order
       GoRoute(

@@ -179,12 +179,6 @@ class LoginViewModel extends ChangeNotifier {
 
       final userCredential = await _authenticationRepository.signInWithGoogle();
 
-      if (userCredential == null) {
-        _error = TPlatformException('sign_in_canceled').message;
-        notifyListeners();
-        return false;
-      }
-
       _isLoading = true;
       notifyListeners();
 

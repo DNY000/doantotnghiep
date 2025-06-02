@@ -5,9 +5,14 @@ class ChatScreen extends StatefulWidget {
   final String orderId;
   final String recipientId;
 
-  ChatScreen({required this.orderId, required this.recipientId});
+  const ChatScreen({
+    super.key,
+    required this.orderId,
+    required this.recipientId,
+  });
 
   @override
+  // ignore: library_private_types_in_public_api
   _ChatScreenState createState() => _ChatScreenState();
 }
 
@@ -31,7 +36,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _loadMessages() async {
-    // TODO: Implement actual message loading from API or database
     // Simulating network delay
     await Future.delayed(Duration(seconds: 1));
 
@@ -76,8 +80,6 @@ class _ChatScreenState extends State<ChatScreen> {
         curve: Curves.easeOut,
       );
     });
-
-    // TODO: Send message to API
   }
 
   @override
@@ -114,7 +116,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       color: Colors.white,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
+                          color: Colors.grey,
                           spreadRadius: 1,
                           blurRadius: 3,
                           offset: Offset(0, -1),
@@ -147,9 +149,9 @@ class _ChatScreenState extends State<ChatScreen> {
                         SizedBox(width: 8),
                         FloatingActionButton(
                           onPressed: _sendMessage,
-                          child: Icon(Icons.send),
                           mini: true,
                           backgroundColor: Theme.of(context).primaryColor,
+                          child: Icon(Icons.send),
                         ),
                       ],
                     ),
@@ -171,7 +173,7 @@ class ChatMessage {
 class MessageBubble extends StatelessWidget {
   final ChatMessage message;
 
-  const MessageBubble({required this.message});
+  const MessageBubble({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {

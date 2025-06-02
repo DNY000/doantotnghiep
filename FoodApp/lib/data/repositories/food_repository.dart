@@ -81,7 +81,6 @@ class FoodRepository {
           // .where('isAvailable', isEqualTo: true)
           .limit(limit)
           .get();
-      print(' do dai l a ${snapshot.docs.length}');
       return snapshot.docs
           .map((doc) => FoodModel.fromMap({'id': doc.id, ...doc.data()}))
           .toList();

@@ -24,9 +24,7 @@ class _FoodByRestaurantScreenState extends State<FoodByRestaurantScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // TODO: Hiển thị form thêm món ăn mới (có thể mở dialog hoặc chuyển trang)
-        },
+        onPressed: () {},
         icon: const Icon(Icons.add),
         label: const Text('Thêm món ăn'),
       ),
@@ -60,9 +58,7 @@ class _FoodByRestaurantScreenState extends State<FoodByRestaurantScreen> {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.edit),
-                        onPressed: () {
-                          // TODO: Sửa món ăn
-                        },
+                        onPressed: () {},
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete),

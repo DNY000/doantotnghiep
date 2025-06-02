@@ -16,11 +16,11 @@ class CategoryScreen extends StatelessWidget {
         children: [
           if (Responsive.isDesktop(context))
             const Expanded(flex: 1, child: SideMenu()),
-          Expanded(
+          const Expanded(
             flex: 5,
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: EdgeInsets.all(16.0),
                 child: CategoryContent(),
               ),
             ),

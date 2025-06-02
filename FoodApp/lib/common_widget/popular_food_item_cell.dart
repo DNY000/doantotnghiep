@@ -28,7 +28,7 @@ class PopularFoodItemCell extends StatelessWidget {
             width: double.maxFinite,
             height: double.maxFinite,
             decoration: BoxDecoration(
-              color: TColor.list[index % TColor.list.length].withOpacity(0.6),
+              color: TColor.list[index % TColor.list.length],
               borderRadius: BorderRadius.circular(5),
             ),
           ),

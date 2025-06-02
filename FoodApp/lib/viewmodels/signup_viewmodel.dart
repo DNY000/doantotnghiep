@@ -4,7 +4,6 @@ import 'package:foodapp/ultils/const/enum.dart';
 import 'package:foodapp/ultils/exception/firebase_exception.dart';
 import '../data/models/user_model.dart';
 import '../data/repositories/user_repository.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignupViewModel extends ChangeNotifier {
   final UserRepository _userRepository;

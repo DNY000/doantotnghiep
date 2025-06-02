@@ -57,7 +57,9 @@ class LocationService {
       while (position == null && retryCount < _maxRetries) {
         try {
           position = await Geolocator.getCurrentPosition(
+            // ignore: deprecated_member_use
             desiredAccuracy: LocationAccuracy.high,
+            // ignore: deprecated_member_use
             timeLimit: _timeout,
           );
         } catch (e) {

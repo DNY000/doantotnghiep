@@ -182,7 +182,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                             SnackBar(
                               content: Text(viewModel.error),
                               backgroundColor: Colors.red,
-                              duration: Duration(seconds: 3),
+                              duration: const Duration(seconds: 3),
                               behavior: SnackBarBehavior.floating,
                             ),
                           );

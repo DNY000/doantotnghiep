@@ -109,8 +109,11 @@ class RestaurantRepository {
       // Filter restaurants within bounding box and calculate distances
       final List<MapEntry<RestaurantModel, double>> restaurantsWithDistances =
           [];
+      // ignore: unused_local_variable
       int invalidLocationCount = 0;
+      // ignore: unused_local_variable
       int outsideBoundingBoxCount = 0;
+      // ignore: unused_local_variable
       int outsideRadiusCount = 0;
 
       for (final doc in querySnapshot.docs) {

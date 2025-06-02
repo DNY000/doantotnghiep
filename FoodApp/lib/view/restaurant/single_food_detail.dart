@@ -135,17 +135,10 @@ class _SingleFoodDetailState extends State<SingleFoodDetail> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () => Navigator.pop(context),
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Icon(
-              Icons.arrow_back_ios_new,
-              color: Colors.white,
-              size: 20,
-            ),
+          child: const Icon(
+            Icons.arrow_back,
+            color: Color.fromRGBO(0, 0, 0, 1),
+            size: 32,
           ),
         ),
       ),
@@ -163,8 +156,8 @@ class _SingleFoodDetailState extends State<SingleFoodDetail> {
               .read<FavoriteViewModel>()
               .toggleFavorite(widget.foodItem!.id),
           child: Container(
-            height: 30,
-            width: 30,
+            height: 32,
+            width: 32,
             decoration: BoxDecoration(
               color: Colors.black.withOpacity(0.5),
               borderRadius: BorderRadius.circular(40),
@@ -276,7 +269,7 @@ class _SingleFoodDetailState extends State<SingleFoodDetail> {
       children: [
         if (canReview) ...[
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
             child: ElevatedButton.icon(
               onPressed: () {
                 showDialog(

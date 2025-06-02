@@ -51,7 +51,9 @@ class _HomeViewContentState extends State<_HomeViewContent>
       context.read<CategoryViewModel>().loadCategories();
       context.read<RestaurantViewModel>().getNewRestaurants();
       context.read<UserViewModel>().loadCurrentUser();
-      context.read<NotificationViewModel>().getUnreadNotificationsCount();
+      final userId = context.read<UserViewModel>().currentUser?.id ?? '';
+
+      context.read<NotificationViewModel>().getUnreadNotificationsCount(userId);
       context.read<NotificationViewModel>().countNotification;
     });
 

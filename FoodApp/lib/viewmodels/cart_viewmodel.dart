@@ -145,7 +145,7 @@ class CartViewModel extends ChangeNotifier {
 
       // Lưu vào storage
       await storage.saveData(
-        'cart_backup_${restaurantId}',
+        'cart_backup_$restaurantId',
         jsonList,
       );
 
@@ -158,25 +158,12 @@ class CartViewModel extends ChangeNotifier {
         await storage.saveData('cart_backup_ids', ids);
       }
 
-      // In ra danh sách món ăn đã xử lý
-      print('Đã lưu đơn nháp cho nhà hàng $restaurantId:');
-      for (var item in itemsToRemove) {
-        print('  - ${item.foodName} x${item.quantity}');
-      }
-
-      // ✅ Đọc lại từ storage và in ra để kiểm tra
       final savedData =
-          await storage.readData<List<dynamic>>('cart_backup_${restaurantId}');
-      print(' ');
-      print('Dữ liệu trong storage (raw data):');
+          storage.readData<List<dynamic>>('cart_backup_$restaurantId');
       if (savedData != null) {
-        for (var itemJson in savedData) {
-          print('  $itemJson');
-        }
       } else {
-        print('  ❌ Không tìm thấy dữ liệu trong storage.');
+        throw Exception('Không tìm thấy dữ liệu trong storage.');
       }
-      print(' ');
 
       // 3. Xóa khỏi giỏ hàng
       _items.removeWhere((item) => item.restaurantId == restaurantId);

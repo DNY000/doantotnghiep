@@ -43,7 +43,9 @@ class _MyProfileViewState extends State<MyProfileView> {
           await userViewModel.fetchUser(userId);
         });
       }
-    } catch (e) {}
+    } catch (e) {
+      throw Exception('Error loading user data: $e');
+    }
   }
 
   @override
@@ -60,8 +62,8 @@ class _MyProfileViewState extends State<MyProfileView> {
                   children: [
                     // Header with user info
                     Container(
-                      padding: const EdgeInsets.all(20),
-                      color: TColor.orange4,
+                      padding: const EdgeInsets.all(16),
+                      color: Colors.orangeAccent.withOpacity(0.6),
                       child: SafeArea(
                         child: Column(
                           children: [
@@ -160,9 +162,7 @@ class _MyProfileViewState extends State<MyProfileView> {
                         _buildMenuItem(
                           icon: Icons.payment,
                           title: 'Quản lý phương thức thanh toán',
-                          onTap: () {
-                            // TODO: Navigate to payment methods
-                          },
+                          onTap: () {},
                         ),
                       ],
                     ),
@@ -175,9 +175,7 @@ class _MyProfileViewState extends State<MyProfileView> {
                         _buildMenuItem(
                           icon: Icons.settings_outlined,
                           title: 'Cài đặt chung',
-                          onTap: () {
-                            // TODO: Navigate to general settings
-                          },
+                          onTap: () {},
                         ),
                         _buildMenuItem(
                           icon: Icons.lock_outline,

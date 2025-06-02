@@ -116,7 +116,7 @@ class _VNPayWebViewState extends State<VNPayWebView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Thanh toán VNPay'),
+        title: const Text('Thanh toán VNPay'),
         backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
       ),
@@ -124,7 +124,7 @@ class _VNPayWebViewState extends State<VNPayWebView> {
         children: [
           WebViewWidget(controller: controller),
           if (isLoading)
-            Center(
+            const Center(
               child: CircularProgressIndicator(
                 color: Colors.orange,
               ),

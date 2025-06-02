@@ -53,7 +53,6 @@ class OrderModel {
 
   factory OrderModel.fromMap(Map<String, dynamic> map, String id) {
     final statusStr = map['status']?.toString() ?? '';
-    print("Parse trạng thái: $statusStr");
     return OrderModel(
       id: id,
       userId: map['userId'] ?? '',

@@ -17,11 +17,11 @@ class UsersScreen extends StatelessWidget {
         children: [
           if (Responsive.isDesktop(context))
             const Expanded(flex: 1, child: SideMenu()),
-          Expanded(
+          const Expanded(
             flex: 5,
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: EdgeInsets.all(16.0),
                 child: UsersContent(),
               ),
             ),
@@ -69,9 +69,7 @@ class _UsersContentState extends State<UsersContent> {
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             ElevatedButton.icon(
-              onPressed: () {
-                // TODO: Navigate to add user screen
-              },
+              onPressed: () {},
               icon: const Icon(Icons.add),
               label: const Text('Thêm Người dùng'),
               style: ElevatedButton.styleFrom(
@@ -126,8 +124,8 @@ class _UsersContentState extends State<UsersContent> {
                       ),
                       DropdownMenuItem(value: 'admin', child: Text('Admin')),
                     ],
-                    onChanged:
-                        (value) => setState(() => _selectedRole = value!),
+                    onChanged: (value) =>
+                        setState(() => _selectedRole = value!),
                   ),
                 ),
               ),
@@ -163,22 +161,19 @@ class _UsersContentState extends State<UsersContent> {
 
               // Apply search filter
               if (_searchController.text.isNotEmpty) {
-                filteredUsers =
-                    filteredUsers.where((user) {
-                      final searchLower = _searchController.text.toLowerCase();
-                      return user.name.toLowerCase().contains(searchLower) ||
-                          user.email?.toLowerCase().contains(searchLower) ==
-                              true ||
-                          user.phoneNumber.toLowerCase().contains(searchLower);
-                    }).toList();
+                filteredUsers = filteredUsers.where((user) {
+                  final searchLower = _searchController.text.toLowerCase();
+                  return user.name.toLowerCase().contains(searchLower) ||
+                      user.email?.toLowerCase().contains(searchLower) == true ||
+                      user.phoneNumber.toLowerCase().contains(searchLower);
+                }).toList();
               }
 
               // Apply role filter
               if (_selectedRole != 'all') {
-                filteredUsers =
-                    filteredUsers
-                        .where((user) => user.role.name == _selectedRole)
-                        .toList();
+                filteredUsers = filteredUsers
+                    .where((user) => user.role.name == _selectedRole)
+                    .toList();
               }
 
               if (filteredUsers.isEmpty) {
@@ -208,101 +203,88 @@ class _UsersContentState extends State<UsersContent> {
           DataColumn(label: Text('Vai trò')),
           DataColumn(label: Text('Thao tác')),
         ],
-        rows:
-            users.map((user) {
-              return DataRow(
-                cells: [
-                  DataCell(
-                    CircleAvatar(
-                      backgroundImage:
-                          user.avatarUrl.isNotEmpty
-                              ? NetworkImage(user.avatarUrl)
-                              : null,
-                      child:
-                          user.avatarUrl.isEmpty
-                              ? Text(
-                                user.name.isNotEmpty
-                                    ? user.name[0].toUpperCase()
-                                    : '?',
-                                style: const TextStyle(fontSize: 24),
-                              )
-                              : null,
+        rows: users.map((user) {
+          return DataRow(
+            cells: [
+              DataCell(
+                CircleAvatar(
+                  backgroundImage: user.avatarUrl.isNotEmpty
+                      ? NetworkImage(user.avatarUrl)
+                      : null,
+                  child: user.avatarUrl.isEmpty
+                      ? Text(
+                          user.name.isNotEmpty
+                              ? user.name[0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(fontSize: 24),
+                        )
+                      : null,
+                ),
+              ),
+              DataCell(Text(user.name)),
+              DataCell(Text(user.email ?? '')),
+              DataCell(Text(user.phoneNumber)),
+              DataCell(
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: user.role == Role.admin ? Colors.blue : Colors.green,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    user.role == Role.admin ? 'Admin' : 'Người dùng',
+                    style: TextStyle(
+                      color:
+                          user.role == Role.admin ? Colors.blue : Colors.green,
                     ),
                   ),
-                  DataCell(Text(user.name)),
-                  DataCell(Text(user.email ?? '')),
-                  DataCell(Text(user.phoneNumber)),
-                  DataCell(
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            user.role == Role.admin
-                                ? Colors.blue.withOpacity(0.1)
-                                : Colors.green.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        user.role == Role.admin ? 'Admin' : 'Người dùng',
-                        style: TextStyle(
-                          color:
-                              user.role == Role.admin
-                                  ? Colors.blue
-                                  : Colors.green,
-                        ),
-                      ),
+                ),
+              ),
+              DataCell(
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () {},
                     ),
-                  ),
-                  DataCell(
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () {
-                            // TODO: Navigate to edit screen
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
-                            final confirmed = await showDialog<bool>(
-                              context: context,
-                              builder:
-                                  (context) => AlertDialog(
-                                    title: const Text('Xác nhận xóa'),
-                                    content: Text(
-                                      'Bạn có chắc muốn xóa người dùng ${user.name}?',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.pop(context, false),
-                                        child: const Text('Hủy'),
-                                      ),
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.pop(context, true),
-                                        child: const Text('Xóa'),
-                                      ),
-                                    ],
-                                  ),
-                            );
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Xác nhận xóa'),
+                            content: Text(
+                              'Bạn có chắc muốn xóa người dùng ${user.name}?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Hủy'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('Xóa'),
+                              ),
+                            ],
+                          ),
+                        );
 
-                            if (confirmed == true) {
-                              await viewModel.deleteUser(user.id);
-                            }
-                          },
-                        ),
-                      ],
+                        if (confirmed == true) {
+                          await viewModel.deleteUser(user.id);
+                        }
+                      },
                     ),
-                  ),
-                ],
-              );
-            }).toList(),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }).toList(),
       ),
     );
   }
@@ -323,19 +305,17 @@ class _UsersContentState extends State<UsersContent> {
                   children: [
                     CircleAvatar(
                       radius: 30,
-                      backgroundImage:
-                          user.avatarUrl.isNotEmpty
-                              ? NetworkImage(user.avatarUrl)
-                              : null,
-                      child:
-                          user.avatarUrl.isEmpty
-                              ? Text(
-                                user.name.isNotEmpty
-                                    ? user.name[0].toUpperCase()
-                                    : '?',
-                                style: const TextStyle(fontSize: 24),
-                              )
-                              : null,
+                      backgroundImage: user.avatarUrl.isNotEmpty
+                          ? NetworkImage(user.avatarUrl)
+                          : null,
+                      child: user.avatarUrl.isEmpty
+                          ? Text(
+                              user.name.isNotEmpty
+                                  ? user.name[0].toUpperCase()
+                                  : '?',
+                              style: const TextStyle(fontSize: 24),
+                            )
+                          : null,
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -367,19 +347,17 @@ class _UsersContentState extends State<UsersContent> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color:
-                            user.role == Role.admin
-                                ? Colors.blue.withOpacity(0.1)
-                                : Colors.green.withOpacity(0.1),
+                        color: user.role == Role.admin
+                            ? Colors.blue
+                            : Colors.green,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         user.role == Role.admin ? 'Admin' : 'Người dùng',
                         style: TextStyle(
-                          color:
-                              user.role == Role.admin
-                                  ? Colors.blue
-                                  : Colors.green,
+                          color: user.role == Role.admin
+                              ? Colors.blue
+                              : Colors.green,
                         ),
                       ),
                     ),
@@ -387,34 +365,31 @@ class _UsersContentState extends State<UsersContent> {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.edit),
-                          onPressed: () {
-                            // TODO: Navigate to edit screen
-                          },
+                          onPressed: () {},
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete),
                           onPressed: () async {
                             final confirmed = await showDialog<bool>(
                               context: context,
-                              builder:
-                                  (context) => AlertDialog(
-                                    title: const Text('Xác nhận xóa'),
-                                    content: Text(
-                                      'Bạn có chắc muốn xóa người dùng ${user.name}?',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.pop(context, false),
-                                        child: const Text('Hủy'),
-                                      ),
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.pop(context, true),
-                                        child: const Text('Xóa'),
-                                      ),
-                                    ],
+                              builder: (context) => AlertDialog(
+                                title: const Text('Xác nhận xóa'),
+                                content: Text(
+                                  'Bạn có chắc muốn xóa người dùng ${user.name}?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
+                                    child: const Text('Hủy'),
                                   ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
+                                    child: const Text('Xóa'),
+                                  ),
+                                ],
+                              ),
                             );
 
                             if (confirmed == true) {

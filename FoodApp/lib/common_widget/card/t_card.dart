@@ -61,7 +61,7 @@ class FoodListView extends StatelessWidget {
                   MaterialPageRoute(
                     builder: (context) => SingleFoodDetail(
                       foodItem: food,
-                      restaurantId: food.restaurantId,
+                      restaurantId: food.restaurantId ?? '',
                     ),
                   ),
                 );
@@ -76,7 +76,7 @@ class FoodListView extends StatelessWidget {
                       child: Hero(
                         tag: uniqueHeroTag,
                         child: Image.asset(
-                          food.images.isNotEmpty
+                          (food.images != null && food.images.isNotEmpty)
                               ? food.images.first
                               : 'assets/img/placeholder.png',
                           width: 80,
@@ -128,7 +128,7 @@ class FoodListView extends StatelessWidget {
                                       color: Colors.orange, size: 16),
                                   const SizedBox(width: 4),
                                   Text(
-                                    food.rating.toStringAsFixed(1),
+                                    (food.rating ?? 0).toStringAsFixed(1),
                                     style: const TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500),

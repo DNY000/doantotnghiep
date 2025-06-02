@@ -7,7 +7,6 @@ import 'package:foodapp/ultils/exception/firebase_auth_exception.dart';
 import 'package:foodapp/viewmodels/user_viewmodel.dart';
 import 'package:foodapp/ultils/const/enum.dart';
 import 'package:foodapp/data/repositories/user_repository.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignUpViewModel extends ChangeNotifier {
   final TextEditingController txtEmail = TextEditingController();
@@ -26,7 +25,6 @@ class SignUpViewModel extends ChangeNotifier {
   final AuthenticationRepository _authenticationRepository =
       AuthenticationRepository();
   final UserViewModel _userViewModel = UserViewModel(UserRepository());
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Sử dụng validators từ class Validators
   String? validateEmail(String? value) => Validators.validateEmail(value);

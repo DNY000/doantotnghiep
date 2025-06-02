@@ -127,7 +127,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
                     const Icon(Icons.timer, color: Colors.blue, size: 18),
                     const SizedBox(width: 4),
                     Text(
-                      'còn 33 phút để giao', // TODO: Tính toán thời gian thực tế nếu có
+                      'còn 33 phút để giao',
                       style: const TextStyle(color: Colors.blue),
                     ),
                   ],
@@ -141,12 +141,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
                       'Chi tiết đơn',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        // TODO: Xem thêm chi tiết đơn
-                      },
-                      child: const Text('Xem thêm'),
-                    ),
+                    TextButton(onPressed: () {}, child: const Text('Xem thêm')),
                   ],
                 ),
                 Row(
@@ -172,7 +167,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
                     const Text(
                       '32,500đ',
                       style: TextStyle(fontWeight: FontWeight.bold),
-                    ), // TODO: Tính phí ship thực tế
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -447,10 +442,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               'Tổng đơn hàng',
               '${widget.order.totalAmount.toStringAsFixed(0)}đ',
             ),
-            _buildBillRow(
-              'Tổng phí ship',
-              '32,500đ',
-            ), // TODO: Lấy giá trị thực tế nếu có
+            _buildBillRow('Tổng phí ship', '32,500đ'),
             const Divider(height: 24),
             // Nút chức năng
             Row(

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:foodapp/common_widget/selection_text_view.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
@@ -21,51 +20,6 @@ class ListCategory extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header section
-          // Padding(
-          //   padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-          //   child: Row(
-          //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //     children: [
-          //       Text(
-          //         "Danh mục món ăn",
-          //         style: TextStyle(
-          //           fontSize: 16,
-          //           fontWeight: FontWeight.bold,
-          //           color: TColor.text,
-          //           letterSpacing: 0.2,
-          //         ),
-          //       ),
-          //       TextButton(
-          //         onPressed: () {
-          //           Navigator.push(
-          //               context,
-          //               MaterialPageRoute(
-          //                 builder: (context) => const ListFoodByCategory(
-          //                   category: "",
-          //                 ),
-          //               ));
-          //         },
-          //         style: TextButton.styleFrom(
-          //           padding:
-          //               const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-          //           shape: RoundedRectangleBorder(
-          //             borderRadius: BorderRadius.circular(20),
-          //           ),
-          //           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          //         ),
-          //         child: Text(
-          //           "Xem tất cả",
-          //           style: TextStyle(
-          //             fontSize: 12,
-          //             color: TColor.color3,
-          //             fontWeight: FontWeight.w600,
-          //           ),
-          //         ),
-          //       ),
-          //     ],
-          //   ),
-          // ),
           Padding(
             padding: const EdgeInsets.all(0),
             child: SelectionTextView(
@@ -95,7 +49,6 @@ class ListCategory extends StatelessWidget {
               if (viewModel.error != null) {
                 return Container(
                   height: mediaSize.width * 0.25,
-                  // margin: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
@@ -155,7 +108,7 @@ class ListCategory extends StatelessWidget {
               }
 
               return SizedBox(
-                height: mediaSize.width * 0.25,
+                height: mediaSize.width * 0.21,
                 child: TGrid<CategoryModel>(
                   items: viewModel.categories,
                   crossAxisCount: 1,
@@ -168,11 +121,7 @@ class ListCategory extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   itemBuilder: (category) =>
                       CategoryGridItem(category: category),
-                  onTap: (category) {
-                    if (kDebugMode) {
-                      print('Selected category: ${category.name}');
-                    }
-                  },
+                  onTap: (category) {},
                 ),
               );
             },

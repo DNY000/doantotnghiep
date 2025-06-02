@@ -1,5 +1,8 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:foodapp/viewmodels/banner_viewmodel.dart';
 
 class ListBanner extends StatelessWidget {
   const ListBanner({super.key});
@@ -7,78 +10,77 @@ class ListBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sizeContainer = MediaQuery.of(context).size.width * 0.5;
-    List bannerArr = [
-      {
-        "image": "assets/images/f2.png",
-        "title": "Special Offer!",
-        "subtitle": "Get 20% off on your first order"
-      },
-      {
-        "image": "assets/images/f3.png",
-        "title": "New Arrivals",
-        "subtitle": "Check out our latest menu items"
-      },
-      {
-        "image": "assets/images/f4.png",
-        "title": "Weekend Special",
-        "subtitle": "Free delivery on orders above \$50"
-      }
-    ];
+    final bannerVM = Provider.of<BannerViewmodel>(context);
+
+    // Gọi lấy banner nếu chưa có dữ liệu
+    if (bannerVM.listBanner.isEmpty && !bannerVM.isLoading) {
+      Future.microtask(() => bannerVM.getListBanner());
+    }
+
+    if (bannerVM.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (bannerVM.listBanner.isEmpty) {
+      return const Center(child: Text('Không có banner nào'));
+    }
+
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: CarouselSlider.builder(
-        itemCount: bannerArr.length,
+        itemCount: bannerVM.listBanner.length,
         itemBuilder: (context, index, realIndex) {
-          return Container(
-            width: MediaQuery.of(context).size.width - 24,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              image: DecorationImage(
-                image: AssetImage(bannerArr[index]["image"] as String),
-                fit: BoxFit.cover,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 5),
-                ),
-              ],
-            ),
+          final banner = bannerVM.listBanner[index];
+          // Kiểm tra là asset hay network
+          final isAsset = banner.image.startsWith('assets/');
+          return GestureDetector(
+            onTap: () => context.go(banner.link),
             child: Container(
+              width: MediaQuery.of(context).size.width,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(15),
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.7),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+                image: DecorationImage(
+                  image: isAsset
+                      ? AssetImage(banner.image) as ImageProvider
+                      : NetworkImage(banner.image),
+                  fit: BoxFit.cover,
                 ),
               ),
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    bannerArr[index]["title"] as String,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      Colors.black,
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
-                  const SizedBox(height: 5),
-                  Text(
-                    bannerArr[index]["subtitle"] as String,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 16,
+                ),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      banner.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 5),
+                    Text(
+                      banner.subTitle,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );

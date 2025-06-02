@@ -30,20 +30,17 @@ class UserReviewRow extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Avatar
-              ClipRRect(
-                borderRadius: BorderRadius.circular(25),
-                child: Container(
-                  width: 50,
-                  height: 50,
-                  color: TColor.color3.withOpacity(0.1),
-                  child: Icon(
-                    Icons.person,
-                    size: 30,
-                    color: TColor.color3,
-                  ),
+              CircleAvatar(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.white,
+                child: Icon(
+                  Icons.person,
+                  size: 30,
+                  color: TColor.color3,
                 ),
               ),
+              // Avatar
+
               const SizedBox(width: 12),
               // Thông tin người dùng và đánh giá
               Expanded(

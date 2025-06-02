@@ -117,7 +117,6 @@ class _ListRestaurantNewState extends State<ListRestaurantNew> {
               );
             },
             onTap: (restaurant) {
-              print('đã bấm vào nhà hàng mới');
               Navigator.push(
                 context,
                 MaterialPageRoute(

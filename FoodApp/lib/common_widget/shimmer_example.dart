@@ -85,12 +85,12 @@ class _ShimmerExampleScreenState extends State<ShimmerExampleScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey,
                 spreadRadius: 1,
                 blurRadius: 5,
-                offset: const Offset(0, 2),
+                offset: Offset(0, 2),
               ),
             ],
           ),
@@ -101,7 +101,7 @@ class _ShimmerExampleScreenState extends State<ShimmerExampleScreen> {
                 height: 120,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  color: Colors.amber.withOpacity(0.2),
+                  color: Colors.amber,
                   image: const DecorationImage(
                     image: AssetImage('assets/img/l1.png'),
                     fit: BoxFit.cover,
@@ -188,12 +188,12 @@ class _ShimmerExampleScreenState extends State<ShimmerExampleScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey,
                 spreadRadius: 1,
                 blurRadius: 5,
-                offset: const Offset(0, 2),
+                offset: Offset(0, 2),
               ),
             ],
           ),
@@ -306,7 +306,7 @@ class _ShimmerExampleScreenState extends State<ShimmerExampleScreen> {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: TColor.color3.withOpacity(0.2),
+                            color: TColor.color3,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(

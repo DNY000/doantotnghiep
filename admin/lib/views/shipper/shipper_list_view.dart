@@ -70,8 +70,8 @@ class _ShipperListViewState extends State<ShipperListView> {
                       child: Text('Không hoạt động'),
                     ),
                   ],
-                  onChanged:
-                      (value) => setState(() => _selectedStatus = value!),
+                  onChanged: (value) =>
+                      setState(() => _selectedStatus = value!),
                 ),
               ],
             ),
@@ -111,10 +111,9 @@ class _ShipperListViewState extends State<ShipperListView> {
 
                 // Apply status filter
                 if (_selectedStatus != 'all') {
-                  filteredShippers =
-                      filteredShippers
-                          .where((shipper) => shipper.status == _selectedStatus)
-                          .toList();
+                  filteredShippers = filteredShippers
+                      .where((shipper) => shipper.status == _selectedStatus)
+                      .toList();
                 }
 
                 if (filteredShippers.isEmpty) {
@@ -143,14 +142,12 @@ class _ShipperListViewState extends State<ShipperListView> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundImage:
-              shipper.avatarUrl.isNotEmpty
-                  ? NetworkImage(shipper.avatarUrl)
-                  : null,
-          child:
-              shipper.avatarUrl.isEmpty
-                  ? Text(shipper.name[0].toUpperCase())
-                  : null,
+          backgroundImage: shipper.avatarUrl.isNotEmpty
+              ? NetworkImage(shipper.avatarUrl)
+              : null,
+          child: shipper.avatarUrl.isEmpty
+              ? Text(shipper.name[0].toUpperCase())
+              : null,
         ),
         title: Text(shipper.name),
         subtitle: Column(
@@ -162,34 +159,31 @@ class _ShipperListViewState extends State<ShipperListView> {
           ],
         ),
         trailing: PopupMenuButton(
-          itemBuilder:
-              (context) => [
-                const PopupMenuItem(value: 'edit', child: Text('Chỉnh sửa')),
-                const PopupMenuItem(value: 'delete', child: Text('Xóa')),
-              ],
+          itemBuilder: (context) => [
+            const PopupMenuItem(value: 'edit', child: Text('Chỉnh sửa')),
+            const PopupMenuItem(value: 'delete', child: Text('Xóa')),
+          ],
           onSelected: (value) async {
             if (value == 'edit') {
-              // TODO: Navigate to edit screen
             } else if (value == 'delete') {
               final confirmed = await showDialog<bool>(
                 context: context,
-                builder:
-                    (context) => AlertDialog(
-                      title: const Text('Xác nhận xóa'),
-                      content: Text(
-                        'Bạn có chắc muốn xóa shipper ${shipper.name}?',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: const Text('Hủy'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child: const Text('Xóa'),
-                        ),
-                      ],
+                builder: (context) => AlertDialog(
+                  title: const Text('Xác nhận xóa'),
+                  content: Text(
+                    'Bạn có chắc muốn xóa shipper ${shipper.name}?',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Hủy'),
                     ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Xóa'),
+                    ),
+                  ],
+                ),
               );
 
               if (confirmed == true) {

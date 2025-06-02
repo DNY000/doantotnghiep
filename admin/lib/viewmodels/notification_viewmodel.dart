@@ -21,7 +21,6 @@ class NotificationViewModel extends ChangeNotifier {
       _notifications = await _repository.getNotifications();
     } catch (e) {
       _error = 'Failed to load notifications';
-      print('Error loading notifications: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -38,7 +37,7 @@ class NotificationViewModel extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Error marking notification as read: $e');
+      throw Exception('Error marking notification as read: $e');
     }
   }
 
@@ -49,7 +48,7 @@ class NotificationViewModel extends ChangeNotifier {
       _notifications.removeWhere((n) => n.id == notificationId);
       notifyListeners();
     } catch (e) {
-      print('Error deleting notification: $e');
+      throw Exception('Error deleting notification: $e');
     }
   }
 

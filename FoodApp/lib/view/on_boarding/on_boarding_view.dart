@@ -4,7 +4,6 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:foodapp/ultils/local_storage/storage_utilly.dart';
 import 'package:go_router/go_router.dart';
 import '../../common_widget/round_button.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class OnBoardingView extends StatefulWidget {
@@ -16,10 +15,9 @@ class OnBoardingView extends StatefulWidget {
 
 class _OnBoardingViewState extends State<OnBoardingView>
     with SingleTickerProviderStateMixin {
-  bool isFirstTime = true;
+  bool isFirstTime = false;
   int selectPage = 0;
-  final CarouselSliderController carouselController =
-      CarouselSliderController();
+  final PageController pageController = PageController();
   final TLocalStorage storage = TLocalStorage.instance();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -105,10 +103,14 @@ class _OnBoardingViewState extends State<OnBoardingView>
                       alignment: Alignment.topRight,
                       child: TextButton(
                         onPressed: () {
-                          carouselController.animateToPage(infoArr.length - 1);
+                          pageController.animateToPage(
+                            infoArr.length - 1,
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeInOut,
+                          );
                         },
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
+                        child: const Padding(
+                          padding: EdgeInsets.all(16.0),
                           child: Text(
                             "Bỏ qua",
                             style: TextStyle(
@@ -123,74 +125,67 @@ class _OnBoardingViewState extends State<OnBoardingView>
                   else
                     const SizedBox(height: 56),
                   Expanded(
-                    child: CarouselSlider(
-                      carouselController: carouselController,
-                      options: CarouselOptions(
-                        height: media.height,
-                        viewportFraction: 1.0,
-                        enableInfiniteScroll: false,
-                        onPageChanged: (index, reason) {
-                          setState(() {
-                            selectPage = index;
-                          });
-                          _animationController.reset();
-                          _animationController.forward();
-                        },
-                      ),
-                      items: infoArr.map((iObj) {
-                        return Builder(
-                          builder: (BuildContext context) {
-                            return AnimatedBuilder(
-                              animation: _animationController,
-                              builder: (context, child) {
-                                return FadeTransition(
-                                  opacity: _fadeAnimation,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16.0),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Hero(
-                                          tag:
-                                              'onboarding_image_${infoArr.indexOf(iObj)}',
-                                          child: Image.asset(
-                                            iObj["icon"]!,
-                                            width: media.width * 0.7,
-                                            height: media.width * 0.7,
-                                            fit: BoxFit.contain,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 40),
-                                        Text(
-                                          iObj["title"]!,
-                                          style: TextStyle(
-                                            color: primaryOrange,
-                                            fontSize: 28,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          iObj["sub_title"]!,
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: Colors.grey[700],
-                                            fontSize: 16,
-                                            height: 1.4,
-                                          ),
-                                        ),
-                                      ],
+                    child: PageView.builder(
+                      controller: pageController,
+                      itemCount: infoArr.length,
+                      onPageChanged: (index) {
+                        setState(() {
+                          selectPage = index;
+                        });
+                        _animationController.reset();
+                        _animationController.forward();
+                      },
+                      itemBuilder: (context, index) {
+                        final iObj = infoArr[index];
+                        return AnimatedBuilder(
+                          animation: _animationController,
+                          builder: (context, child) {
+                            return FadeTransition(
+                              opacity: _fadeAnimation,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Hero(
+                                      tag: 'onboarding_image_$index',
+                                      child: Image.asset(
+                                        iObj["icon"]!,
+                                        width: media.width * 0.7,
+                                        height: media.width * 0.7,
+                                        fit: BoxFit.contain,
+                                        color:
+                                            primaryOrange, // Making the icon orange
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
+                                    const SizedBox(height: 40),
+                                    Text(
+                                      iObj["title"]!,
+                                      style: const TextStyle(
+                                        color: primaryOrange,
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      iObj["sub_title"]!,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.grey[700],
+                                        fontSize: 16,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             );
                           },
                         );
-                      }).toList(),
+                      },
                     ),
                   ),
                   Padding(
@@ -198,18 +193,22 @@ class _OnBoardingViewState extends State<OnBoardingView>
                     child: Column(
                       children: [
                         SmoothPageIndicator(
-                          controller: PageController(initialPage: selectPage),
+                          controller: pageController,
                           count: infoArr.length,
-                          effect: ExpandingDotsEffect(
+                          effect: const ExpandingDotsEffect(
                             activeDotColor: primaryOrange,
-                            dotColor: lightOrange.withOpacity(0.3),
+                            dotColor: lightOrange,
                             dotHeight: 8,
                             dotWidth: 8,
                             spacing: 8,
                             expansionFactor: 3,
                           ),
                           onDotClicked: (index) {
-                            carouselController.animateToPage(index);
+                            pageController.animateToPage(
+                              index,
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                            );
                           },
                         ),
                         const SizedBox(height: 32),
@@ -222,8 +221,11 @@ class _OnBoardingViewState extends State<OnBoardingView>
                             backgroundColor: primaryOrange,
                             onPressed: () {
                               if (selectPage < infoArr.length - 1) {
-                                carouselController
-                                    .animateToPage(selectPage + 1);
+                                pageController.animateToPage(
+                                  selectPage + 1,
+                                  duration: const Duration(milliseconds: 500),
+                                  curve: Curves.easeInOut,
+                                );
                               } else {
                                 storage.saveData("isFirstTime", false);
                                 if (context.mounted) {
@@ -247,6 +249,7 @@ class _OnBoardingViewState extends State<OnBoardingView>
 
   @override
   void dispose() {
+    pageController.dispose();
     _animationController.dispose();
     super.dispose();
   }

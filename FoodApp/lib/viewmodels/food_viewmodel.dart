@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:foodapp/data/models/food_model.dart';
 import 'package:foodapp/data/repositories/food_repository.dart';
 

@@ -20,7 +20,9 @@ class _NotificationsViewState extends State<NotificationsView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback(
       (_) {
-        context.read<NotificationViewModel>().loadNotifications(context.read<UserViewModel>().currentUser!.id);
+        context
+            .read<NotificationViewModel>()
+            .loadNotifications(context.read<UserViewModel>().currentUser!.id);
       },
     );
     // Load notifications when the view is initialized
@@ -41,6 +43,7 @@ class _NotificationsViewState extends State<NotificationsView> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.grey),
@@ -61,7 +64,8 @@ class _NotificationsViewState extends State<NotificationsView> {
                 children: [
                   Text(viewModel.error!),
                   ElevatedButton(
-                    onPressed: () => viewModel.loadNotifications(context.read<UserViewModel>().currentUser!.id),
+                    onPressed: () => viewModel.loadNotifications(
+                        context.read<UserViewModel>().currentUser!.id),
                     child: const Text('Thử lại'),
                   ),
                 ],
@@ -106,7 +110,7 @@ class _NotificationsViewState extends State<NotificationsView> {
       // Get order details
       context.read<OrderViewModel>().getOrderById(orderId);
 
-      final orders = await context.read<OrderViewModel>().selectedOrder;
+      final orders = context.read<OrderViewModel>().selectedOrder;
       // final order = orders.firstWhere(
       //   (order) => order.id == orderId,
       //   orElse: () => throw Exception('Order not found'),
@@ -161,8 +165,7 @@ class NotificationItem extends StatelessWidget {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color:
-                      _getNotificationColor(notification.type).withOpacity(0.2),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
