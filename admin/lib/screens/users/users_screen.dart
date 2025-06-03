@@ -276,6 +276,7 @@ class _UsersContentState extends State<UsersContent> {
 
                         if (confirmed == true) {
                           await viewModel.deleteUser(user.id);
+                          await viewModel.getAllUsers();
                         }
                       },
                     ),
@@ -394,6 +395,7 @@ class _UsersContentState extends State<UsersContent> {
 
                             if (confirmed == true) {
                               await viewModel.deleteUser(user.id);
+                              await viewModel.getAllUsers();
                             }
                           },
                         ),

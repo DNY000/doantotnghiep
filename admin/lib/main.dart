@@ -4,6 +4,7 @@ import 'package:admin/data/repositories/food_repository.dart';
 import 'package:admin/data/repositories/order_repository.dart';
 import 'package:admin/firebase_options.dart';
 import 'package:admin/screens/authentication/viewmodels/auth_viewmodel.dart';
+import 'package:admin/viewmodels/banner_viewmode.dart';
 import 'package:admin/viewmodels/category_viewmodel.dart';
 import 'package:admin/viewmodels/food_viewmodel.dart';
 import 'package:admin/viewmodels/order_viewmodel.dart';
@@ -32,6 +33,15 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
+        Provider<ShipperRepository>(
+          create: (_) => ShipperRepository(),
+        ),
+        Provider<RestaurantRepository>(
+          create: (_) => RestaurantRepository(),
+        ),
+        Provider<FoodRepository>(
+          create: (_) => FoodRepository(),
+        ),
         ChangeNotifierProvider(
           create: (context) =>
               ShipperViewModel(context.read<ShipperRepository>()),
@@ -43,6 +53,7 @@ Future<void> main() async {
         ChangeNotifierProvider(
           create: (context) => FoodViewModel(context.read<FoodRepository>()),
         ),
+        Provider<OrderRepository>(create: (_) => OrderRepository()),
         ChangeNotifierProvider(
           create: (context) => OrderViewModel(context.read<OrderRepository>()),
         ),
@@ -50,6 +61,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => UserViewModel()),
         ChangeNotifierProvider(create: (_) => CategoryViewModel()),
+        ChangeNotifierProvider(create: (_) => BannerViewmode()),
       ],
       child: const MyApp(),
     ),

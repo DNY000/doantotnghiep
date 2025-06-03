@@ -196,19 +196,20 @@ class _RestaurantContentState extends State<RestaurantContent> {
               DataCell(Text(restaurant.address)),
               DataCell(
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                  margin: const EdgeInsets.symmetric(
+                    vertical: 8,
                   ),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 4, horizontal: 1),
                   decoration: BoxDecoration(
-                    color: restaurant.isActive ? Colors.green : Colors.red,
+                    color: restaurant.isActive ? Colors.green : Colors.grey,
+                    // ,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     restaurant.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động',
-                    style: TextStyle(
-                      color: restaurant.isActive ? Colors.green : Colors.red,
-                    ),
+                    style: TextStyle(color: Colors.white, fontSize: 13),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
@@ -224,7 +225,32 @@ class _RestaurantContentState extends State<RestaurantContent> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete),
-                      onPressed: () async {},
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Xác nhận xóa'),
+                            content: Text(
+                              'Bạn có chắc muốn xóa nhà hàng ${restaurant.name}?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Hủy'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('Xóa'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirmed == true) {
+                          await viewModel.deleteRestaurant(restaurant.id);
+                          await viewModel.loadRestaurants();
+                        }
+                      },
                     ),
                   ],
                 ),
@@ -307,7 +333,8 @@ class _RestaurantContentState extends State<RestaurantContent> {
                         ),
                         decoration: BoxDecoration(
                           color:
-                              restaurant.isActive ? Colors.green : Colors.red,
+                              restaurant.isActive ? Colors.green : Colors.grey,
+                          // restaurant.isActive ? Colors.green : Colors.red,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -315,8 +342,7 @@ class _RestaurantContentState extends State<RestaurantContent> {
                               ? 'Đang hoạt động'
                               : 'Ngừng hoạt động',
                           style: TextStyle(
-                            color:
-                                restaurant.isActive ? Colors.green : Colors.red,
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -330,7 +356,34 @@ class _RestaurantContentState extends State<RestaurantContent> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete),
-                            onPressed: () async {},
+                            onPressed: () async {
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Xác nhận xóa'),
+                                  content: Text(
+                                    'Bạn có chắc muốn xóa nhà hàng ${restaurant.name}?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
+                                      child: const Text('Hủy'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
+                                      child: const Text('Xóa'),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirmed == true) {
+                                await viewModel.deleteRestaurant(restaurant.id);
+                                await viewModel.loadRestaurants();
+                              }
+                            },
                           ),
                         ],
                       ),
@@ -362,7 +415,8 @@ class _RestaurantContentState extends State<RestaurantContent> {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Container(
-                width: 500,
+                width: MediaQuery.of(context).size.width * 0.7,
+                height: MediaQuery.of(context).size.height * 0.8,
                 padding: const EdgeInsets.all(20),
                 child: SingleChildScrollView(
                   child: Column(
@@ -449,9 +503,9 @@ class _RestaurantContentState extends State<RestaurantContent> {
                       TimePickerSpinner(
                         is24HourMode: true,
                         normalTextStyle:
-                            const TextStyle(fontSize: 18, color: Colors.grey),
-                        highlightedTextStyle:
-                            const TextStyle(fontSize: 22, color: Colors.blue),
+                            TextStyle(fontSize: 18, color: Colors.white60),
+                        highlightedTextStyle: const TextStyle(
+                            fontSize: 22, color: Colors.blueAccent),
                         spacing: 30,
                         itemHeight: 40,
                         isForce2Digits: true,
@@ -470,9 +524,9 @@ class _RestaurantContentState extends State<RestaurantContent> {
                       TimePickerSpinner(
                         is24HourMode: true,
                         normalTextStyle:
-                            const TextStyle(fontSize: 18, color: Colors.grey),
-                        highlightedTextStyle:
-                            const TextStyle(fontSize: 22, color: Colors.blue),
+                            TextStyle(fontSize: 18, color: Colors.white60),
+                        highlightedTextStyle: const TextStyle(
+                            fontSize: 22, color: Colors.blueAccent),
                         spacing: 30,
                         itemHeight: 40,
                         isForce2Digits: true,
@@ -571,11 +625,13 @@ class _RestaurantContentState extends State<RestaurantContent> {
 
     try {
       await viewModel.addRestaurant(newRestaurant);
-      Navigator.pop(context);
+      await viewModel.loadRestaurants();
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Thêm nhà hàng thành công')),
       );
-      viewModel.loadRestaurants();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lỗi: ${e.toString()}')),
@@ -603,9 +659,9 @@ class _RestaurantContentState extends State<RestaurantContent> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Container(
-                width: 500,
-                padding: const EdgeInsets.all(20),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.6,
+                width: MediaQuery.of(context).size.width * 0.5,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -699,9 +755,9 @@ class _RestaurantContentState extends State<RestaurantContent> {
                       TimePickerSpinner(
                         is24HourMode: true,
                         normalTextStyle:
-                            const TextStyle(fontSize: 18, color: Colors.grey),
-                        highlightedTextStyle:
-                            const TextStyle(fontSize: 22, color: Colors.blue),
+                            TextStyle(fontSize: 18, color: Colors.white60),
+                        highlightedTextStyle: const TextStyle(
+                            fontSize: 22, color: Colors.blueAccent),
                         spacing: 30,
                         itemHeight: 40,
                         isForce2Digits: true,
@@ -720,9 +776,9 @@ class _RestaurantContentState extends State<RestaurantContent> {
                       TimePickerSpinner(
                         is24HourMode: true,
                         normalTextStyle:
-                            const TextStyle(fontSize: 18, color: Colors.grey),
-                        highlightedTextStyle:
-                            const TextStyle(fontSize: 22, color: Colors.blue),
+                            TextStyle(fontSize: 18, color: Colors.white60),
+                        highlightedTextStyle: const TextStyle(
+                            fontSize: 22, color: Colors.blueAccent),
                         spacing: 30,
                         itemHeight: 40,
                         isForce2Digits: true,
@@ -818,11 +874,13 @@ class _RestaurantContentState extends State<RestaurantContent> {
 
     try {
       await viewModel.updateRestaurant(updatedRestaurant);
-      Navigator.pop(context);
+      await viewModel.loadRestaurants();
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Cập nhật nhà hàng thành công')),
       );
-      viewModel.loadRestaurants();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lỗi: ${e.toString()}')),

@@ -9,6 +9,9 @@ import 'package:provider/provider.dart';
 import 'package:shipper_app/ultils/const/enum.dart';
 import 'package:shipper_app/viewmodels/order_viewmodel.dart';
 import 'package:shipper_app/models/order_model.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:async';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -21,11 +24,103 @@ class _MapScreenState extends State<MapScreen> {
   final MapController mapController = MapController();
   Position? currentPosition;
   bool isLoading = true;
+  final TextEditingController _searchController = TextEditingController();
+  List<Map<String, dynamic>> _searchResults = [];
+  bool _isSearching = false;
+  LatLng? _searchedLocation;
+  Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
     _initializeLocation();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _searchLocation(String query) async {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      if (query.isEmpty) {
+        setState(() {
+          _searchResults = [];
+          _isSearching = false;
+        });
+        return;
+      }
+
+      setState(() {
+        _isSearching = true;
+      });
+
+      try {
+        final response = await http.get(
+          Uri.parse(
+            'https://nominatim.openstreetmap.org/search?format=json&q=$query&countrycodes=vn&limit=5&addressdetails=1',
+          ),
+          headers: {'User-Agent': 'ShipperApp/1.0'},
+        );
+
+        if (response.statusCode == 200) {
+          final List<dynamic> data = json.decode(response.body);
+          setState(() {
+            _searchResults =
+                data.map((item) {
+                  final address = item['address'] as Map<String, dynamic>;
+                  String displayName = '';
+
+                  if (address['road'] != null)
+                    displayName += '${address['road']}, ';
+                  if (address['suburb'] != null)
+                    displayName += '${address['suburb']}, ';
+                  if (address['city'] != null)
+                    displayName += '${address['city']}, ';
+                  if (address['state'] != null)
+                    displayName += '${address['state']}, ';
+                  if (address['country'] != null)
+                    displayName += address['country'];
+
+                  return {
+                    'name':
+                        displayName.isNotEmpty
+                            ? displayName
+                            : item['display_name'],
+                    'lat': double.parse(item['lat']),
+                    'lon': double.parse(item['lon']),
+                    'address': address,
+                  };
+                }).toList();
+          });
+
+          // Nếu có kết quả, tự động chọn kết quả đầu tiên
+          if (_searchResults.isNotEmpty) {
+            // _selectLocation(_searchResults.first);
+          }
+        }
+      } catch (e) {
+        debugPrint('Error searching location: $e');
+      } finally {
+        setState(() {
+          _isSearching = false;
+        });
+      }
+    });
+  }
+
+  void _selectLocation(Map<String, dynamic> location) {
+    final lat = location['lat'];
+    final lon = location['lon'];
+    setState(() {
+      _searchedLocation = LatLng(lat, lon);
+      _searchResults = [];
+      _searchController.clear();
+    });
+    mapController.move(LatLng(lat, lon), 15.0);
   }
 
   Future<void> _initializeLocation() async {
@@ -315,20 +410,11 @@ class _MapScreenState extends State<MapScreen> {
         children: [
           FlutterMap(
             mapController: mapController,
-
             options: MapOptions(
-              // initialCenter:
-              //     currentPosition != null
-              //         ? LatLng(
-              //           currentPosition!.latitude,
-              //           currentPosition!.longitude,
-              //         )
-              //         : const LatLng(21.0278, 105.8342),
               initialCenter: const LatLng(21.0278, 105.8342),
               initialZoom: 20,
               minZoom: 10,
               maxZoom: 50,
-
               onMapReady: () {
                 debugPrint('Map is ready');
               },
@@ -352,6 +438,29 @@ class _MapScreenState extends State<MapScreen> {
                   markerDirection: MarkerDirection.heading,
                 ),
               ),
+              // Thêm marker cho vị trí tìm kiếm
+              if (_searchedLocation != null)
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: _searchedLocation!,
+                      width: 40,
+                      height: 40,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.8),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(
+                          Icons.location_on,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               MarkerLayer(
                 markers:
                     context
@@ -362,6 +471,96 @@ class _MapScreenState extends State<MapScreen> {
                         .toList(),
               ),
             ],
+          ),
+          // Search Bar
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 16,
+            right: 16,
+            child: Column(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Tìm kiếm địa điểm tại Việt Nam...',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon:
+                          _searchController.text.isNotEmpty
+                              ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {
+                                    _searchResults = [];
+                                    _searchedLocation = null;
+                                  });
+                                },
+                              )
+                              : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                    ),
+                    onChanged: _searchLocation,
+                    onSubmitted: (value) {
+                      if (value.isNotEmpty) {
+                        _searchLocation(value).then((_) {
+                          if (_searchResults.isNotEmpty) {
+                            _selectLocation(_searchResults.first);
+                          }
+                        });
+                      }
+                    },
+                  ),
+                ),
+                if (_searchResults.isNotEmpty)
+                  Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      padding: EdgeInsets.zero,
+                      itemCount: _searchResults.length,
+                      itemBuilder: (context, index) {
+                        final result = _searchResults[index];
+                        return ListTile(
+                          leading: const Icon(Icons.location_on),
+                          title: Text(
+                            result['name'],
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          onTap: () => _selectLocation(result),
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
           ),
           if (isLoading)
             Container(

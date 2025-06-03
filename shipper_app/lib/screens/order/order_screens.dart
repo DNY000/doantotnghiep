@@ -83,7 +83,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
                     const Icon(Icons.store, color: Colors.orange, size: 20),
                     const SizedBox(width: 6),
                     Text(
-                      'Lấy: ${order.restaurantId}   Mã: ${order.id.substring(0, 8)}',
+                      'Nhà hàng: ${order.restaurantId}   Mã: ${order.id.substring(0, 8)}',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ],
@@ -92,7 +92,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
                 Padding(
                   padding: const EdgeInsets.only(left: 26),
                   child: Text(
-                    order.address,
+                    'Địa chỉ: ${order.address}',
                     style: const TextStyle(color: Colors.black87),
                   ),
                 ),
@@ -107,12 +107,26 @@ class _OrderListScreenState extends State<OrderListScreen> {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'Giao: Khách hàng',
+                      'Giao đến',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.only(left: 26),
+                  child: Text(
+                    order.delivery?['name'] ?? 'User',
+                    style: const TextStyle(color: Colors.black87),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 26),
+                  child: Text(
+                    order.delivery?['numberPhone'] ?? '0378635548',
+                    style: const TextStyle(color: Colors.black87),
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.only(left: 26),
                   child: Text(

@@ -142,11 +142,11 @@ class UserRepository {
       Query query = _firestore.collection(_collection);
 
       if (role != null) {
-        query = query.where('metadata.role', isEqualTo: role);
+        query = query.where('role', isEqualTo: role);
       }
 
       if (isActive != null) {
-        query = query.where('metadata.isActive', isEqualTo: isActive);
+        query = query.where('isActive', isEqualTo: isActive);
       }
 
       query = query.limit(limit);
@@ -170,6 +170,67 @@ class UserRepository {
       });
     } catch (e) {
       throw TFormatException('Lỗi khi cập nhật ảnh đại diện: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getNewUser([int limit = 5]) async {
+    try {
+      // Get the timestamp for 7 days ago
+      final oneWeekAgo = DateTime.now().subtract(const Duration(days: 7));
+
+      final users = await _firestore
+          .collection("user")
+          .where('creatAt', isGreaterThanOrEqualTo: oneWeekAgo)
+          .orderBy('creatAt', descending: true)
+          .limit(limit)
+          .get();
+
+      return users.docs.map((doc) => doc.data()).toList();
+    } catch (e) {
+      throw "Fail $e";
+    }
+  }
+
+  Future<List<int>> getUserRegistrationStats(String period) async {
+    try {
+      final now = DateTime.now();
+      if (period == 'week') {
+        List<int> dailyCounts = [];
+        for (int i = 6; i >= 0; i--) {
+          final dayStart = DateTime(now.year, now.month, now.day)
+              .subtract(Duration(days: i));
+          final dayEnd = dayStart.add(const Duration(days: 1));
+          final snapshot = await _firestore
+              .collection("users")
+              .where('createdAt', isGreaterThanOrEqualTo: dayStart)
+              .where('createdAt', isLessThan: dayEnd)
+              .count()
+              .get();
+          dailyCounts.add(snapshot.count ?? 0);
+        }
+        return dailyCounts;
+      } else if (period == 'month') {
+        // Lấy số lượng user mới cho từng tháng trong năm hiện tại
+        List<int> monthlyCounts = [];
+        for (int m = 1; m <= 12; m++) {
+          final monthStart = DateTime(now.year, m, 1);
+          final monthEnd = m < 12
+              ? DateTime(now.year, m + 1, 1)
+              : DateTime(now.year + 1, 1, 1);
+          final snapshot = await _firestore
+              .collection("users")
+              .where('createdAt', isGreaterThanOrEqualTo: monthStart)
+              .where('createdAt', isLessThan: monthEnd)
+              .count()
+              .get();
+          monthlyCounts.add(snapshot.count ?? 0);
+        }
+        return monthlyCounts;
+      } else {
+        throw 'Invalid period: $period';
+      }
+    } catch (e) {
+      throw "Failed to get user registration stats: $e";
     }
   }
 }

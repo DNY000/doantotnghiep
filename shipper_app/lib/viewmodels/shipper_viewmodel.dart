@@ -15,19 +15,6 @@ class ShipperViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  // ShipperViewModel(this._authProvider) {
-  //   // Lắng nghe sự thay đổi từ AuthProvider
-  //   _authProvider.addListener(_checkAuthState);
-  // }
-
-  // void _checkAuthState() {
-  //   // Nếu đăng xuất, xóa thông tin shipper
-  //   if (!_authProvider.isLoggedIn && _currentShipper != null) {
-  //     _currentShipper = null;
-  //     notifyListeners();
-  //   }
-  // }
-
   // Đăng ký tài khoản mới
   Future<void> register({
     required String email,
@@ -48,33 +35,30 @@ class ShipperViewModel extends ChangeNotifier {
 
       final uid = credential.user!.uid;
 
-      // 2. Tạo shipper model mới
+      // 2. Tạo shipper model mới với isAuthenticated = false
       final newShipper = ShipperModel(
         id: uid,
-        profile: {
-          'userId': uid,
-          'name': name,
-          'phoneNumber': phoneNumber,
-          'avatarUrl': '',
-          'address': address,
-          'email': email,
-          'role': 'shipper',
-        },
-        vehicle: {'type': '', 'licensePlate': ''},
-        stats: {'rating': 0.0, 'totalDeliveries': 0, 'isAvailable': false},
+        name: name,
+        phoneNumber: phoneNumber,
+        avatarUrl: '',
+        address: address,
+        email: email,
+        ratting: 0.0,
+        createdAt: DateTime.now(),
+        isActive: true,
         location: {},
-        metadata: {
-          'createdAt': FieldValue.serverTimestamp(),
-          'lastUpdated': FieldValue.serverTimestamp(),
-          'isActive': true,
-        },
+        isAuthenticated: false, // Mặc định là false khi đăng ký
       );
 
-      // 3. Lưu vào Firestore sử dụng toMap()
-      await _firestore.collection('shippers').doc(uid).set(newShipper.toMap());
+      // 3. Lưu vào Firestore
+      await _firestore.collection('users').doc(uid).set(newShipper.toJson());
 
       // 4. Đăng xuất sau khi đăng ký thành công
       await _authProvider.logout();
+
+      // 5. Thông báo cho người dùng
+      _error =
+          'Đăng ký thành công. Vui lòng đợi admin xác thực tài khoản của bạn.';
     } catch (e) {
       _error = 'Lỗi đăng ký: $e';
       rethrow;
@@ -109,9 +93,16 @@ class ShipperViewModel extends ChangeNotifier {
       // 3. Chuyển đổi dữ liệu thành ShipperModel
       _currentShipper = ShipperModel.fromMap(doc.data()!, doc.id);
 
-      // Kiểm tra role
-      if (_currentShipper!.profile['role'] != 'shipper') {
-        throw 'Tài khoản không phải là shipper';
+      // 4. Kiểm tra trạng thái xác thực và hoạt động
+      if (!_currentShipper!.isActive) {
+        throw 'Tài khoản không hoạt động';
+      }
+
+      if (!_currentShipper!.isAuthenticated) {
+        // Đăng xuất nếu chưa được xác thực
+        await _authProvider.logout();
+        _currentShipper = null;
+        throw 'Tài khoản của bạn chưa được xác thực. Vui lòng đợi admin xác thực.';
       }
     } catch (e) {
       _error = 'Lỗi đăng nhập: $e';
@@ -151,31 +142,19 @@ class ShipperViewModel extends ChangeNotifier {
     try {
       _setLoading(true);
 
-      // Tạo bản sao của profile hiện tại và cập nhật các trường mới
-      final updatedProfile = Map<String, String>.from(_currentShipper!.profile);
-      if (name != null) updatedProfile['name'] = name;
-      if (phoneNumber != null) updatedProfile['phoneNumber'] = phoneNumber;
-      if (address != null) updatedProfile['address'] = address;
-      if (avatarUrl != null) updatedProfile['avatarUrl'] = avatarUrl;
-
       // Tạo ShipperModel mới với thông tin đã cập nhật
-      final updatedShipper = ShipperModel(
-        id: _currentShipper!.id,
-        profile: updatedProfile,
-        vehicle: _currentShipper!.vehicle,
-        stats: _currentShipper!.stats,
-        location: _currentShipper!.location,
-        metadata: {
-          ..._currentShipper!.metadata,
-          'lastUpdated': FieldValue.serverTimestamp(),
-        },
+      final updatedShipper = _currentShipper!.copyWith(
+        name: name,
+        phoneNumber: phoneNumber,
+        address: address,
+        avatarUrl: avatarUrl,
       );
 
       // Cập nhật lên Firestore
       await _firestore
           .collection('shippers')
           .doc(_currentShipper!.id)
-          .update(updatedShipper.toMap());
+          .update(updatedShipper.toJson());
 
       // Cập nhật state
       _currentShipper = updatedShipper;

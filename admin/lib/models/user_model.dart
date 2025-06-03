@@ -6,7 +6,6 @@ import 'package:geocoding/geocoding.dart';
 class UserModel {
   final String id;
 
-  // Thông tin cá nhân (profile)
   final String name;
   final String gender;
   final String avatarUrl;

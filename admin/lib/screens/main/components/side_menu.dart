@@ -1,4 +1,8 @@
+import 'package:admin/dashborad_view.dart';
+import 'package:admin/screens/banner/banner_screen.dart';
 import 'package:admin/screens/category/category_screen.dart';
+import 'package:admin/screens/dashboard/dashboard_screen.dart';
+import 'package:admin/screens/main/main_screen.dart';
 import 'package:admin/screens/notifications/notification_screen.dart';
 import 'package:admin/screens/restaurant/restaurant_screen.dart';
 import 'package:admin/screens/setting/setting_screen.dart';
@@ -19,7 +23,11 @@ class SideMenu extends StatelessWidget {
           DrawerListTile(
             title: "Dashboard",
             svgSrc: "assets/icons/menu_dashboard.svg",
-            press: () {},
+            press: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MainScreen(),
+                )),
           ),
           DrawerListTile(
             title: "Category",
@@ -70,9 +78,13 @@ class SideMenu extends StatelessWidget {
             ),
           ),
           DrawerListTile(
-            title: "Profile",
+            title: "Banner",
             svgSrc: "assets/icons/menu_profile.svg",
-            press: () {},
+            press: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const BannerScreen(),
+                )),
           ),
           DrawerListTile(
             title: "Settings",

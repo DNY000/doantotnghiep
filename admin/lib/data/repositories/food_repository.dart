@@ -17,38 +17,6 @@ class FoodRepository {
     }
   }
 
-  // Cập nhật một phần thông tin cụ thể
-  Future<void> updateFoodField(
-    String foodId,
-    String field,
-    Map<String, dynamic> data,
-  ) async {
-    try {
-      await _firestore.collection(_collection).doc(foodId).update({
-        field: data,
-        'metadata.lastUpdated': Timestamp.now(),
-      });
-    } catch (e) {
-      throw Exception('Không thể cập nhật thông tin món ăn: $e');
-    }
-  }
-
-  // Cập nhật giá
-  Future<void> updatePricing(
-    String foodId,
-    Map<String, dynamic> pricingData,
-  ) async {
-    await updateFoodField(foodId, 'pricing', pricingData);
-  }
-
-  // Cập nhật metadata
-  Future<void> updateMetadata(
-    String foodId,
-    Map<String, dynamic> metadataData,
-  ) async {
-    await updateFoodField(foodId, 'metadata', metadataData);
-  }
-
   // Lấy danh sách món ăn với phân trang
   Future<List<FoodModel>> getFoods({
     int limit = 10,
@@ -88,13 +56,12 @@ class FoodRepository {
     int limit = 10,
   }) async {
     try {
-      final snapshot =
-          await _firestore
-              .collection(_collection)
-              .where('category', isEqualTo: category)
-              .where('isAvailable', isEqualTo: true)
-              .limit(limit)
-              .get();
+      final snapshot = await _firestore
+          .collection(_collection)
+          .where('category', isEqualTo: category)
+          .where('isAvailable', isEqualTo: true)
+          .limit(limit)
+          .get();
 
       return snapshot.docs
           .map((doc) => FoodModel.fromMap({'id': doc.id, ...doc.data()}))
@@ -156,18 +123,17 @@ class FoodRepository {
       final snapshot = await query.get();
 
       // Lọc dữ liệu ở phía client
-      final foods =
-          snapshot.docs
-              .map(
-                (doc) => FoodModel.fromMap({
-                  'id': doc.id,
-                  ...doc.data() as Map<String, dynamic>,
-                }),
-              )
-              .where((food) => food.rating >= minRating)
-              .where((food) => !onlyAvailable || food.isAvailable)
-              .take(limit)
-              .toList();
+      final foods = snapshot.docs
+          .map(
+            (doc) => FoodModel.fromMap({
+              'id': doc.id,
+              ...doc.data() as Map<String, dynamic>,
+            }),
+          )
+          .where((food) => food.rating >= minRating)
+          .where((food) => !onlyAvailable || food.isAvailable)
+          .take(limit)
+          .toList();
 
       return foods;
     } catch (e) {
@@ -181,14 +147,13 @@ class FoodRepository {
     double minRating = 4.0,
   }) async {
     try {
-      final snapshot =
-          await _firestore
-              .collection(_collection)
-              .where('isAvailable', isEqualTo: true)
-              // .where('rating', isGreaterThanOrEqualTo: minRating)
-              // .orderBy('rating', descending: true)
-              .limit(limit)
-              .get();
+      final snapshot = await _firestore
+          .collection(_collection)
+          .where('isAvailable', isEqualTo: true)
+          // .where('rating', isGreaterThanOrEqualTo: minRating)
+          // .orderBy('rating', descending: true)
+          .limit(limit)
+          .get();
 
       return snapshot.docs
           .map((doc) => FoodModel.fromMap({'id': doc.id, ...doc.data()}))
@@ -205,23 +170,21 @@ class FoodRepository {
       final lowercaseQuery = query.toLowerCase();
 
       // Get all foods first (we'll filter in memory for better search)
-      final snapshot =
-          await _firestore
-              .collection(_collection)
-              .where('isAvailable', isEqualTo: true)
-              .get();
+      final snapshot = await _firestore
+          .collection(_collection)
+          .where('isAvailable', isEqualTo: true)
+          .get();
 
       // Filter foods based on name or description containing the query
-      final foods =
-          snapshot.docs
-              .map((doc) => FoodModel.fromMap({...doc.data(), 'id': doc.id}))
-              .where(
-                (food) =>
-                    food.name.toLowerCase().contains(lowercaseQuery) ||
-                    food.description.toLowerCase().contains(lowercaseQuery),
-              )
-              .take(limit)
-              .toList();
+      final foods = snapshot.docs
+          .map((doc) => FoodModel.fromMap({...doc.data(), 'id': doc.id}))
+          .where(
+            (food) =>
+                food.name.toLowerCase().contains(lowercaseQuery) ||
+                food.description.toLowerCase().contains(lowercaseQuery),
+          )
+          .take(limit)
+          .toList();
 
       return foods;
     } catch (e) {
@@ -239,6 +202,30 @@ class FoodRepository {
       return FoodModel.fromMap({'id': doc.id, ...doc.data()!});
     } catch (e) {
       throw Exception('Không thể lấy thông tin món ăn: $e');
+    }
+  }
+
+  Future<void> addFood(FoodModel food) async {
+    try {
+      await _firestore.collection(_collection).doc().set(food.toMap());
+    } catch (e) {
+      throw "Fail $e";
+    }
+  }
+
+  Future<void> updateFood(FoodModel food, String foodId) async {
+    try {
+      await _firestore.collection(_collection).doc(foodId).update(food.toMap());
+    } catch (e) {
+      throw "Fail $e";
+    }
+  }
+
+  Future<void> deleteFood(String foodId) async {
+    try {
+      await _firestore.collection(_collection).doc(foodId).delete();
+    } catch (e) {
+      throw "Fail $e";
     }
   }
 }

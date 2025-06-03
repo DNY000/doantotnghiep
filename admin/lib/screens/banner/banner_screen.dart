@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:admin/viewmodels/category_viewmodel.dart';
-import 'package:admin/models/category_model.dart';
+import 'package:admin/viewmodels/banner_viewmode.dart';
+import 'package:admin/models/banner_model.dart';
 import 'package:admin/reponsive.dart';
 import 'package:admin/screens/main/components/side_menu.dart';
 
-class CategoryScreen extends StatelessWidget {
-  const CategoryScreen({super.key});
+class BannerScreen extends StatelessWidget {
+  const BannerScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,7 @@ class CategoryScreen extends StatelessWidget {
             child: SafeArea(
               child: Padding(
                 padding: EdgeInsets.all(16.0),
-                child: CategoryContent(),
+                child: BannerContent(),
               ),
             ),
           ),
@@ -31,20 +31,20 @@ class CategoryScreen extends StatelessWidget {
   }
 }
 
-class CategoryContent extends StatefulWidget {
-  const CategoryContent({super.key});
+class BannerContent extends StatefulWidget {
+  const BannerContent({super.key});
 
   @override
-  State<CategoryContent> createState() => _CategoryContentState();
+  State<BannerContent> createState() => _BannerContentState();
 }
 
-class _CategoryContentState extends State<CategoryContent> {
+class _BannerContentState extends State<BannerContent> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => context.read<CategoryViewModel>().loadCategories());
+    Future.microtask(() => context.read<BannerViewmode>().getListBanner());
   }
 
   @override
@@ -63,15 +63,15 @@ class _CategoryContentState extends State<CategoryContent> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Quản lý Danh mục',
+              'Quản lý Banner',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             ElevatedButton.icon(
               onPressed: () {
-                _showCategoryDialog(context);
+                _showBannerDialog(context);
               },
               icon: const Icon(Icons.add),
-              label: const Text('Thêm Danh mục'),
+              label: const Text('Thêm Banner'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
@@ -87,7 +87,7 @@ class _CategoryContentState extends State<CategoryContent> {
         TextField(
           controller: _searchController,
           decoration: InputDecoration(
-            hintText: 'Tìm kiếm danh mục...',
+            hintText: 'Tìm kiếm banner...',
             prefixIcon: const Icon(Icons.search),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             contentPadding: const EdgeInsets.symmetric(
@@ -99,49 +99,38 @@ class _CategoryContentState extends State<CategoryContent> {
         ),
         const SizedBox(height: 24),
 
-        // Category list
+        // Banner list
         Expanded(
-          child: Consumer<CategoryViewModel>(
+          child: Consumer<BannerViewmode>(
             builder: (context, viewModel, child) {
               if (viewModel.isLoading) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              if (viewModel.error != null) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(viewModel.error!),
-                      ElevatedButton(
-                        onPressed: () => viewModel.loadCategories(),
-                        child: const Text('Thử lại'),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              var filteredCategories = viewModel.categories;
+              var filteredBanners = viewModel.listBanner;
 
               // Apply search filter
               if (_searchController.text.isNotEmpty) {
-                filteredCategories = filteredCategories
+                filteredBanners = filteredBanners
                     .where(
-                      (category) => category.name.toLowerCase().contains(
-                            _searchController.text.toLowerCase(),
-                          ),
+                      (banner) =>
+                          banner.title.toLowerCase().contains(
+                                _searchController.text.toLowerCase(),
+                              ) ||
+                          banner.subTitle.toLowerCase().contains(
+                                _searchController.text.toLowerCase(),
+                              ),
                     )
                     .toList();
               }
 
-              if (filteredCategories.isEmpty) {
-                return const Center(child: Text('Không tìm thấy danh mục nào'));
+              if (filteredBanners.isEmpty) {
+                return const Center(child: Text('Không tìm thấy banner nào'));
               }
 
               return Responsive.isDesktop(context)
-                  ? _buildDesktopView(filteredCategories, viewModel)
-                  : _buildMobileView(filteredCategories, viewModel);
+                  ? _buildDesktopView(filteredBanners, viewModel)
+                  : _buildMobileView(filteredBanners, viewModel);
             },
           ),
         ),
@@ -150,37 +139,34 @@ class _CategoryContentState extends State<CategoryContent> {
   }
 
   Widget _buildDesktopView(
-    List<CategoryModel> categories,
-    CategoryViewModel viewModel,
+    List<BannerModel> banners,
+    BannerViewmode viewModel,
   ) {
     return SingleChildScrollView(
       child: DataTable(
         columns: const [
           DataColumn(label: Text('Hình ảnh')),
-          DataColumn(label: Text('Tên')),
-          DataColumn(label: Text('Trạng thái')),
+          DataColumn(label: Text('Tiêu đề')),
+          DataColumn(label: Text('Phụ đề')),
+          DataColumn(label: Text('Link')),
           DataColumn(label: Text('Thao tác')),
         ],
-        rows: categories.map((category) {
+        rows: banners.map((banner) {
           return DataRow(
             cells: [
               DataCell(
-                category.image.isNotEmpty
-                    ? Image.network(
-                        category.image,
-                        width: 50,
+                banner.image.isNotEmpty
+                    ? Image.asset(
+                        banner.image,
+                        width: 100,
                         height: 50,
                         fit: BoxFit.cover,
                       )
                     : const Icon(Icons.image_not_supported),
               ),
-              DataCell(Text(category.name)),
-              DataCell(
-                category.isActive
-                    ? const Text('Hoạt động',
-                        style: TextStyle(color: Colors.green))
-                    : const Text('Ẩn', style: TextStyle(color: Colors.red)),
-              ),
+              DataCell(Text(banner.title)),
+              DataCell(Text(banner.subTitle)),
+              DataCell(Text(banner.link)),
               DataCell(
                 Row(
                   mainAxisSize: MainAxisSize.min,
@@ -188,7 +174,7 @@ class _CategoryContentState extends State<CategoryContent> {
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () {
-                        _showCategoryDialog(context, category);
+                        _showBannerDialog(context, banner);
                       },
                     ),
                     IconButton(
@@ -199,7 +185,7 @@ class _CategoryContentState extends State<CategoryContent> {
                           builder: (context) => AlertDialog(
                             title: const Text('Xác nhận xóa'),
                             content: Text(
-                              'Bạn có chắc muốn xóa danh mục ${category.name}?',
+                              'Bạn có chắc muốn xóa banner ${banner.title}?',
                             ),
                             actions: [
                               TextButton(
@@ -215,8 +201,8 @@ class _CategoryContentState extends State<CategoryContent> {
                         );
 
                         if (confirmed == true) {
-                          await viewModel.deleteCategory(category.id);
-                          await viewModel.loadCategories();
+                          await viewModel.deleteBanner(banner.id);
+                          await viewModel.getListBanner();
                         }
                       },
                     ),
@@ -231,13 +217,13 @@ class _CategoryContentState extends State<CategoryContent> {
   }
 
   Widget _buildMobileView(
-    List<CategoryModel> categories,
-    CategoryViewModel viewModel,
+    List<BannerModel> banners,
+    BannerViewmode viewModel,
   ) {
     return ListView.builder(
-      itemCount: categories.length,
+      itemCount: banners.length,
       itemBuilder: (context, index) {
-        final category = categories[index];
+        final banner = banners[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 16),
           child: Padding(
@@ -245,49 +231,42 @@ class _CategoryContentState extends State<CategoryContent> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    if (category.image.isNotEmpty)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          category.image,
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    else
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.image_not_supported,
-                          size: 40,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            category.name,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
+                if (banner.image.isNotEmpty)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      banner.image,
+                      width: double.infinity,
+                      height: 150,
+                      fit: BoxFit.cover,
                     ),
-                  ],
+                  )
+                else
+                  Container(
+                    width: double.infinity,
+                    height: 150,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.image_not_supported,
+                      size: 40,
+                      color: Colors.grey,
+                    ),
+                  ),
+                const SizedBox(height: 16),
+                Text(
+                  banner.title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
+                const SizedBox(height: 8),
+                Text(banner.subTitle),
+                const SizedBox(height: 8),
+                Text('Link: ${banner.link}'),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -295,7 +274,7 @@ class _CategoryContentState extends State<CategoryContent> {
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () {
-                        _showCategoryDialog(context, category);
+                        _showBannerDialog(context, banner);
                       },
                     ),
                     IconButton(
@@ -306,7 +285,7 @@ class _CategoryContentState extends State<CategoryContent> {
                           builder: (context) => AlertDialog(
                             title: const Text('Xác nhận xóa'),
                             content: Text(
-                              'Bạn có chắc muốn xóa danh mục ${category.name}?',
+                              'Bạn có chắc muốn xóa banner ${banner.title}?',
                             ),
                             actions: [
                               TextButton(
@@ -322,8 +301,8 @@ class _CategoryContentState extends State<CategoryContent> {
                         );
 
                         if (confirmed == true) {
-                          await viewModel.deleteCategory(category.id);
-                          await viewModel.loadCategories();
+                          await viewModel.deleteBanner(banner.id);
+                          await viewModel.getListBanner();
                         }
                       },
                     ),
@@ -337,13 +316,16 @@ class _CategoryContentState extends State<CategoryContent> {
     );
   }
 
-  void _showCategoryDialog(BuildContext context, [CategoryModel? category]) {
-    final viewModel = Provider.of<CategoryViewModel>(context, listen: false);
-    final TextEditingController nameController =
-        TextEditingController(text: category?.name ?? '');
+  void _showBannerDialog(BuildContext context, [BannerModel? banner]) {
+    final viewModel = Provider.of<BannerViewmode>(context, listen: false);
+    final TextEditingController titleController =
+        TextEditingController(text: banner?.title ?? '');
+    final TextEditingController subTitleController =
+        TextEditingController(text: banner?.subTitle ?? '');
     final TextEditingController imageController =
-        TextEditingController(text: category?.image ?? '');
-    bool isActive = category?.isActive ?? true;
+        TextEditingController(text: banner?.image ?? '');
+    final TextEditingController linkController =
+        TextEditingController(text: banner?.link ?? '');
     String? errorText;
 
     showDialog(
@@ -352,7 +334,7 @@ class _CategoryContentState extends State<CategoryContent> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text(category == null ? 'Thêm Danh mục' : 'Sửa Danh mục'),
+              title: Text(banner == null ? 'Thêm Banner' : 'Sửa Banner'),
               content: SizedBox(
                 height: MediaQuery.of(context).size.height * 0.6,
                 width: MediaQuery.of(context).size.width * 0.5,
@@ -361,9 +343,16 @@ class _CategoryContentState extends State<CategoryContent> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       TextField(
-                        controller: nameController,
+                        controller: titleController,
                         decoration: const InputDecoration(
-                          labelText: 'Tên Danh mục',
+                          labelText: 'Tiêu đề',
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: subTitleController,
+                        decoration: const InputDecoration(
+                          labelText: 'Phụ đề',
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -374,19 +363,11 @@ class _CategoryContentState extends State<CategoryContent> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          const Text('Trạng thái hoạt động:'),
-                          const SizedBox(width: 8),
-                          Switch(
-                            value: isActive,
-                            onChanged: (value) {
-                              setState(() {
-                                isActive = value;
-                              });
-                            },
-                          ),
-                        ],
+                      TextField(
+                        controller: linkController,
+                        decoration: const InputDecoration(
+                          labelText: 'Link',
+                        ),
                       ),
                       if (errorText != null)
                         Padding(
@@ -414,43 +395,40 @@ class _CategoryContentState extends State<CategoryContent> {
                             errorText = null;
                           });
 
-                          if (nameController.text.isEmpty) {
+                          if (titleController.text.isEmpty) {
                             setState(() {
-                              errorText = 'Tên danh mục không được để trống';
+                              errorText = 'Tiêu đề không được để trống';
                             });
                             return;
                           }
 
-                          final newCategory = CategoryModel(
-                            id: category?.id ?? '', // Use existing ID for edit
-                            name: nameController.text,
+                          if (imageController.text.isEmpty) {
+                            setState(() {
+                              errorText = 'URL hình ảnh không được để trống';
+                            });
+                            return;
+                          }
+
+                          final newBanner = BannerModel(
+                            id: banner?.id ?? '',
+                            title: titleController.text,
+                            subTitle: subTitleController.text,
                             image: imageController.text,
-                            isActive: isActive,
+                            link: linkController.text,
                           );
 
                           try {
-                            if (category == null) {
-                              // Tạo mới với thời gian tạo hiện tại
-                              // final categoryToAdd = newCategory.copyWith(
-                              //   createdAt: DateTime.now(),
-                              // );
-                              // await viewModel.addCategory(categoryToAdd);
-                              // debugPrint(
-                              //     'Added category: ${categoryToAdd.name}');
+                            if (banner == null) {
+                              await viewModel.addBanner(newBanner);
                             } else {
-                              // Cập nhật, giữ nguyên thời gian tạo
-                              await viewModel.updateCategory(
-                                  category.id, newCategory);
-                              debugPrint(
-                                  'Updated category: ${newCategory.name}');
+                              await viewModel.updateBanner(
+                                  newBanner, banner.id);
                             }
-                            await viewModel.loadCategories();
+                            await viewModel.getListBanner();
                             if (context.mounted) {
-                              Navigator.pop(
-                                  context); // Đóng dialog sau khi thành công
+                              Navigator.pop(context);
                             }
                           } catch (e) {
-                            debugPrint('Dialog action error: $e');
                             setState(() {
                               errorText = e.toString();
                             });
@@ -458,7 +436,7 @@ class _CategoryContentState extends State<CategoryContent> {
                         },
                   child: viewModel.isLoading
                       ? const CircularProgressIndicator()
-                      : Text(category == null ? 'Thêm' : 'Lưu'),
+                      : Text(banner == null ? 'Thêm' : 'Lưu'),
                 ),
               ],
             );

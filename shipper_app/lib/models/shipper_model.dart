@@ -2,160 +2,100 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ShipperModel {
   final String id;
-  final Map<String, String> profile; // Thông tin cá nhân
-  final Map<String, dynamic> vehicle; // Thông tin phương tiện
-  final Map<String, dynamic> stats; // Thống kê
+  final String name;
+  final String phoneNumber;
+  final String avatarUrl;
+  final String address;
+  final String email;
+  final double ratting;
+  final DateTime createdAt;
+  bool isActive;
   final Map<String, dynamic> location; // Vị trí
-  final Map<String, dynamic> metadata; // Thông tin bổ sung
+  final bool isAuthenticated;
 
-  // Getters cho profile
-  String get userId => profile['userId'] ?? '';
-  String get name => profile['name'] ?? '';
-  String get phoneNumber => profile['phoneNumber'] ?? '';
-  String get avatarUrl => profile['avatarUrl'] ?? '';
-  String get address => profile['address'] ?? '';
-  String get email => profile['email'] ?? '';
-  // Getters cho vehicle
-  String get vehicleType => vehicle['type'] ?? '';
-  String get licensePlate => vehicle['licensePlate'] ?? '';
-
-  // Getters cho stats
-  double get rating => (stats['rating'] ?? 0).toDouble();
-  int get totalDeliveries => stats['totalDeliveries'] ?? 0;
-  bool get isAvailable => stats['isAvailable'] ?? false;
-
-  // Getters cho location
-  double? get currentLatitude => location['latitude']?.toDouble();
-  double? get currentLongitude => location['longitude']?.toDouble();
-  GeoPoint? get currentLocation =>
-      currentLatitude != null && currentLongitude != null
-          ? GeoPoint(currentLatitude!, currentLongitude!)
-          : null;
-
-  // Getters cho metadata
-  DateTime get createdAt =>
-      (metadata['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
-  DateTime? get lastUpdated =>
-      (metadata['lastUpdated'] as Timestamp?)?.toDate();
-  bool get isActive => metadata['isActive'] ?? true;
-
-  const ShipperModel({
+  ShipperModel({
     required this.id,
-    required this.profile,
-    required this.vehicle,
-    required this.stats,
+    required this.name,
+    required this.phoneNumber,
+    required this.avatarUrl,
+    required this.address,
+    required this.email,
+    required this.ratting,
+    required this.createdAt,
+    required this.isActive,
     required this.location,
-    required this.metadata,
+    required this.isAuthenticated,
   });
 
-  factory ShipperModel.fromMap(Map<String, dynamic> data, String id) {
+  ShipperModel.empty()
+    : id = '',
+      name = '',
+      phoneNumber = '',
+      avatarUrl = '',
+      address = '',
+      email = '',
+      ratting = 0.0,
+      createdAt = DateTime.now(),
+      isActive = false,
+      location = {},
+      isAuthenticated = false;
+
+  factory ShipperModel.fromMap(Map<String, dynamic> map, String docId) {
     return ShipperModel(
-      id: id,
-      profile: Map<String, String>.from(
-        data['profile'] ??
-            {
-              'userId': '',
-              'name': '',
-              'phoneNumber': '',
-              'avatarUrl': '',
-              'address': '',
-              'email': '',
-            },
-      ),
-      vehicle: Map<String, dynamic>.from(
-        data['vehicle'] ?? {'type': '', 'licensePlate': ''},
-      ),
-      stats: Map<String, dynamic>.from(
-        data['stats'] ??
-            {'rating': 0.0, 'totalDeliveries': 0, 'isAvailable': false},
-      ),
-      location: Map<String, dynamic>.from(data['location'] ?? {}),
-      metadata: Map<String, dynamic>.from(
-        data['metadata'] ??
-            {
-              'createdAt': Timestamp.now(),
-              'lastUpdated': Timestamp.now(),
-              'isActive': true,
-            },
-      ),
+      id: docId,
+      name: map['name'] ?? '',
+      phoneNumber: map['phoneNumber'] ?? '',
+      avatarUrl: map['avatarUrl'] ?? '',
+      address: map['address'] ?? '',
+      email: map['email'] ?? '',
+      ratting: (map['ratting'] ?? 0.0).toDouble(),
+      createdAt: (map['createdAt'] as Timestamp).toDate(),
+      isActive: map['isActive'] ?? false,
+      location: Map<String, dynamic>.from(map['location'] ?? {}),
+      isAuthenticated: map['isAuthenticated'] ?? false,
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
-      'profile': profile,
-      'vehicle': vehicle,
-      'stats': stats,
-      'location': {
-        ...location,
-        'latitude': currentLatitude,
-        'longitude': currentLongitude,
-        'lastUpdated': Timestamp.now(),
-      },
-      'metadata': {...metadata, 'lastUpdated': Timestamp.now()},
-    };
-  }
-
-  // Helper method cho hiển thị trong danh sách
-  Map<String, dynamic> toListView() {
-    return {
-      'id': id,
       'name': name,
-      'avatar': avatarUrl,
+      'phoneNumber': phoneNumber,
+      'avatarUrl': avatarUrl,
       'address': address,
       'email': email,
-      'rating': rating,
-      'isAvailable': isAvailable,
-      'totalDeliveries': totalDeliveries,
-      'vehicleInfo': '$vehicleType - $licensePlate',
+      'ratting': ratting,
+      'createdAt': createdAt,
+      'isActive': isActive,
+      'location': location,
+      'isAuthenticated': isAuthenticated,
     };
   }
 
-  // Helper method cho hiển thị chi tiết
-  Map<String, dynamic> toDetailView() {
-    return {
-      'id': id,
-      'profile': {
-        'name': name,
-        'phone': phoneNumber,
-        'avatar': avatarUrl,
-        'address': address,
-        'email': email,
-      },
-      'vehicle': {'type': vehicleType, 'licensePlate': licensePlate},
-      'stats': {
-        'rating': rating,
-        'totalDeliveries': totalDeliveries,
-        'isAvailable': isAvailable,
-      },
-      'location':
-          currentLocation != null
-              ? {
-                'latitude': currentLatitude,
-                'longitude': currentLongitude,
-                'lastUpdated': metadata['lastUpdated'],
-              }
-              : null,
-    };
+  ShipperModel copyWith({
+    String? id,
+    String? name,
+    String? phoneNumber,
+    String? avatarUrl,
+    String? address,
+    String? email,
+    double? ratting,
+    DateTime? createdAt,
+    bool? isActive,
+    Map<String, dynamic>? location,
+    bool? isAuthenticated,
+  }) {
+    return ShipperModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      address: address ?? this.address,
+      email: email ?? this.email,
+      ratting: ratting ?? this.ratting,
+      createdAt: createdAt ?? this.createdAt,
+      isActive: isActive ?? this.isActive,
+      location: location ?? this.location,
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+    );
   }
-
-  factory ShipperModel.empty() => ShipperModel(
-    id: '',
-    profile: {
-      'userId': '',
-      'name': '',
-      'phoneNumber': '',
-      'avatarUrl': '',
-      'address': '',
-      'email': '',
-    },
-    vehicle: {'type': '', 'licensePlate': ''},
-    stats: {'rating': 0.0, 'totalDeliveries': 0, 'isAvailable': false},
-    location: {},
-    metadata: {
-      'createdAt': Timestamp.now(),
-      'lastUpdated': Timestamp.now(),
-      'isActive': true,
-    },
-  );
 }

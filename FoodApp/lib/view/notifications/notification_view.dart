@@ -111,10 +111,6 @@ class _NotificationsViewState extends State<NotificationsView> {
       context.read<OrderViewModel>().getOrderById(orderId);
 
       final orders = context.read<OrderViewModel>().selectedOrder;
-      // final order = orders.firstWhere(
-      //   (order) => order.id == orderId,
-      //   orElse: () => throw Exception('Order not found'),
-      // );
 
       if (context.mounted) {
         Navigator.push(

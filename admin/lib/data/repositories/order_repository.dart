@@ -221,12 +221,11 @@ class OrderRepository {
       // Lấy tất cả order của nhà hàng có trạng thái delivered
       Query query = _firestore
           .collection(_collection)
-          .where('status', isEqualTo: OrderState.delivered.name)
-          .where('restaurantId', isEqualTo: restaurantId);
+          .where('status', isEqualTo: OrderState.delivered.name);
+      // .where('restaurantId', isEqualTo: restaurantId);
 
       final snapshot = await query.get();
       Map<String, int> foodCount = {};
-
       for (var doc in snapshot.docs) {
         final order = OrderModel.fromMap(
           doc.data() as Map<String, dynamic>,
@@ -251,7 +250,6 @@ class OrderRepository {
           final food = await FoodRepository().getFoodById(id);
           foods.add(food);
         } catch (e) {
-          // Nếu không tìm thấy món ăn, bỏ qua
           continue;
         }
       }
@@ -271,7 +269,6 @@ class OrderRepository {
       Query query = _firestore
           .collection(_collection)
           .where('metadata.status', isEqualTo: OrderState.delivered.name);
-
       if (restaurantId != null) {
         query = query.where('restaurantId', isEqualTo: restaurantId);
       }

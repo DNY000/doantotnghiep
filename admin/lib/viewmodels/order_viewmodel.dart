@@ -156,7 +156,6 @@ class OrderViewModel extends ChangeNotifier {
     }
   }
 
-  // Phương thức cũ sử dụng Stream (giữ lại để tương thích với code hiện tại)
   @Deprecated('Use loadUserOrders instead')
   void listenToUserOrders(String userId) {
     loadUserOrders(userId);

@@ -1,9 +1,11 @@
 class BannerModel {
+  String id;
   String title;
   String subTitle;
   String image;
   String link;
   BannerModel({
+    required this.id,
     required this.title,
     required this.subTitle,
     required this.image,
@@ -19,8 +21,9 @@ class BannerModel {
     };
   }
 
-  factory BannerModel.fromMap(Map<String, dynamic> map) {
+  factory BannerModel.fromMap(Map<String, dynamic> map, String userId) {
     return BannerModel(
+      id: userId,
       title: map['title'] ?? '',
       subTitle: map['subTitle'] ?? '',
       image: map['image'] ?? "",

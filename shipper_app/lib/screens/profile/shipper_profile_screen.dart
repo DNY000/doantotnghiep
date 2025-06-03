@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:shipper_app/screens/profile/edit_user.dart';
 import '../../models/shipper_model.dart';
 
 class ShipperProfileScreen extends StatefulWidget {
@@ -54,7 +55,21 @@ class _ShipperProfileScreenState extends State<ShipperProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Thông tin cá nhân'),
-        actions: [IconButton(icon: const Icon(Icons.edit), onPressed: () {})],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed:
+                _shipper == null
+                    ? null
+                    : () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => EditUserScreen(shipper: _shipper!),
+                      ),
+                    ),
+          ),
+        ],
       ),
       body:
           _isLoading
@@ -122,7 +137,7 @@ class _ShipperProfileScreenState extends State<ShipperProfileScreen> {
                     _buildInfoSection('Thống kê', [
                       _buildInfoItem(
                         'Đánh giá',
-                        '${_shipper!.rating.toStringAsFixed(1)} ⭐',
+                        '${_shipper!.ratting.toStringAsFixed(1)} ⭐',
                         Icons.star,
                       ),
                       // _buildInfoItem(

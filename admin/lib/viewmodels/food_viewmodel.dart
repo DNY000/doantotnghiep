@@ -26,37 +26,6 @@ class FoodViewModel extends ChangeNotifier {
   Map<String, List<FoodModel>> get categoryFoods => _categoryFoods;
   List<FoodModel> get fetchFoodsByRate => _foodsByRate;
 
-  // Getter cho món ăn được đề xuất cho người dùng
-  List<FoodModel> get fetchFoodsForYou {
-    // Lọc và sắp xếp món ăn theo rating cao và có sẵn
-    return _foods.where((food) => food.isAvailable).toList()
-      ..sort((a, b) => b.rating.compareTo(a.rating));
-  }
-
-  // Lấy danh sách món ăn
-  Future<void> loadFoods({
-    int limit = 10,
-    DocumentSnapshot? startAfter,
-    bool? isAvailable,
-  }) async {
-    try {
-      _setLoading(true);
-      _foods = await _repository.getFoods(
-        limit: limit,
-        startAfter: startAfter,
-        isAvailable: isAvailable,
-      );
-      _error = null;
-    } catch (e) {
-      _error = 'Không thể tải danh sách món ăn: $e';
-      if (kDebugMode) {
-        print(_error!);
-      }
-    } finally {
-      _setLoading(false);
-    }
-  }
-
   // Lấy món ăn theo danh mục
   Future<List<FoodModel>> getFoodsByCategory(
     String category, {
@@ -155,11 +124,6 @@ class FoodViewModel extends ChangeNotifier {
   // Helper methods
   void _setLoading(bool value) {
     _isLoading = value;
-    notifyListeners();
-  }
-
-  void setSelectedFood(FoodModel food) {
-    _selectedFood = food;
     notifyListeners();
   }
 
@@ -273,6 +237,42 @@ class FoodViewModel extends ChangeNotifier {
       }
     } finally {
       _setLoading(false);
+    }
+  }
+
+  Future<void> addFood(FoodModel food) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+      await _repository.addFood(food);
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      throw "Fail $e";
+    }
+  }
+
+  Future<void> updateFood(FoodModel food, String id) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+      await _repository.updateFood(food, id);
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      throw "Fail $e";
+    }
+  }
+
+  Future<void> deleteFood(String foodId) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+      await _repository.deleteFood(foodId);
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      throw "Fail $e";
     }
   }
 }

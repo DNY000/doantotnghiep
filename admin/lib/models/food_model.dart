@@ -34,9 +34,9 @@ class FoodModel {
 
   factory FoodModel.fromMap(Map<String, dynamic> map) {
     return FoodModel(
-      id: map['id'] as String,
-      name: map['name'] as String,
-      description: map['description'] as String,
+      id: map['id'] ?? "",
+      name: map['name'] ?? "",
+      description: map['description'] ?? "",
       price: (map['price'] as num).toDouble(),
       discountPrice: (map['discountPrice'] as num?)?.toDouble(),
       images: List<String>.from(map['images'] as List),
@@ -45,7 +45,7 @@ class FoodModel {
         (e) => e.name == map['category'],
         orElse: () => CategoryFood.other,
       ),
-      restaurantId: map['restaurantId'] as String,
+      restaurantId: map['restaurantId'] ?? "",
       isAvailable: map['isAvailable'] as bool? ?? true,
       rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
       soldCount: map['soldCount'] as int? ?? 0,

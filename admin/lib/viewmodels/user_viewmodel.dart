@@ -9,6 +9,14 @@ class UserViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  // Thống kê số user đăng ký mới theo tuần hoặc tháng
+  List<int> _userRegistrationStats = [];
+  List<int> get userRegistrationStats => _userRegistrationStats;
+  bool _isStatsLoading = false;
+  bool get isStatsLoading => _isStatsLoading;
+  String? _statsError;
+  String? get statsError => _statsError;
+
   // Getters
   List<UserModel> get users => _users;
   bool get isLoading => _isLoading;
@@ -200,6 +208,25 @@ class UserViewModel extends ChangeNotifier {
       return false;
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Thống kê số user đăng ký mới theo tuần hoặc tháng
+  Future<void> getUserRegistrationStats(String period) async {
+    try {
+      _isStatsLoading = true;
+      _statsError = null;
+      notifyListeners();
+      _userRegistrationStats =
+          await _userRepository.getUserRegistrationStats(period);
+    } catch (e) {
+      _statsError = e.toString();
+      if (kDebugMode) {
+        print('Error getting user registration stats: $e');
+      }
+    } finally {
+      _isStatsLoading = false;
       notifyListeners();
     }
   }

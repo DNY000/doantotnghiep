@@ -232,7 +232,7 @@ class _ShipperContentState extends State<ShipperContent> {
                   ),
                   decoration: BoxDecoration(
                     color:
-                        shipper.status == 'active' ? Colors.green : Colors.red,
+                        shipper.status == 'active' ? Colors.green : Colors.grey,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -241,8 +241,8 @@ class _ShipperContentState extends State<ShipperContent> {
                         : 'Không hoạt động',
                     style: TextStyle(
                       color: shipper.status == 'active'
-                          ? Colors.green
-                          : Colors.red,
+                          ? Colors.white
+                          : Colors.white,
                     ),
                   ),
                 ),
@@ -280,6 +280,7 @@ class _ShipperContentState extends State<ShipperContent> {
 
                         if (confirmed == true) {
                           await viewModel.deleteShipper(shipper.id);
+                          await viewModel.loadShippers();
                         }
                       },
                     ),
@@ -354,9 +355,10 @@ class _ShipperContentState extends State<ShipperContent> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: shipper.status == 'active'
-                            ? Colors.green
-                            : Colors.red,
+                        color: Colors.white,
+                        // shipper.status == 'active'
+                        //     ? Colors.green
+                        //     : Colors.red,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -403,6 +405,7 @@ class _ShipperContentState extends State<ShipperContent> {
 
                             if (confirmed == true) {
                               await viewModel.deleteShipper(shipper.id);
+                              await viewModel.loadShippers();
                             }
                           },
                         ),
