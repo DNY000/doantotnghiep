@@ -89,11 +89,13 @@ class _OtherLoginState extends State<OtherLogin> {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(
-                                            loginViewModel.error.isNotEmpty
-                                                ? loginViewModel.error
-                                                : 'Lỗi không xác định: $e'),
+                                        content: Text(loginViewModel
+                                                .error.isNotEmpty
+                                            ? loginViewModel.error
+                                            : 'Đã có lỗi xảy ra vui lòng thử lại'),
                                         backgroundColor: Colors.red,
+                                        duration: const Duration(seconds: 2),
+                                        behavior: SnackBarBehavior.floating,
                                       ),
                                     );
                                   }
@@ -151,6 +153,7 @@ class _OtherLoginState extends State<OtherLogin> {
                                         SnackBar(
                                           content: Text(loginViewModel.error),
                                           backgroundColor: Colors.red,
+                                          duration: const Duration(seconds: 2),
                                         ),
                                       );
                                     }
@@ -163,11 +166,12 @@ class _OtherLoginState extends State<OtherLogin> {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(
-                                            loginViewModel.error.isNotEmpty
-                                                ? loginViewModel.error
-                                                : 'Lỗi không xác định: $e'),
+                                        content: Text(loginViewModel
+                                                .error.isNotEmpty
+                                            ? loginViewModel.error
+                                            : 'Đã có lỗi xảy ra vui lòng thử lại'),
                                         backgroundColor: Colors.red,
+                                        duration: const Duration(seconds: 2),
                                       ),
                                     );
                                   }
@@ -182,15 +186,6 @@ class _OtherLoginState extends State<OtherLogin> {
             ),
           ],
         ),
-        if (loginViewModel.error.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: Text(
-              loginViewModel.error,
-              style: const TextStyle(color: Colors.red, fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
-          ),
       ],
     );
   }

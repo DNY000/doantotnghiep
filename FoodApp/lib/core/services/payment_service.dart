@@ -5,12 +5,11 @@ import 'dart:convert';
 class VNPayService {
   static const String vnpUrl =
       'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
-  static const String vnpTmnCode = 'HAV9K10E'; // Thay bằng TMN Code của bạn
+  static const String vnpTmnCode = 'HAV9K10E';
   static const String vnpHashSecret = 'GS7KJKCV25U9WKA9S0M2O75SYQ5BAHFL';
   static const String vnpReturnUrl = 'myapp://payment-result';
   static const String vnpVersion = '2.1.0';
   static const String vnpCommand = 'pay';
-
   static String createPaymentUrl({
     required String orderId,
     required double amount,
@@ -21,8 +20,7 @@ class VNPayService {
       'vnp_Version': vnpVersion,
       'vnp_Command': vnpCommand,
       'vnp_TmnCode': vnpTmnCode,
-      'vnp_Amount':
-          (amount * 100).toInt().toString(), // VNPay yêu cầu amount * 100
+      'vnp_Amount': (amount * 100).toInt().toString(),
       'vnp_CurrCode': 'VND',
       'vnp_TxnRef': orderId,
       'vnp_OrderInfo': orderInfo,
@@ -33,7 +31,6 @@ class VNPayService {
       'vnp_CreateDate': _getCurrentTime(),
     };
 
-    // Sắp xếp parameters theo thứ tự alphabet
     var sortedKeys = vnpParams.keys.toList()..sort();
 
     // Tạo query string
@@ -47,7 +44,6 @@ class VNPayService {
     String signData = queryString;
     String secureHash = _hmacSHA512(vnpHashSecret, signData);
 
-    // Tạo URL cuối cùng
     String paymentUrl = '$vnpUrl?$queryString&vnp_SecureHash=$secureHash';
 
     return paymentUrl;
@@ -79,24 +75,15 @@ class VNPayService {
   static bool validateCallback(Map<String, String> params) {
     String? vnpSecureHash = params['vnp_SecureHash'];
     if (vnpSecureHash == null) return false;
-
-    // Remove vnp_SecureHash from params
     Map<String, String> sortedParams = Map.from(params);
     sortedParams.remove('vnp_SecureHash');
-
-    // Sort parameters
     var sortedKeys = sortedParams.keys.toList()..sort();
-
-    // Create query string
     List<String> queryParams = [];
     for (String key in sortedKeys) {
       queryParams.add('$key=${sortedParams[key]}');
     }
     String queryString = queryParams.join('&');
-
-    // Create secure hash
     String calculatedHash = _hmacSHA512(vnpHashSecret, queryString);
-
     return calculatedHash == vnpSecureHash;
   }
 }

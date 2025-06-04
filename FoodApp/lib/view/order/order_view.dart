@@ -22,11 +22,22 @@ class OrderView extends StatefulWidget {
 class _OrderViewState extends State<OrderView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _isControllerInitialized = false;
 
   @override
   void initState() {
     super.initState();
+    _initializeTabController();
+  }
+
+  void _initializeTabController() {
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        setState(() {});
+      }
+    });
+    _isControllerInitialized = true;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final userViewModel = context.read<UserViewModel>();
@@ -45,12 +56,23 @@ class _OrderViewState extends State<OrderView>
 
   @override
   void dispose() {
-    _tabController.dispose();
+    if (_isControllerInitialized) {
+      _tabController.removeListener(() {});
+      _tabController.dispose();
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_isControllerInitialized) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(

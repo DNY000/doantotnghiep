@@ -110,7 +110,7 @@ class FoodGridItem extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '-${(((food.price - (food.discountPrice ?? 0)) / food.price) * 100).round()}%',
+                  '-${_calculateDiscountPercentage(food.price, food.discountPrice ?? 0)}%',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
@@ -122,6 +122,12 @@ class FoodGridItem extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  int _calculateDiscountPercentage(double originalPrice, double discountPrice) {
+    if (originalPrice <= 0) return 0;
+    final percentage = ((originalPrice - discountPrice) / originalPrice) * 100;
+    return percentage.isFinite ? percentage.round() : 0;
   }
 }
 

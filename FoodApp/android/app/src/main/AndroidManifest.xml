@@ -98,6 +98,17 @@
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/white" />
 
+        <!-- Local Notifications -->
+        <meta-data
+            android:name="com.dexterous.flutterlocalnotifications.SmallIcon"
+            android:resource="@drawable/notification_icon" />
+        <meta-data
+            android:name="com.dexterous.flutterlocalnotifications.LargeIcon"
+            android:resource="@mipmap/ic_launcher" />
+        <meta-data
+            android:name="com.dexterous.flutterlocalnotifications.DefaultIcon"
+            android:resource="@drawable/notification_icon" />
+
         <service
             android:name="io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingService"
             android:exported="true"

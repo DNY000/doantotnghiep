@@ -118,7 +118,7 @@ class _OrderScreenState extends State<OrderScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Đặt hàng thất bại: $e')),
+          const SnackBar(content: Text('Đặt hàng thất bại: ')),
         );
       }
     }

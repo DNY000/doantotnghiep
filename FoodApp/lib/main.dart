@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:foodapp/core/services/connected_internet.dart';
 import 'package:foodapp/viewmodels/banner_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 
 // App files
 import 'package:foodapp/core/firebase_options.dart'
@@ -22,7 +25,6 @@ import 'package:foodapp/viewmodels/user_viewmodel.dart';
 import 'package:foodapp/viewmodels/simple_providers.dart';
 import 'package:foodapp/routes/page_router.dart';
 import 'package:foodapp/ultils/local_storage/storage_utilly.dart';
-import 'package:foodapp/core/services/notifications_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -33,11 +35,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-
-  // Tải biến môi trường từ file .env
   await dotenv.load(fileName: ".env");
-
-  // Khởi tạo Firebase và local storage cdsong song
   await Future.wait([
     TLocalStorage.init('food_app'),
     Firebase.initializeApp(
@@ -78,7 +76,6 @@ Future<void> main() async {
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
-
   @override
   State<MyApp> createState() => _MyAppState();
 }
@@ -89,31 +86,35 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
+    // Khởi tạo NetworkStatusService
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        NotificationsService.initialize(context);
-      }
+      NetworkStatusService().initialize();
     });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    NetworkStatusService().dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) {
-    // const overlayStyle = SystemUiOverlayStyle(
-    //   statusBarColor: Colors.white, // Status bar có màu nền trắng
-    //   statusBarIconBrightness: Brightness.dark, // Icon màu đen
-    //   statusBarBrightness: Brightness.light, // Cho iOS
-    //   // Navigation bar properties (dù bị ẩn)
-    //   systemNavigationBarColor: Colors.transparent,
-    //   systemNavigationBarIconBrightness: Brightness.light,
-    //   systemNavigationBarDividerColor: Colors.transparent,
-    // );
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
 
+    // Khi app quay trở lại foreground, kiểm tra lại kết nối
+    if (state == AppLifecycleState.resumed) {
+      // Delay một chút để đảm bảo kết nối ổn định
+      Future.delayed(const Duration(milliseconds: 300), () {
+        // Trigger kiểm tra kết nối bằng cách gọi connectivity check
+        Connectivity().checkConnectivity();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Food App',
       debugShowCheckedModeBanner: false,
@@ -127,27 +128,137 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           backgroundColor: Colors.white,
           elevation: 0,
           iconTheme: IconThemeData(color: Colors.black),
-          // systemOverlayStyle: overlayStyle,
-          surfaceTintColor:
-              Colors.transparent, // tắt tính năng đổi màu khi vuốt xuống
+          surfaceTintColor: Colors.transparent,
         ),
       ),
-      // builder: (context, child) {
-      //   return AnnotatedRegion<SystemUiOverlayStyle>(
-      //     value: overlayStyle,
-      //     child: MediaQuery(
-      //       // CHỈ loại bỏ bottom padding (navigation bar area)
-      //       // GIỮ NGUYÊN top padding cho status bar
-      //       data: MediaQuery.of(context).copyWith(
-      //         padding: MediaQuery.of(context).padding.copyWith(
-      //               bottom: 0, // Loại bỏ bottom padding
-      //               // top: MediaQuery.of(context).padding.top, // Giữ nguyên top padding
-      //             ),
-      //       ),
-      //       child: child!,
-      //     ),
-      //   );
-      // },
+      builder: (context, child) {
+        return Stack(
+          children: [
+            child!,
+            const NetworkStatusOverlay(),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class NetworkStatusOverlay extends StatefulWidget {
+  const NetworkStatusOverlay({super.key});
+
+  @override
+  State<NetworkStatusOverlay> createState() => _NetworkStatusOverlayState();
+}
+
+class _NetworkStatusOverlayState extends State<NetworkStatusOverlay> {
+  bool _isDialogShowing = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<bool>(
+      stream: NetworkStatusService().connectionState,
+      builder: (context, snapshot) {
+        if (snapshot.hasData && !snapshot.data! && !_isDialogShowing) {
+          _isDialogShowing = true;
+          Future.delayed(Duration.zero, () {
+            if (mounted) {
+              _showConnectionDialog();
+            }
+          });
+        } else if (snapshot.hasData && snapshot.data! && _isDialogShowing) {
+          _isDialogShowing = false;
+        }
+        return const SizedBox.shrink();
+      },
+    );
+  }
+
+  void _showConnectionDialog() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      _isDialogShowing = false;
+      return;
+    }
+
+    final context = navigatorKey.currentContext;
+    if (context == null) {
+      _isDialogShowing = false;
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Row(
+              children: [
+                Icon(Icons.wifi_off, color: Colors.red, size: 24),
+                SizedBox(width: 8),
+                Text(
+                  'Mất kết nối',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            content: const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.cloud_off, size: 48, color: Colors.grey),
+                SizedBox(height: 16),
+                Text(
+                  'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại kết nối mạng của bạn.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  _isDialogShowing = false;
+                  await NetworkStatusService().retryConnection();
+                },
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.refresh, size: 18),
+                    SizedBox(width: 4),
+                    Text('Thử lại'),
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _isDialogShowing = false;
+                  SystemNavigator.pop();
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.red,
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.exit_to_app, size: 18),
+                    SizedBox(width: 4),
+                    Text('Thoát'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

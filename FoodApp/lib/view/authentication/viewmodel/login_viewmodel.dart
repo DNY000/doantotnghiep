@@ -124,7 +124,7 @@ class LoginViewModel extends ChangeNotifier {
       // Đảm bảo thông báo lỗi không phải là một đối tượng
       _error = e.toString();
       if (_error.contains("Instance of ")) {
-        _error = "Đã xảy ra lỗi không xác định. Vui lòng thử lại.";
+        _error = "Đã xảy ra lỗi.Vui lòng thử lại.";
       }
       notifyListeners();
       return false;

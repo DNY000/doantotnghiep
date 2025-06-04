@@ -16,10 +16,16 @@ class MyProfileView extends StatefulWidget {
 }
 
 class _MyProfileViewState extends State<MyProfileView> {
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        _loadUserData();
+      },
+    );
   }
 
   @override
@@ -32,30 +38,38 @@ class _MyProfileViewState extends State<MyProfileView> {
 
     try {
       final userViewModel = Provider.of<UserViewModel>(context, listen: false);
-
-      if (userViewModel.currentUser != null) {
-        return;
-      }
-
       final userId = FirebaseAuth.instance.currentUser?.uid;
+
       if (userId != null) {
-        await Future.microtask(() async {
-          await userViewModel.fetchUser(userId);
-        });
+        await userViewModel.fetchUser(userId);
       }
     } catch (e) {
-      throw Exception('Error loading user data: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi tải dữ liệu: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final userViewModel = context.watch<UserViewModel>();
+    final currentUser = userViewModel.currentUser;
 
     return SafeArea(
       child: Scaffold(
         backgroundColor: TColor.bg,
-        body: userViewModel.isLoading
+        body: _isLoading || userViewModel.isLoading
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
                 child: Column(
@@ -72,42 +86,7 @@ class _MyProfileViewState extends State<MyProfileView> {
                                 CircleAvatar(
                                   radius: 30,
                                   backgroundColor: Colors.white,
-                                  child: (userViewModel
-                                                  .currentUser?.avatarUrl !=
-                                              null &&
-                                          userViewModel.currentUser!.avatarUrl
-                                              .isNotEmpty)
-                                      ? ClipOval(
-                                          child: Image.network(
-                                            userViewModel
-                                                .currentUser!.avatarUrl,
-                                            width:
-                                                60, // Twice the radius for fill
-                                            height:
-                                                60, // Twice the radius for fill
-                                            fit: BoxFit.cover,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                              // Fallback to initial if network image fails
-                                              return const Icon(Icons.person);
-                                            },
-                                          ),
-                                        )
-                                      : Text(
-                                          (userViewModel.currentUser?.name
-                                                      .isNotEmpty ==
-                                                  true)
-                                              ? userViewModel.currentUser!.name
-                                                  .substring(0, 1)
-                                                  .toUpperCase()
-                                              : 'U',
-                                          style: const TextStyle(
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors
-                                                .green, // Or a suitable default color
-                                          ),
-                                        ),
+                                  child: _buildAvatar(currentUser),
                                 ),
                                 const SizedBox(width: 15),
                                 Expanded(
@@ -116,8 +95,7 @@ class _MyProfileViewState extends State<MyProfileView> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        userViewModel.currentUser?.name ??
-                                            'User',
+                                        currentUser?.name ?? 'User',
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 20,
@@ -125,7 +103,7 @@ class _MyProfileViewState extends State<MyProfileView> {
                                         ),
                                       ),
                                       Text(
-                                        userViewModel.currentUser?.email ?? '',
+                                        currentUser?.email ?? '',
                                         style: const TextStyle(
                                           color: Colors.white70,
                                           fontSize: 14,
@@ -367,5 +345,37 @@ class _MyProfileViewState extends State<MyProfileView> {
         ),
       );
     }
+  }
+
+  Widget _buildAvatar(dynamic currentUser) {
+    if (currentUser?.avatarUrl != null && currentUser.avatarUrl.isNotEmpty) {
+      return ClipOval(
+        child: Image.network(
+          currentUser.avatarUrl,
+          width: 60,
+          height: 60,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return _buildInitialAvatar(currentUser);
+          },
+        ),
+      );
+    }
+    return _buildInitialAvatar(currentUser);
+  }
+
+  Widget _buildInitialAvatar(dynamic currentUser) {
+    final initial = (currentUser?.name?.isNotEmpty == true)
+        ? currentUser.name.substring(0, 1).toUpperCase()
+        : 'U';
+
+    return Text(
+      initial,
+      style: const TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: Colors.green,
+      ),
+    );
   }
 }
