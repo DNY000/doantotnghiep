@@ -11,6 +11,7 @@ import 'package:foodapp/viewmodels/restaurant_viewmodel.dart';
 import 'package:foodapp/viewmodels/user_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:foodapp/core/services/webview.dart';
+import 'package:foodapp/core/services/notifications_service.dart';
 
 class OrderScreen extends StatefulWidget {
   final List<CartItemModel> cartItems;
@@ -107,6 +108,18 @@ class _OrderScreenState extends State<OrderScreen> {
           note: _noteController.text,
           currentUser: currentUser,
           restaurantName: restaurant!.name);
+
+      // Hiển thị thông báo local
+      try {
+        await NotificationsService.showLocalNotification(
+          title: 'Đặt hàng thành công',
+          body:
+              'Đơn hàng của bạn đã được đặt thành công. Chúng tôi sẽ xử lý đơn hàng của bạn sớm nhất có thể.',
+          payload: 'order_success',
+        );
+      } catch (e) {
+        print('Lỗi khi hiển thị thông báo: $e');
+      }
 
       // context.go('/main_tab');
       Navigator.push(

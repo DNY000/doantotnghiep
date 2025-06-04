@@ -288,6 +288,9 @@ class _SingleFoodDetailState extends State<SingleFoodDetail> {
                 backgroundColor: Colors.orange,
                 foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 45),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
           ),

@@ -94,6 +94,7 @@ class NotificationsService {
         enableVibration: true,
         enableLights: true,
         playSound: true,
+        showBadge: true,
       );
 
       await _localNotifications
@@ -105,8 +106,6 @@ class NotificationsService {
 
   // Hiển thị local notification khi app ở foreground
   static Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    // In thông tin message cho debug
-
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
 
@@ -120,7 +119,7 @@ class NotificationsService {
         importance: Importance.max,
         priority: Priority.high,
         ticker: 'Thông báo mới',
-        icon: android?.smallIcon ?? '@mipmap/ic_launcher',
+        icon: '@mipmap/ic_launcher',
         color: Colors.orange,
         showWhen: true,
       );
@@ -245,32 +244,42 @@ class NotificationsService {
     required String body,
     String? payload,
   }) async {
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      _channelId,
-      _channelName,
-      channelDescription: _channelDescription,
-      importance: Importance.max,
-      priority: Priority.high,
-    );
+    try {
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+        _channelId,
+        _channelName,
+        channelDescription: _channelDescription,
+        importance: Importance.max,
+        priority: Priority.high,
+        icon: '@mipmap/ic_launcher',
+        color: Colors.orange,
+        showWhen: true,
+        enableVibration: true,
+        playSound: true,
+        enableLights: true,
+      );
 
-    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
+      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
 
-    const NotificationDetails platformDetails = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
+      const NotificationDetails platformDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
 
-    await _localNotifications.show(
-      DateTime.now().millisecond,
-      title,
-      body,
-      platformDetails,
-      payload: payload,
-    );
+      await _localNotifications.show(
+        DateTime.now().millisecond,
+        title,
+        body,
+        platformDetails,
+        payload: payload,
+      );
+    } catch (e) {
+      print('Lỗi khi hiển thị thông báo: $e');
+    }
   }
 }
