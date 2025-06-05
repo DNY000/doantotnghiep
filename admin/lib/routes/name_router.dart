@@ -1,9 +1,7 @@
 class NameRouter {
   static const String splash = '/';
   static const String dashboard = '/dashboard';
-
   static const String login = '/login';
-
   static const String category = '/category';
   static const String register = '/register';
   static const String forgotPassword = '/forgot_password';

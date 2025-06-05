@@ -11,6 +11,26 @@ class CategoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: Responsive.isMobile(context)
+          ? AppBar(
+              leading: Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                ),
+              ),
+              title: Text('Quản lý Danh mục',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(color: Colors.white)),
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              elevation: 0,
+            )
+          : null,
+      drawer: Responsive.isMobile(context) ? const SideMenu() : null,
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -44,7 +64,9 @@ class _CategoryContentState extends State<CategoryContent> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => context.read<CategoryViewModel>().loadCategories());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CategoryViewModel>().loadCategories();
+    });
   }
 
   @override
@@ -57,15 +79,17 @@ class _CategoryContentState extends State<CategoryContent> {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.max,
       children: [
-        // Header section
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Quản lý Danh mục',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            if (!Responsive.isMobile(context))
+              Text(
+                'Quản lý Danh mục',
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+            if (!Responsive.isMobile(context)) const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () {
                 _showCategoryDialog(context);
@@ -82,8 +106,6 @@ class _CategoryContentState extends State<CategoryContent> {
           ],
         ),
         const SizedBox(height: 24),
-
-        // Search section
         TextField(
           controller: _searchController,
           decoration: InputDecoration(
@@ -98,8 +120,6 @@ class _CategoryContentState extends State<CategoryContent> {
           onChanged: (value) => setState(() {}),
         ),
         const SizedBox(height: 24),
-
-        // Category list
         Expanded(
           child: Consumer<CategoryViewModel>(
             builder: (context, viewModel, child) {
@@ -124,7 +144,6 @@ class _CategoryContentState extends State<CategoryContent> {
 
               var filteredCategories = viewModel.categories;
 
-              // Apply search filter
               if (_searchController.text.isNotEmpty) {
                 filteredCategories = filteredCategories
                     .where(
@@ -154,78 +173,97 @@ class _CategoryContentState extends State<CategoryContent> {
     CategoryViewModel viewModel,
   ) {
     return SingleChildScrollView(
-      child: DataTable(
-        columns: const [
-          DataColumn(label: Text('Hình ảnh')),
-          DataColumn(label: Text('Tên')),
-          DataColumn(label: Text('Trạng thái')),
-          DataColumn(label: Text('Thao tác')),
-        ],
-        rows: categories.map((category) {
-          return DataRow(
-            cells: [
-              DataCell(
-                category.image.isNotEmpty
-                    ? Image.network(
-                        category.image,
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.cover,
-                      )
-                    : const Icon(Icons.image_not_supported),
-              ),
-              DataCell(Text(category.name)),
-              DataCell(
-                category.isActive
-                    ? const Text('Hoạt động',
-                        style: TextStyle(color: Colors.green))
-                    : const Text('Ẩn', style: TextStyle(color: Colors.red)),
-              ),
-              DataCell(
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () {
-                        _showCategoryDialog(context, category);
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () async {
-                        final confirmed = await showDialog<bool>(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Xác nhận xóa'),
-                            content: Text(
-                              'Bạn có chắc muốn xóa danh mục ${category.name}?',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, false),
-                                child: const Text('Hủy'),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, true),
-                                child: const Text('Xóa'),
-                              ),
-                            ],
-                          ),
-                        );
-
-                        if (confirmed == true) {
-                          await viewModel.deleteCategory(category.id);
-                          await viewModel.loadCategories();
-                        }
-                      },
-                    ),
-                  ],
+      scrollDirection: Axis.horizontal,
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width -
+            (Responsive.isDesktop(context) ? 240 : 0) -
+            (16 * 2),
+        child: DataTable(
+          columns: const [
+            DataColumn(label: Text('Hình ảnh')),
+            DataColumn(label: Text('Tên')),
+            DataColumn(label: Text('Trạng thái')),
+            DataColumn(label: Text('Thao tác')),
+          ],
+          rows: categories.map((category) {
+            return DataRow(
+              cells: [
+                DataCell(
+                  category.image.isNotEmpty
+                      ? Image.network(
+                          category.image,
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.asset(
+                              'assets/images/placeholder_category.png',
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.image_not_supported,
+                                    size: 30);
+                              },
+                            );
+                          },
+                        )
+                      : const Icon(Icons.image_not_supported, size: 30),
                 ),
-              ),
-            ],
-          );
-        }).toList(),
+                DataCell(Text(category.name)),
+                DataCell(
+                  category.isActive
+                      ? const Text('Hoạt động',
+                          style: TextStyle(color: Colors.green))
+                      : const Text('Ẩn', style: TextStyle(color: Colors.red)),
+                ),
+                DataCell(
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () {
+                          _showCategoryDialog(context, category);
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Xác nhận xóa'),
+                              content: Text(
+                                'Bạn có chắc muốn xóa danh mục ${category.name}?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: const Text('Hủy'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Xóa'),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (confirmed == true) {
+                            await viewModel.deleteCategory(category.id);
+                            await viewModel.loadCategories();
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -239,38 +277,62 @@ class _CategoryContentState extends State<CategoryContent> {
       itemBuilder: (context, index) {
         final category = categories[index];
         return Card(
-          margin: const EdgeInsets.only(bottom: 16),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (category.image.isNotEmpty)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          category.image,
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    else
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.image_not_supported,
-                          size: 40,
-                          color: Colors.grey,
-                        ),
-                      ),
+                    category.image.isNotEmpty
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              category.image,
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  'assets/images/placeholder_category.png',
+                                  width: 80,
+                                  height: 80,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      width: 80,
+                                      height: 80,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[200],
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(
+                                        Icons.image_not_supported,
+                                        size: 40,
+                                        color: Colors.grey,
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          )
+                        : Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.image_not_supported,
+                              size: 40,
+                              color: Colors.grey,
+                            ),
+                          ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
@@ -282,50 +344,54 @@ class _CategoryContentState extends State<CategoryContent> {
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () {
-                        _showCategoryDialog(context, category);
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () async {
-                        final confirmed = await showDialog<bool>(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Xác nhận xóa'),
-                            content: Text(
-                              'Bạn có chắc muốn xóa danh mục ${category.name}?',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, false),
-                                child: const Text('Hủy'),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () {
+                                  _showCategoryDialog(context, category);
+                                },
                               ),
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, true),
-                                child: const Text('Xóa'),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () async {
+                                  final confirmed = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Xác nhận xóa'),
+                                      content: Text(
+                                        'Bạn có chắc muốn xóa danh mục ${category.name}?',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, false),
+                                          child: const Text('Hủy'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, true),
+                                          child: const Text('Xóa'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+
+                                  if (confirmed == true) {
+                                    await viewModel.deleteCategory(category.id);
+                                    await viewModel.loadCategories();
+                                  }
+                                },
                               ),
                             ],
                           ),
-                        );
-
-                        if (confirmed == true) {
-                          await viewModel.deleteCategory(category.id);
-                          await viewModel.loadCategories();
-                        }
-                      },
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -422,7 +488,7 @@ class _CategoryContentState extends State<CategoryContent> {
                           }
 
                           final newCategory = CategoryModel(
-                            id: category?.id ?? '', // Use existing ID for edit
+                            id: category?.id ?? '',
                             name: nameController.text,
                             image: imageController.text,
                             isActive: isActive,
@@ -430,15 +496,7 @@ class _CategoryContentState extends State<CategoryContent> {
 
                           try {
                             if (category == null) {
-                              // Tạo mới với thời gian tạo hiện tại
-                              // final categoryToAdd = newCategory.copyWith(
-                              //   createdAt: DateTime.now(),
-                              // );
-                              // await viewModel.addCategory(categoryToAdd);
-                              // debugPrint(
-                              //     'Added category: ${categoryToAdd.name}');
                             } else {
-                              // Cập nhật, giữ nguyên thời gian tạo
                               await viewModel.updateCategory(
                                   category.id, newCategory);
                               debugPrint(
@@ -446,8 +504,7 @@ class _CategoryContentState extends State<CategoryContent> {
                             }
                             await viewModel.loadCategories();
                             if (context.mounted) {
-                              Navigator.pop(
-                                  context); // Đóng dialog sau khi thành công
+                              Navigator.pop(context);
                             }
                           } catch (e) {
                             debugPrint('Dialog action error: $e');

@@ -11,6 +11,28 @@ class ShipperScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Add AppBar for mobile view
+      appBar: Responsive.isMobile(context)
+          ? AppBar(
+              leading: Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                ),
+              ),
+              title: Text('Quản lý Shipper',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(color: Colors.white)),
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              elevation: 0,
+            )
+          : null,
+      // Use SideMenu as drawer on mobile
+      drawer: Responsive.isMobile(context) ? const SideMenu() : null,
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -63,17 +85,19 @@ class _ShipperContentState extends State<ShipperContent> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Quản lý Shipper',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            // Hide title on mobile as it's in AppBar
+            if (!Responsive.isMobile(context))
+              Text(
+                'Quản lý Shipper',
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
             ElevatedButton.icon(
               onPressed: () {},
               icon: const Icon(Icons.add),
               label: const Text('Thêm Shipper'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
+                  horizontal: 16,
                   vertical: 12,
                 ),
               ),
@@ -239,11 +263,7 @@ class _ShipperContentState extends State<ShipperContent> {
                     shipper.status == 'active'
                         ? 'Đang hoạt động'
                         : 'Không hoạt động',
-                    style: TextStyle(
-                      color: shipper.status == 'active'
-                          ? Colors.white
-                          : Colors.white,
-                    ),
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ),
               ),
@@ -355,21 +375,16 @@ class _ShipperContentState extends State<ShipperContent> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        // shipper.status == 'active'
-                        //     ? Colors.green
-                        //     : Colors.red,
+                        color: shipper.status == 'active'
+                            ? Colors.green
+                            : Colors.grey,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         shipper.status == 'active'
                             ? 'Đang hoạt động'
                             : 'Không hoạt động',
-                        style: TextStyle(
-                          color: shipper.status == 'active'
-                              ? Colors.green
-                              : Colors.red,
-                        ),
+                        style: const TextStyle(color: Colors.white),
                       ),
                     ),
                     Row(

@@ -11,6 +11,28 @@ class BannerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Add AppBar for mobile view
+      appBar: Responsive.isMobile(context)
+          ? AppBar(
+              leading: Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                ),
+              ),
+              title: Text('Quản lý Banner',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(color: Colors.white)),
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              elevation: 0,
+            )
+          : null,
+      // Use SideMenu as drawer on mobile
+      drawer: Responsive.isMobile(context) ? const SideMenu() : null,
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -62,10 +84,12 @@ class _BannerContentState extends State<BannerContent> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Quản lý Banner',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            // Hide title on mobile as it's in AppBar
+            if (!Responsive.isMobile(context))
+              Text(
+                'Quản lý Banner',
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
             ElevatedButton.icon(
               onPressed: () {
                 _showBannerDialog(context);
@@ -156,11 +180,20 @@ class _BannerContentState extends State<BannerContent> {
             cells: [
               DataCell(
                 banner.image.isNotEmpty
-                    ? Image.asset(
+                    ? Image.network(
                         banner.image,
                         width: 100,
                         height: 50,
                         fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            Image.asset(
+                          'assets/images/default_banner.png', // Replace with your default asset image
+                          width: 100,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.image_not_supported),
+                        ),
                       )
                     : const Icon(Icons.image_not_supported),
               ),
@@ -239,6 +272,26 @@ class _BannerContentState extends State<BannerContent> {
                       width: double.infinity,
                       height: 150,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Image.asset(
+                        'assets/images/default_banner.png', // Replace with your default asset image
+                        width: double.infinity,
+                        height: 150,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          // Use Container as fallback for asset image
+                          width: double.infinity,
+                          height: 150,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.image_not_supported,
+                            size: 40,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
                     ),
                   )
                 else

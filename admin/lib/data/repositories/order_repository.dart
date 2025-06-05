@@ -259,49 +259,66 @@ class OrderRepository {
     }
   }
 
-  // Thống kê doanh thu
+  // Tính doanh thu hôm nay
+  Future<double> getTodayRevenue() async {
+    try {
+      final now = DateTime.now();
+      final startOfDay = DateTime(now.year, now.month, now.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+
+      // Lấy tất cả đơn hàng đã hoàn thành
+      final snapshot = await _firestore
+          .collection(_collection)
+          .where('status', isEqualTo: OrderState.delivered.name)
+          .get();
+
+      double totalRevenue = 0;
+      for (var doc in snapshot.docs) {
+        final order =
+            OrderModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+        // Lọc theo thời gian ở phía client
+        if (order.createdAt.isAfter(startOfDay) &&
+            order.createdAt.isBefore(endOfDay)) {
+          totalRevenue += order.totalPrice;
+        }
+      }
+
+      return totalRevenue;
+    } catch (e) {
+      print('Error calculating today revenue: $e');
+      return 0;
+    }
+  }
+
+  // Tính doanh thu từ đơn hàng đã hoàn thành
   Future<Map<String, dynamic>> getRevenueStats({
-    String? restaurantId,
     DateTime? fromDate,
     DateTime? toDate,
   }) async {
     try {
-      Query query = _firestore
+      // Lấy tất cả đơn hàng đã hoàn thành
+      final snapshot = await _firestore
           .collection(_collection)
-          .where('metadata.status', isEqualTo: OrderState.delivered.name);
-      if (restaurantId != null) {
-        query = query.where('restaurantId', isEqualTo: restaurantId);
-      }
+          .where('status', isEqualTo: OrderState.delivered.name)
+          .get();
 
-      if (fromDate != null) {
-        query = query.where(
-          'createdAt',
-          isGreaterThanOrEqualTo: Timestamp.fromDate(fromDate),
-        );
-      }
-
-      if (toDate != null) {
-        query = query.where(
-          'createdAt',
-          isLessThanOrEqualTo: Timestamp.fromDate(toDate),
-        );
-      }
-
-      final snapshot = await query.get();
       double totalRevenue = 0;
       int totalOrders = 0;
       Map<String, double> dailyRevenue = {};
 
       for (var doc in snapshot.docs) {
-        final order = OrderModel.fromMap(
-          doc.data() as Map<String, dynamic>,
-          doc.id,
-        );
+        final order =
+            OrderModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+
+        // Lọc theo khoảng thời gian ở phía client
+        if (fromDate != null && order.createdAt.isBefore(fromDate)) continue;
+        if (toDate != null && order.createdAt.isAfter(toDate)) continue;
+
         totalRevenue += order.totalPrice;
         totalOrders++;
 
         // Thống kê theo ngày
-        final dateKey = DateFormat('yyyy-MM-dd').format(order.orderTime);
+        final dateKey = DateFormat('yyyy-MM-dd').format(order.createdAt);
         dailyRevenue[dateKey] = (dailyRevenue[dateKey] ?? 0) + order.totalPrice;
       }
 
@@ -312,7 +329,13 @@ class OrderRepository {
         'dailyRevenue': dailyRevenue,
       };
     } catch (e) {
-      throw Exception('Không thể lấy thống kê doanh thu: $e');
+      print('Error calculating revenue: $e');
+      return {
+        'totalRevenue': 0,
+        'totalOrders': 0,
+        'averageOrderValue': 0,
+        'dailyRevenue': {},
+      };
     }
   }
 
@@ -391,6 +414,106 @@ class OrderRepository {
       return ShipperModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
     } catch (e) {
       throw Exception('Không thể lấy thông tin shipper: $e');
+    }
+  }
+
+  // Thống kê số lượng đơn hàng theo thời gian
+  Future<List<int>?> getOrderStats(String period) async {
+    try {
+      final now = DateTime.now();
+      final List<int> stats = [];
+
+      if (period == 'week') {
+        // Lấy số lượng đơn hàng trong 7 ngày gần nhất
+        for (int i = 6; i >= 0; i--) {
+          final date = now.subtract(Duration(days: i));
+          final startOfDay = DateTime(date.year, date.month, date.day);
+          final endOfDay = startOfDay.add(const Duration(days: 1));
+
+          final snapshot = await _firestore
+              .collection(_collection)
+              .where('createdAt',
+                  isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+              .where('createdAt', isLessThan: Timestamp.fromDate(endOfDay))
+              .count()
+              .get();
+
+          stats.add(snapshot.count ?? 0);
+        }
+      } else {
+        // Lấy số lượng đơn hàng trong 12 tháng gần nhất
+        for (int i = 11; i >= 0; i--) {
+          final date = DateTime(now.year, now.month - i, 1);
+          final startOfMonth = DateTime(date.year, date.month, 1);
+          final endOfMonth = DateTime(date.year, date.month + 1, 1);
+
+          final snapshot = await _firestore
+              .collection(_collection)
+              .where('createdAt',
+                  isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+              .where('createdAt', isLessThan: Timestamp.fromDate(endOfMonth))
+              .count()
+              .get();
+
+          stats.add(snapshot.count ?? 0);
+        }
+      }
+
+      return stats;
+    } catch (e) {
+      throw Exception('Không thể lấy thống kê đơn hàng: $e');
+    }
+  }
+
+  // Lấy 5 đơn hàng gần nhất
+  Future<List<OrderModel>> getRecentOrders() async {
+    try {
+      final snapshot = await _firestore
+          .collection(_collection)
+          .orderBy('createdAt', descending: true)
+          .limit(5)
+          .get();
+      print('DOn hoang gan nhat');
+      return snapshot.docs
+          .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
+          .toList();
+    } catch (e) {
+      throw Exception('Không thể lấy danh sách đơn hàng gần đây: $e');
+    }
+  }
+
+  // Lấy tên nhà hàng theo ID
+  Future<String> getRestaurantName(String restaurantId) async {
+    try {
+      final doc =
+          await _firestore.collection('restaurants').doc(restaurantId).get();
+      if (!doc.exists) return 'Không xác định';
+      return doc.data()?['name'] ?? 'Không xác định';
+    } catch (e) {
+      print('Error getting restaurant name: $e');
+      return 'Không xác định';
+    }
+  }
+
+  // Lấy số lượng đơn hàng hôm nay
+  Future<int> getTodayOrderCount() async {
+    try {
+      final now = DateTime.now();
+      final startOfDay = DateTime(now.year, now.month, now.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+
+      final snapshot = await _firestore
+          .collection(_collection)
+          .where('createdAt',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+          .where('createdAt', isLessThan: Timestamp.fromDate(endOfDay))
+          .count()
+          .get();
+
+      return snapshot.count ?? 0;
+    } catch (e) {
+      print('Error getting today order count: $e');
+      return 0;
     }
   }
 }

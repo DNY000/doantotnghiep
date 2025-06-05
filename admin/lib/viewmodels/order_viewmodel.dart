@@ -23,6 +23,12 @@ class OrderViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> _topSellingFoods = [];
   List<FoodModel> _recommendedFoods = [];
   Stream<List<OrderModel>>? _ordersStream;
+  List<int>? _orderStats = [];
+  bool _isStatsLoading = false;
+  String? _statsError;
+  List<OrderModel> _recentOrders = [];
+  int _todayOrderCount = 0;
+  double _todayRevenue = 0;
 
   OrderViewModel(this._repository, {FoodRepository? foodRepository})
       : _foodRepository = foodRepository ?? FoodRepository();
@@ -35,6 +41,12 @@ class OrderViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> get topSellingFoods => _topSellingFoods;
   List<FoodModel> get recommendedFoods => _recommendedFoods;
   Stream<List<OrderModel>>? get ordersStream => _ordersStream;
+  List<int> get orderStats => _orderStats ?? [];
+  bool get isStatsLoading => _isStatsLoading;
+  String? get statsError => _statsError;
+  List<OrderModel> get recentOrders => _recentOrders;
+  int get todayOrderCount => _todayOrderCount;
+  double get todayRevenue => _todayRevenue;
 
   // Tạo đơn hàng mới
   Future<void> createOrder({
@@ -313,7 +325,7 @@ class OrderViewModel extends ChangeNotifier {
     try {
       _setLoading(true);
       final result = await _repository.getRevenueStats(
-        restaurantId: restaurantId,
+        // restaurantId: restaurantId,
         fromDate: fromDate,
         toDate: toDate,
       );
@@ -386,28 +398,6 @@ class OrderViewModel extends ChangeNotifier {
     );
     notifyListeners();
   }
-
-  // Future<void> fetchTopSellingFoodsLastWeek() async {
-  //   try {
-  //     _isLoading = true;
-  //     notifyListeners();
-
-  //     final now = DateTime.now();
-  //     final lastWeek = now.subtract(const Duration(days: 7));
-
-  //     _topSellingFoods = await _repository.getTopSellingFoods(
-  //       restaurantId: '',
-  //       limit: 10,
-  //     );
-  //     _error = '';
-  //   } catch (e) {
-  //     _error = 'Không thể lấy danh sách món ăn bán chạy: ${e.toString()}';
-  //     _topSellingFoods = [];
-  //   } finally {
-  //     _isLoading = false;
-  //     notifyListeners();
-  //   }
-  // }
 
   // Thêm phương thức để lọc món ăn bán chạy theo danh mục
   List<Map<String, dynamic>> getTopSellingFoodsByCategory(String category) {
@@ -576,6 +566,96 @@ class OrderViewModel extends ChangeNotifier {
       _error = e.toString();
       notifyListeners();
       rethrow;
+    }
+  }
+
+  // Thống kê số lượng đơn hàng
+  Future<void> getOrderStats(String period) async {
+    try {
+      _isStatsLoading = true;
+      _statsError = null;
+      notifyListeners();
+
+      _orderStats = await _repository.getOrderStats(period);
+    } catch (e) {
+      _statsError = e.toString();
+      if (kDebugMode) {
+        print('Error getting order stats: $e');
+      }
+    } finally {
+      _isStatsLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Lấy 5 đơn hàng gần nhất
+  Future<void> loadRecentOrders() async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      _recentOrders = await _repository.getRecentOrders();
+      print('don hang gan nhat ${_recentOrders.length}');
+    } catch (e) {
+      _error = e.toString();
+      if (kDebugMode) {
+        print('Error loading recent orders: $e');
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Lấy tên nhà hàng theo ID
+  Future<String> getRestaurantName(String restaurantId) async {
+    try {
+      return await _repository.getRestaurantName(restaurantId);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting restaurant name: $e');
+      }
+      return 'Không xác định';
+    }
+  }
+
+  // Lấy số lượng đơn hàng hôm nay
+  Future<void> loadTodayOrderCount() async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      _todayOrderCount = await _repository.getTodayOrderCount();
+      print('số lương đơn hôm nay $_todayOrderCount');
+    } catch (e) {
+      _error = e.toString();
+      if (kDebugMode) {
+        print('Error loading today order count: $e');
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Lấy doanh thu hôm nay
+  Future<void> loadTodayRevenue() async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      _todayRevenue = await _repository.getTodayRevenue();
+    } catch (e) {
+      _error = e.toString();
+      if (kDebugMode) {
+        print('Error loading today revenue: $e');
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }

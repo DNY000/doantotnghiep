@@ -12,6 +12,28 @@ class UsersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Add AppBar for mobile view
+      appBar: Responsive.isMobile(context)
+          ? AppBar(
+              leading: Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                ),
+              ),
+              title: Text('Quản lý Người dùng',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(color: Colors.white)),
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              elevation: 0,
+            )
+          : null,
+      // Use SideMenu as drawer on mobile
+      drawer: Responsive.isMobile(context) ? const SideMenu() : null,
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -64,17 +86,19 @@ class _UsersContentState extends State<UsersContent> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Quản lý Người dùng',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            // Hide title on mobile as it's in AppBar
+            if (!Responsive.isMobile(context))
+              Text(
+                'Quản lý Người dùng',
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
             ElevatedButton.icon(
               onPressed: () {},
               icon: const Icon(Icons.add),
               label: const Text('Thêm Người dùng'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
+                  horizontal: 16,
                   vertical: 12,
                 ),
               ),
@@ -236,10 +260,7 @@ class _UsersContentState extends State<UsersContent> {
                   ),
                   child: Text(
                     user.role == Role.admin ? 'Admin' : 'Người dùng',
-                    style: TextStyle(
-                      color:
-                          user.role == Role.admin ? Colors.blue : Colors.green,
-                    ),
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ),
               ),
@@ -355,11 +376,7 @@ class _UsersContentState extends State<UsersContent> {
                       ),
                       child: Text(
                         user.role == Role.admin ? 'Admin' : 'Người dùng',
-                        style: TextStyle(
-                          color: user.role == Role.admin
-                              ? Colors.blue
-                              : Colors.green,
-                        ),
+                        style: const TextStyle(color: Colors.white),
                       ),
                     ),
                     Row(

@@ -107,17 +107,24 @@ class _NotificationsViewState extends State<NotificationsView> {
         notification.data.containsKey('orderId')) {
       final orderId = notification.data['orderId'] as String;
 
-      // Get order details
-      context.read<OrderViewModel>().getOrderById(orderId);
+      // Get order details and wait for it to complete
+      final orderViewModel = context.read<OrderViewModel>();
+      await orderViewModel.getOrderById(orderId);
 
-      final orders = context.read<OrderViewModel>().selectedOrder;
+      final order = orderViewModel.selectedOrder;
 
-      if (context.mounted) {
+      // Check if order is not null before navigating
+      if (context.mounted && order != null) {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => OrderDetailScreen(order: orders!),
+            builder: (context) => OrderDetailScreen(order: order),
           ),
+        );
+      } else if (context.mounted) {
+        // Show an error message if order details could not be loaded
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Không thể tải chi tiết đơn hàng.')),
         );
       }
     }
@@ -176,7 +183,7 @@ class NotificationItem extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      notification.title,
+                      notification.title ?? "",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -185,7 +192,7 @@ class NotificationItem extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      notification.content,
+                      notification.content ?? '',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.grey,
@@ -193,7 +200,7 @@ class NotificationItem extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _formatTime(notification.createdAt),
+                      _formatTime(notification.createdAt) ?? "",
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey[400],

@@ -123,7 +123,6 @@ class DrawerListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: press,
-      horizontalTitleGap: 0.0,
       leading: SvgPicture.asset(
         svgSrc,
         colorFilter: const ColorFilter.mode(Colors.white54, BlendMode.srcIn),

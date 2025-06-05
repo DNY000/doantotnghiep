@@ -228,4 +228,20 @@ class FoodRepository {
       throw "Fail $e";
     }
   }
+
+  // Lấy top món ăn bán chạy
+  Future<List<FoodModel>> getTopSellingFoods({int limit = 6}) async {
+    try {
+      final snapshot = await _firestore
+          .collection(_collection)
+          .orderBy('soldCount', descending: true)
+          .limit(limit)
+          .get();
+
+      return snapshot.docs.map((doc) => FoodModel.fromMap(doc.data())).toList();
+    } catch (e) {
+      print('Error getting top selling foods: $e');
+      return [];
+    }
+  }
 }

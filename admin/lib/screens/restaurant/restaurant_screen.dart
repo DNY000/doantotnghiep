@@ -17,9 +17,33 @@ class RestaurantScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Add AppBar for mobile view with menu icon
+      appBar: Responsive.isMobile(context)
+          ? AppBar(
+              leading: Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.menu), // Menu icon
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer(); // Open the drawer
+                  },
+                ),
+              ),
+              title: Text('Quản lý Nhà hàng',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(color: Colors.white)), // Title
+              backgroundColor: Theme.of(context)
+                  .scaffoldBackgroundColor, // Match background color
+              elevation: 0, // Remove shadow
+            )
+          : null, // No AppBar on desktop
+      // Use SideMenu as a drawer on mobile
+      drawer: Responsive.isMobile(context) ? const SideMenu() : null,
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // SideMenu is only shown directly in the Row on desktop
           if (Responsive.isDesktop(context))
             const Expanded(flex: 1, child: SideMenu()),
           const Expanded(
@@ -69,14 +93,23 @@ class _RestaurantContentState extends State<RestaurantContent> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header section
+        // Header section - Adjusted for mobile
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Quản lý Nhà hàng',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            // Hide the title on mobile because it's in the AppBar
+            if (!Responsive.isMobile(context))
+              Text(
+                'Quản lý Nhà hàng',
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineMedium, // Changed style for consistency
+              ),
+            // Keep spacing between title/add button, adjust based on mobile/desktop
+            SizedBox(
+                width: Responsive.isMobile(context)
+                    ? 0
+                    : 16), // Reduced spacing on mobile
             ElevatedButton.icon(
               onPressed: () {
                 _showAddRestaurantDialog(context);
@@ -85,14 +118,14 @@ class _RestaurantContentState extends State<RestaurantContent> {
               label: const Text('Thêm Nhà hàng'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
+                  horizontal: 16,
+                  vertical: 8,
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 24), // Spacing after header row
 
         // Search section
         Row(
@@ -173,7 +206,7 @@ class _RestaurantContentState extends State<RestaurantContent> {
     return SingleChildScrollView(
       child: DataTable(
         columns: const [
-          DataColumn(label: Text('Ảnh')), // Main image
+          DataColumn(label: Text('Ảnh')),
           DataColumn(label: Text('Tên')),
           DataColumn(label: Text('Địa chỉ')),
           DataColumn(label: Text('Trạng thái')),
@@ -199,16 +232,19 @@ class _RestaurantContentState extends State<RestaurantContent> {
                   margin: const EdgeInsets.symmetric(
                     vertical: 8,
                   ),
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 4, horizontal: 1),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 4,
+                      horizontal:
+                          8), // Adjusted horizontal padding for better look
                   decoration: BoxDecoration(
                     color: restaurant.isActive ? Colors.green : Colors.grey,
-                    // ,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     restaurant.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động',
-                    style: TextStyle(color: Colors.white, fontSize: 13),
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12), // Adjusted font size slightly
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -286,13 +322,15 @@ class _RestaurantContentState extends State<RestaurantContent> {
             );
           },
           child: Card(
-            margin: const EdgeInsets.only(bottom: 16),
+            margin: const EdgeInsets.only(
+                bottom: 16), // Keep bottom margin for spacing between cards
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12), // Adjusted padding inside card
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       CircleAvatar(
                         radius: 30,
@@ -311,30 +349,33 @@ class _RestaurantContentState extends State<RestaurantContent> {
                             Text(
                               restaurant.name,
                               style: const TextStyle(
-                                fontSize: 18,
+                                fontSize: 17, // Adjusted font size slightly
                                 fontWeight: FontWeight.bold,
                               ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 4),
-                            Text(restaurant.address),
+                            Text(restaurant.address,
+                                maxLines: 2, overflow: TextOverflow.ellipsis),
                           ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(
+                      height: 12), // Adjusted spacing after image/name row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
+                          horizontal: 10, // Adjusted horizontal padding
+                          vertical: 5, // Adjusted vertical padding
                         ),
                         decoration: BoxDecoration(
                           color:
                               restaurant.isActive ? Colors.green : Colors.grey,
-                          // restaurant.isActive ? Colors.green : Colors.red,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -343,6 +384,7 @@ class _RestaurantContentState extends State<RestaurantContent> {
                               : 'Ngừng hoạt động',
                           style: TextStyle(
                             color: Colors.white,
+                            fontSize: 11, // Adjusted font size
                           ),
                         ),
                       ),
@@ -378,7 +420,6 @@ class _RestaurantContentState extends State<RestaurantContent> {
                                   ],
                                 ),
                               );
-
                               if (confirmed == true) {
                                 await viewModel.deleteRestaurant(restaurant.id);
                                 await viewModel.loadRestaurants();
@@ -415,13 +456,17 @@ class _RestaurantContentState extends State<RestaurantContent> {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Container(
-                width: MediaQuery.of(context).size.width * 0.7,
+                width: Responsive.isMobile(context)
+                    ? MediaQuery.of(context).size.width * 0.9
+                    : MediaQuery.of(context).size.width *
+                        0.7, // Adjusted width for mobile
                 height: MediaQuery.of(context).size.height * 0.8,
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(20), // Adjusted padding
                 child: SingleChildScrollView(
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min, // Use min size
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start, // Align content to start
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -502,14 +547,17 @@ class _RestaurantContentState extends State<RestaurantContent> {
                           style: TextStyle(fontWeight: FontWeight.bold)),
                       TimePickerSpinner(
                         is24HourMode: true,
-                        normalTextStyle:
-                            TextStyle(fontSize: 18, color: Colors.white60),
+                        normalTextStyle: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white60), // Adjusted style
                         highlightedTextStyle: const TextStyle(
-                            fontSize: 22, color: Colors.blueAccent),
+                            fontSize: 22,
+                            color: Colors.blueAccent), // Adjusted style
                         spacing: 30,
                         itemHeight: 40,
                         isForce2Digits: true,
-                        time: DateTime(0, 0, 0, openTime.hour, openTime.minute),
+                        time: DateTime(0, 0, 0, openTime.hour,
+                            openTime.minute), // Corrected time initialization
                         onTimeChange: (time) {
                           setState(() {
                             openTime =
@@ -523,15 +571,17 @@ class _RestaurantContentState extends State<RestaurantContent> {
                           style: TextStyle(fontWeight: FontWeight.bold)),
                       TimePickerSpinner(
                         is24HourMode: true,
-                        normalTextStyle:
-                            TextStyle(fontSize: 18, color: Colors.white60),
+                        normalTextStyle: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white60), // Adjusted style
                         highlightedTextStyle: const TextStyle(
-                            fontSize: 22, color: Colors.blueAccent),
+                            fontSize: 22,
+                            color: Colors.blueAccent), // Adjusted style
                         spacing: 30,
                         itemHeight: 40,
                         isForce2Digits: true,
-                        time:
-                            DateTime(0, 0, 0, closeTime.hour, closeTime.minute),
+                        time: DateTime(0, 0, 0, closeTime.hour,
+                            closeTime.minute), // Corrected time initialization
                         onTimeChange: (time) {
                           setState(() {
                             closeTime =
@@ -556,8 +606,10 @@ class _RestaurantContentState extends State<RestaurantContent> {
                                 addressController.text,
                                 descriptionController.text,
                                 imageBytes,
-                                openTime.format(context),
-                                closeTime.format(context),
+                                openTime.format(
+                                    context), // Pass formatted time string
+                                closeTime.format(
+                                    context), // Pass formatted time string
                               );
                             },
                             child: const Text('Thêm nhà hàng'),
@@ -645,10 +697,10 @@ class _RestaurantContentState extends State<RestaurantContent> {
     final addressController = TextEditingController(text: restaurant.address);
     final descriptionController =
         TextEditingController(text: restaurant.description);
-    Uint8List? imageBytes;
-    String? imageUrl = restaurant.mainImage;
-    TimeOfDay openTime = _parseTimeOfDay(restaurant.openTime);
-    TimeOfDay closeTime = _parseTimeOfDay(restaurant.closeTime);
+    TimeOfDay openTime =
+        _parseTimeOfDay(restaurant.operatingHours['openTime'] ?? '00:00');
+    TimeOfDay closeTime =
+        _parseTimeOfDay(restaurant.operatingHours['closeTime'] ?? '00:00');
 
     showDialog(
       context: context,
@@ -660,18 +712,25 @@ class _RestaurantContentState extends State<RestaurantContent> {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: SizedBox(
-                height: MediaQuery.of(context).size.height * 0.6,
-                width: MediaQuery.of(context).size.width * 0.5,
+                height: Responsive.isMobile(context)
+                    ? MediaQuery.of(context).size.height * 0.7
+                    : MediaQuery.of(context).size.height *
+                        0.6, // Adjusted height for mobile
+                width: Responsive.isMobile(context)
+                    ? MediaQuery.of(context).size.width * 0.9
+                    : MediaQuery.of(context).size.width *
+                        0.5, // Adjusted width for mobile
                 child: SingleChildScrollView(
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min, // Use min size
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start, // Align content to start
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Sửa Nhà Hàng',
+                            'Chỉnh sửa Nhà Hàng',
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           IconButton(
@@ -723,7 +782,6 @@ class _RestaurantContentState extends State<RestaurantContent> {
                                   result.files.single.bytes != null) {
                                 setState(() {
                                   imageBytes = result.files.single.bytes;
-                                  imageUrl = null;
                                 });
                               }
                             },
@@ -738,14 +796,7 @@ class _RestaurantContentState extends State<RestaurantContent> {
                                   height: 60,
                                   fit: BoxFit.cover,
                                 )
-                              : (imageUrl != null && imageUrl!.isNotEmpty)
-                                  ? Image.network(
-                                      imageUrl!,
-                                      width: 60,
-                                      height: 60,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : const Text('Chưa chọn ảnh'),
+                              : const Text('Chưa chọn ảnh'),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -754,14 +805,17 @@ class _RestaurantContentState extends State<RestaurantContent> {
                           style: TextStyle(fontWeight: FontWeight.bold)),
                       TimePickerSpinner(
                         is24HourMode: true,
-                        normalTextStyle:
-                            TextStyle(fontSize: 18, color: Colors.white60),
+                        normalTextStyle: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white60), // Adjusted style
                         highlightedTextStyle: const TextStyle(
-                            fontSize: 22, color: Colors.blueAccent),
+                            fontSize: 22,
+                            color: Colors.blueAccent), // Adjusted style
                         spacing: 30,
                         itemHeight: 40,
                         isForce2Digits: true,
-                        time: DateTime(0, 0, 0, openTime.hour, openTime.minute),
+                        time: DateTime(0, 0, 0, openTime.hour,
+                            openTime.minute), // Corrected time initialization
                         onTimeChange: (time) {
                           setState(() {
                             openTime =
@@ -775,15 +829,17 @@ class _RestaurantContentState extends State<RestaurantContent> {
                           style: TextStyle(fontWeight: FontWeight.bold)),
                       TimePickerSpinner(
                         is24HourMode: true,
-                        normalTextStyle:
-                            TextStyle(fontSize: 18, color: Colors.white60),
+                        normalTextStyle: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white60), // Adjusted style
                         highlightedTextStyle: const TextStyle(
-                            fontSize: 22, color: Colors.blueAccent),
+                            fontSize: 22,
+                            color: Colors.blueAccent), // Adjusted style
                         spacing: 30,
                         itemHeight: 40,
                         isForce2Digits: true,
-                        time:
-                            DateTime(0, 0, 0, closeTime.hour, closeTime.minute),
+                        time: DateTime(0, 0, 0, closeTime.hour,
+                            closeTime.minute), // Corrected time initialization
                         onTimeChange: (time) {
                           setState(() {
                             closeTime =
@@ -809,12 +865,14 @@ class _RestaurantContentState extends State<RestaurantContent> {
                                 addressController.text,
                                 descriptionController.text,
                                 imageBytes,
-                                imageUrl,
-                                openTime.format(context),
-                                closeTime.format(context),
+                                restaurant.images['main'],
+                                openTime.format(
+                                    context), // Pass formatted time string
+                                closeTime.format(
+                                    context), // Pass formatted time string
                               );
                             },
-                            child: const Text('Cập nhật'),
+                            child: const Text('Cập nhật nhà hàng'),
                           ),
                         ],
                       ),
@@ -831,7 +889,14 @@ class _RestaurantContentState extends State<RestaurantContent> {
 
   TimeOfDay _parseTimeOfDay(String time) {
     final parts = time.split(":");
-    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+    // Add basic error handling for parsing
+    try {
+      return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+    } catch (e) {
+      // Print error and return a default value
+      debugPrint('Error parsing time string: $time, $e');
+      return TimeOfDay.now(); // Or TimeOfDay(0, 0) as a default
+    }
   }
 
   void _updateRestaurant(

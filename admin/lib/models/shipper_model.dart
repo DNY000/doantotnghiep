@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ShipperModel {
   final String id;
@@ -46,13 +47,13 @@ class ShipperModel {
       'id': id,
       'name': name,
       'phoneNumber': phoneNumber,
-      'birthDate': birthDate.millisecondsSinceEpoch,
+      'birthDate': Timestamp.fromDate(birthDate),
       'avatarUrl': avatarUrl,
       'vehicleType': vehicleType,
       'email': email,
       'address': address,
       'status': status,
-      'createdAt': createdAt.millisecondsSinceEpoch,
+      'createdAt': Timestamp.fromDate(createdAt),
     };
   }
 
@@ -65,19 +66,46 @@ class ShipperModel {
       id: id,
       name: map['name'] ?? '',
       phoneNumber: map['phoneNumber'] ?? '',
-      birthDate: DateTime.fromMillisecondsSinceEpoch(map['birthDate'] ?? 0),
+      birthDate: (map['birthDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
       avatarUrl: map['avatarUrl'] ?? '',
       vehicleType: map['vehicleType'] ?? '',
       email: map['email'] ?? '',
       address: map['address'] ?? '',
       status: map['status'] ?? 'inactive',
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] ?? 0),
+      createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 
   // Factory constructor để tạo model từ JSON string
   factory ShipperModel.fromJson(String source, String id) =>
       ShipperModel.fromMap(json.decode(source), id);
+
+  // Tạo bản sao với các thay đổi
+  ShipperModel copyWith({
+    String? id,
+    String? name,
+    String? phoneNumber,
+    DateTime? birthDate,
+    String? avatarUrl,
+    String? vehicleType,
+    String? email,
+    String? address,
+    String? status,
+    DateTime? createdAt,
+  }) {
+    return ShipperModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      birthDate: birthDate ?? this.birthDate,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      vehicleType: vehicleType ?? this.vehicleType,
+      email: email ?? this.email,
+      address: address ?? this.address,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }
 
 // Model để quản lý vị trí realtime của shipper
@@ -115,7 +143,7 @@ class ShipperLocationModel {
       'shipperId': shipperId,
       'latitude': latitude,
       'longitude': longitude,
-      'timestamp': timestamp.millisecondsSinceEpoch,
+      'timestamp': Timestamp.fromDate(timestamp),
       'isOnline': isOnline,
       'currentOrderId': currentOrderId,
     };
@@ -130,7 +158,7 @@ class ShipperLocationModel {
       shipperId: map['shipperId'] ?? '',
       latitude: (map['latitude'] ?? 0.0).toDouble(),
       longitude: (map['longitude'] ?? 0.0).toDouble(),
-      timestamp: DateTime.fromMillisecondsSinceEpoch(map['timestamp'] ?? 0),
+      timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
       isOnline: map['isOnline'] ?? false,
       currentOrderId: map['currentOrderId'],
     );

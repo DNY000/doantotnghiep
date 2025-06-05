@@ -13,6 +13,7 @@ class FoodViewModel extends ChangeNotifier {
   String? _error;
   Map<String, List<FoodModel>> _categoryFoods = {};
   List<FoodModel> _foodsByRate = [];
+  List<FoodModel> _topSellingFoods = [];
 
   FoodViewModel(this._repository);
 
@@ -25,6 +26,7 @@ class FoodViewModel extends ChangeNotifier {
   String? get error => _error;
   Map<String, List<FoodModel>> get categoryFoods => _categoryFoods;
   List<FoodModel> get fetchFoodsByRate => _foodsByRate;
+  List<FoodModel> get topSellingFoods => _topSellingFoods;
 
   // Lấy món ăn theo danh mục
   Future<List<FoodModel>> getFoodsByCategory(
@@ -273,6 +275,23 @@ class FoodViewModel extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       throw "Fail $e";
+    }
+  }
+
+  Future<void> loadTopSellingFoods({int limit = 6}) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      _topSellingFoods = await _repository.getTopSellingFoods(limit: limit);
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }

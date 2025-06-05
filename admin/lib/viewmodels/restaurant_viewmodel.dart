@@ -31,13 +31,17 @@ class RestaurantViewModel extends ChangeNotifier {
   }
 
   // Load nhà hàng theo ID
-  Future<void> loadRestaurantById(String id) async {
+  Future<String> loadRestaurantById(String id) async {
     _setLoading(true);
     try {
       _selectedRestaurant = await _repository.getRestaurantById(id);
       _error = null;
+
+      return _selectedRestaurant?.name ?? '';
     } catch (e) {
       _error = 'Không thể tải thông tin nhà hàng: $e';
+
+      return '';
     } finally {
       _setLoading(false);
     }
