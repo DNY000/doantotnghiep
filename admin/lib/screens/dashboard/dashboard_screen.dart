@@ -127,13 +127,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     Selector<OrderViewModel, int>(
                       builder: (BuildContext context, value, Widget? child) {
-                        return Expanded(
+                        return SizedBox(
+                          // Use SizedBox instead of Expanded
+                          width: 160, // Set a fixed width for the card
                           child: _SummaryCard(
                               title: 'Đơn hàng hôm nay',
                               value: value.toString(),
                               icon: Icons.shopping_cart,
                               color: Colors.blue),
-                        ); // Wrap with Expanded
+                        );
                       },
                       selector:
                           (BuildContext context, OrderViewModel viewModel) {
@@ -146,30 +148,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         final revenueInMillions = value / 1000000;
                         final formattedRevenue =
                             revenueInMillions.toStringAsFixed(1);
-                        return Expanded(
+                        return SizedBox(
+                            // Use SizedBox instead of Expanded
+                            width: 160, // Set a fixed width for the card
                             child: _SummaryCard(
                                 title: 'Doanh thu hôm nay',
                                 value: '$formattedRevenue tr',
                                 icon: Icons.attach_money,
-                                color: Colors.green)); // Wrap with Expanded
+                                color: Colors.green));
                       },
                       selector:
                           (BuildContext context, OrderViewModel viewModel) {
                         return viewModel.todayRevenue;
                       },
                     ),
-                    Expanded(
+                    SizedBox(
+                        // Use SizedBox instead of Expanded
+                        width: 160, // Set a fixed width for the card
                         child: _SummaryCard(
                             title: 'Nhà hàng mới',
                             value: '2',
                             icon: Icons.store,
-                            color: Colors.purple)), // Wrap with Expanded
-                    Expanded(
+                            color: Colors.purple)),
+                    SizedBox(
+                        // Use SizedBox instead of Expanded
+                        width: 160, // Set a fixed width for the card
                         child: _SummaryCard(
                             title: 'Shipper mới',
                             value: '3',
                             icon: Icons.delivery_dining,
-                            color: Colors.teal)), // Wrap with Expanded
+                            color: Colors.teal)),
                   ],
                 ),
               ],

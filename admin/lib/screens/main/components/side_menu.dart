@@ -34,7 +34,7 @@ class SideMenu extends StatelessWidget {
           ),
           DrawerListTile(
             title: "Category",
-            svgSrc: "assets/icons/menu_tran.svg",
+            svgSrc: "assets/icons/category.svg",
             press: () {
               context.go(NameRouter.categories);
               if (Scaffold.of(context).isDrawerOpen) {
@@ -44,7 +44,7 @@ class SideMenu extends StatelessWidget {
           ),
           DrawerListTile(
             title: "Restaurant",
-            svgSrc: "assets/icons/menu_task.svg",
+            svgSrc: "assets/icons/restaurant.svg",
             press: () {
               context.go(NameRouter.restaurants);
               if (Scaffold.of(context).isDrawerOpen) {
@@ -54,7 +54,7 @@ class SideMenu extends StatelessWidget {
           ),
           DrawerListTile(
             title: "Shipper",
-            svgSrc: "assets/icons/menu_doc.svg",
+            svgSrc: "assets/icons/shipper.svg",
             press: () {
               context.go(NameRouter.shippers);
               if (Scaffold.of(context).isDrawerOpen) {
@@ -64,7 +64,7 @@ class SideMenu extends StatelessWidget {
           ),
           DrawerListTile(
             title: "User",
-            svgSrc: "assets/icons/menu_store.svg",
+            svgSrc: "assets/icons/user.svg",
             press: () {
               context.go(NameRouter.users);
               if (Scaffold.of(context).isDrawerOpen) {
@@ -74,7 +74,7 @@ class SideMenu extends StatelessWidget {
           ),
           DrawerListTile(
             title: "Notifications",
-            svgSrc: "assets/icons/menu_notification.svg",
+            svgSrc: "assets/icons/notification.svg",
             press: () {
               context.go(NameRouter.notifications);
               if (Scaffold.of(context).isDrawerOpen) {
@@ -84,7 +84,7 @@ class SideMenu extends StatelessWidget {
           ),
           DrawerListTile(
             title: "Banner",
-            svgSrc: "assets/icons/menu_profile.svg",
+            svgSrc: "assets/icons/ads.svg",
             press: () {
               context.go(NameRouter.banner);
               if (Scaffold.of(context).isDrawerOpen) {
@@ -104,7 +104,7 @@ class SideMenu extends StatelessWidget {
           ),
           DrawerListTile(
             title: "Logout",
-            svgSrc: "assets/icons/menu_setting.svg",
+            svgSrc: "assets/icons/logout.svg",
             press: () {
               if (Scaffold.of(context).isDrawerOpen) {
                 Navigator.pop(context);
@@ -134,8 +134,8 @@ class DrawerListTile extends StatelessWidget {
       onTap: press,
       leading: SvgPicture.asset(
         svgSrc,
-        colorFilter: const ColorFilter.mode(Colors.white54, BlendMode.srcIn),
-        height: 16,
+        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+        height: svgSrc.contains("assets/icons/shipper.svg") ? 24 : 16,
       ),
       title: Text(title, style: const TextStyle(color: Colors.white54)),
     );

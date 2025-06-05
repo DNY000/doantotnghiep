@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:admin/ultils/const/enum.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path/path.dart' as path;
 
 class FoodByRestaurantScreen extends StatefulWidget {
   final String restaurantId;
@@ -17,6 +19,8 @@ class FoodByRestaurantScreen extends StatefulWidget {
 }
 
 class _FoodByRestaurantScreenState extends State<FoodByRestaurantScreen> {
+  String? _selectedFileName;
+
   @override
   void initState() {
     super.initState();
@@ -137,6 +141,56 @@ class _FoodByRestaurantScreenState extends State<FoodByRestaurantScreen> {
     );
   }
 
+  // Helper function to upload image to Firebase Storage
+  Future<String> _uploadImageToFirebase(
+      Uint8List imageBytes, String foodId, String fileName) async {
+    try {
+      // Determine content type from file extension
+      final String extension = path.extension(fileName).toLowerCase();
+      String contentType;
+      switch (extension) {
+        case '.jpg':
+        case '.jpeg':
+          contentType = 'image/jpeg';
+          break;
+        case '.png':
+          contentType = 'image/png';
+          break;
+        case '.gif':
+          contentType = 'image/gif';
+          break;
+        // Add more cases for other image types if needed
+        default:
+          contentType =
+              'application/octet-stream'; // Default to binary if type is unknown
+      }
+
+      // Create metadata with content type
+      final SettableMetadata metadata =
+          SettableMetadata(contentType: contentType);
+
+      // Create a reference to the location you want to upload to in Firebase Storage
+      // Use the foodId and the original file extension for the storage path
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('food_images')
+          .child('$foodId$extension');
+
+      // Upload the file with metadata
+      final uploadTask = storageRef.putData(imageBytes, metadata);
+
+      // Wait for the upload to complete
+      final snapshot = await uploadTask.whenComplete(() => null);
+
+      // Get the download URL
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      print('Error uploading image: $e');
+      rethrow; // Rethrow the exception to be caught by the caller
+    }
+  }
+
   void _showAddFoodDialog(BuildContext context, String restaurantId) {
     final nameController = TextEditingController();
     final descriptionController = TextEditingController();
@@ -146,6 +200,7 @@ class _FoodByRestaurantScreenState extends State<FoodByRestaurantScreen> {
     final categoryController =
         TextEditingController(); // Assuming category is a String for now
     Uint8List? imageBytes;
+    String? selectedFileName;
     bool isAvailable = true;
 
     showDialog(
@@ -235,6 +290,7 @@ class _FoodByRestaurantScreenState extends State<FoodByRestaurantScreen> {
                                   result.files.single.bytes != null) {
                                 setState(() {
                                   imageBytes = result.files.single.bytes;
+                                  selectedFileName = result.files.single.name;
                                 });
                               }
                             },
@@ -250,6 +306,11 @@ class _FoodByRestaurantScreenState extends State<FoodByRestaurantScreen> {
                                   fit: BoxFit.cover,
                                 )
                               : const Text('Chưa chọn ảnh'),
+                          if (selectedFileName != null)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Text(selectedFileName!),
+                            ),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -299,7 +360,6 @@ class _FoodByRestaurantScreenState extends State<FoodByRestaurantScreen> {
                           ElevatedButton(
                             onPressed: () async {
                               // Make onPressed async
-                              // TODO: Implement add food logic properly
                               // Validate required fields
                               if (nameController.text.isEmpty ||
                                   priceController.text.isEmpty ||
@@ -326,18 +386,41 @@ class _FoodByRestaurantScreenState extends State<FoodByRestaurantScreen> {
                                       .map((e) => e.trim())
                                       .toList();
 
-                              // TODO: Implement image upload and get URL
-                              String imageUrl =
-                                  ''; // Placeholder for uploaded image URL
-                              // if (imageBytes != null) {
-                              //   imageUrl = await uploadImage(imageBytes); // Implement uploadImage function
-                              // }
-                              final docRef = FirebaseFirestore.instance
-                                  .collection('foods')
-                                  .doc(); // <-- Tạo doc với id tự động
-                              final foodId = docRef.id;
+                              String imageUrl = '';
+                              // Upload image if selected
+                              if (imageBytes != null &&
+                                  selectedFileName != null) {
+                                try {
+                                  // Generate food ID before uploading image so we can use it in the storage path
+                                  final foodId = FirebaseFirestore.instance
+                                      .collection('foods')
+                                      .doc()
+                                      .id;
+                                  imageUrl = await _uploadImageToFirebase(
+                                      imageBytes!, foodId, selectedFileName!);
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text(
+                                            'Lỗi khi tải ảnh lên: ${e.toString()}')),
+                                  );
+                                  return; // Stop if image upload fails
+                                }
+                              } else {
+                                // If no image selected, show an error or handle as needed
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content:
+                                          Text('Vui lòng chọn ảnh cho món ăn')),
+                                );
+                                return; // Require an image for now
+                              }
+
                               final newFood = FoodModel(
-                                id: foodId,
+                                id: FirebaseFirestore.instance
+                                    .collection('foods')
+                                    .doc()
+                                    .id, // Generate new ID for the food document
                                 name: nameController.text,
                                 description: descriptionController.text,
                                 price: price,
@@ -412,6 +495,7 @@ class _FoodByRestaurantScreenState extends State<FoodByRestaurantScreen> {
     String? imageUrl = food.images.isNotEmpty
         ? food.images[0]
         : null; // To hold existing image URL
+    String? selectedFileName;
     bool isAvailable = food.isAvailable;
 
     showDialog(
@@ -504,6 +588,7 @@ class _FoodByRestaurantScreenState extends State<FoodByRestaurantScreen> {
                                   imageBytes = result.files.single.bytes;
                                   imageUrl =
                                       null; // Clear existing URL if new image is picked
+                                  selectedFileName = result.files.single.name;
                                 });
                               }
                             },
@@ -519,7 +604,7 @@ class _FoodByRestaurantScreenState extends State<FoodByRestaurantScreen> {
                               fit: BoxFit.cover,
                             )
                           else if (imageUrl != null)
-                            Image.asset(
+                            Image.network(
                               imageUrl!,
                               width: 60,
                               height: 60,
@@ -527,6 +612,11 @@ class _FoodByRestaurantScreenState extends State<FoodByRestaurantScreen> {
                             )
                           else
                             const Text('Chưa chọn ảnh'),
+                          if (selectedFileName != null)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Text(selectedFileName!),
+                            ),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -603,12 +693,23 @@ class _FoodByRestaurantScreenState extends State<FoodByRestaurantScreen> {
                                       .map((e) => e.trim())
                                       .toList();
 
-                              // TODO: Upload new image if selected and get URL
-                              String finalImageUrl = imageUrl ??
-                                  ''; // Use existing URL if no new image
-                              // if (imageBytes != null) {
-                              //   finalImageUrl = await uploadImage(imageBytes); // Implement uploadImage function
-                              // }
+                              // Upload new image if selected
+                              String finalImageUrl =
+                                  imageUrl ?? ''; // Use existing URL by default
+                              if (imageBytes != null &&
+                                  selectedFileName != null) {
+                                try {
+                                  finalImageUrl = await _uploadImageToFirebase(
+                                      imageBytes!, food.id, selectedFileName!);
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text(
+                                            'Lỗi khi tải ảnh lên: ${e.toString()}')),
+                                  );
+                                  return; // Stop if image upload fails
+                                }
+                              }
 
                               final updatedFood = food.copyWith(
                                 name: nameController.text,
@@ -617,7 +718,7 @@ class _FoodByRestaurantScreenState extends State<FoodByRestaurantScreen> {
                                 discountPrice: discountPrice,
                                 images: finalImageUrl.isNotEmpty
                                     ? [finalImageUrl]
-                                    : [],
+                                    : [], // Use the potentially new image URL
                                 ingredients: ingredients,
                                 category: CategoryFood.values.firstWhere(
                                   // Convert String to CategoryFood enum
