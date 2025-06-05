@@ -10,9 +10,20 @@ import 'package:admin/screens/restaurant/restaurant_detail_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
+import 'package:admin/routes/name_router.dart'; // Import NameRouter
+import 'package:collection/collection.dart'; // Add this import for firstWhereOrNull
 
 class RestaurantScreen extends StatelessWidget {
-  const RestaurantScreen({super.key});
+  final bool showAddDialog; // Added
+  final bool showUpdateDialog; // Added
+  final String? restaurantId; // Added
+
+  const RestaurantScreen({
+    super.key,
+    this.showAddDialog = false,
+    this.showUpdateDialog = false,
+    this.restaurantId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -46,12 +57,16 @@ class RestaurantScreen extends StatelessWidget {
           // SideMenu is only shown directly in the Row on desktop
           if (Responsive.isDesktop(context))
             const Expanded(flex: 1, child: SideMenu()),
-          const Expanded(
+          Expanded(
             flex: 5,
             child: SafeArea(
               child: Padding(
                 padding: EdgeInsets.all(16.0),
-                child: RestaurantContent(),
+                child: RestaurantContent(
+                  showAddDialog: showAddDialog, // Pass parameter
+                  showUpdateDialog: showUpdateDialog, // Pass parameter
+                  restaurantId: restaurantId, // Pass parameter
+                ),
               ),
             ),
           ),
@@ -62,7 +77,16 @@ class RestaurantScreen extends StatelessWidget {
 }
 
 class RestaurantContent extends StatefulWidget {
-  const RestaurantContent({super.key});
+  final bool showAddDialog; // Added
+  final bool showUpdateDialog; // Added
+  final String? restaurantId; // Added
+
+  const RestaurantContent({
+    super.key,
+    this.showAddDialog = false,
+    this.showUpdateDialog = false,
+    this.restaurantId,
+  });
 
   @override
   State<RestaurantContent> createState() => _RestaurantContentState();
@@ -72,20 +96,80 @@ class _RestaurantContentState extends State<RestaurantContent> {
   final TextEditingController _searchController = TextEditingController();
   Uint8List? imageBytes;
 
+  // Controllers for dialog fields
+  final TextEditingController _dialogNameController = TextEditingController();
+  final TextEditingController _dialogAddressController =
+      TextEditingController();
+  final TextEditingController _dialogDescriptionController =
+      TextEditingController();
+  TimeOfDay _dialogOpenTime = const TimeOfDay(hour: 0, minute: 0);
+  TimeOfDay _dialogCloseTime = const TimeOfDay(hour: 0, minute: 0);
+  bool _dialogIsActive = true; // Assuming default active
+  // You might need more controllers for other fields in RestaurantModel
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback(
-      (_) {
-        context.read<RestaurantViewModel>().loadRestaurants();
+      (_) async {
+        final viewModel = context.read<RestaurantViewModel>();
+        await viewModel.loadRestaurants();
+        _checkAndShowDialogs(); // Check and show dialogs on initial load
       },
     );
   }
 
   @override
+  void didUpdateWidget(covariant RestaurantContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Check if dialog related parameters changed
+    if (widget.showAddDialog != oldWidget.showAddDialog ||
+        widget.showUpdateDialog != oldWidget.showUpdateDialog ||
+        widget.restaurantId != oldWidget.restaurantId) {
+      _checkAndShowDialogs(); // Check and show dialogs if parameters change
+    }
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
+    _dialogNameController.dispose();
+    _dialogAddressController.dispose();
+    _dialogDescriptionController.dispose();
+    // Dispose other dialog controllers if added
     super.dispose();
+  }
+
+  // Method to check parameters and show appropriate dialog
+  void _checkAndShowDialogs() {
+    // Ensure context is valid before showing dialog
+    if (!mounted) return;
+
+    final viewModel = context.read<RestaurantViewModel>();
+
+    if (widget.showAddDialog) {
+      _showAddRestaurantDialog(context);
+      // Navigate back to clear the add dialog flag after attempting to show
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.go(NameRouter.restaurants);
+      });
+    } else if (widget.showUpdateDialog && widget.restaurantId != null) {
+      final restaurantToUpdate = viewModel.restaurants.firstWhereOrNull(
+        (r) => r.id == widget.restaurantId,
+      );
+      if (restaurantToUpdate != null) {
+        _showEditRestaurantDialog(context, restaurantToUpdate);
+        // Navigate back to clear the update dialog flag and ID after attempting to show
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) context.go(NameRouter.restaurants);
+        });
+      } else {
+        print(
+            'Error: Restaurant with ID ${widget.restaurantId} not found for update.');
+        // Navigate back if restaurant not found
+        if (mounted) context.go(NameRouter.restaurants);
+      }
+    }
   }
 
   @override
@@ -112,7 +196,8 @@ class _RestaurantContentState extends State<RestaurantContent> {
                     : 16), // Reduced spacing on mobile
             ElevatedButton.icon(
               onPressed: () {
-                _showAddRestaurantDialog(context);
+                // Navigate to add restaurant route to trigger dialog
+                context.go('${NameRouter.restaurants}/add');
               },
               icon: const Icon(Icons.add),
               label: const Text('Thêm Nhà hàng'),
@@ -256,7 +341,9 @@ class _RestaurantContentState extends State<RestaurantContent> {
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () {
-                        _showEditRestaurantDialog(context, restaurant);
+                        // Navigate to update restaurant route to trigger dialog
+                        context
+                            .go('${NameRouter.restaurants}/${restaurant.id}');
                       },
                     ),
                     IconButton(
@@ -294,7 +381,8 @@ class _RestaurantContentState extends State<RestaurantContent> {
             ],
             onSelectChanged: (selected) {
               if (selected == true) {
-                context.go('/restaurant/${restaurant.id}');
+                // Navigate to restaurant detail route
+                context.go('${NameRouter.detailRestaurants}/${restaurant.id}');
               }
             },
           );
@@ -313,13 +401,8 @@ class _RestaurantContentState extends State<RestaurantContent> {
         final restaurant = restaurants[index];
         return GestureDetector(
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    RestaurantDetailScreen(restaurantId: restaurant.id),
-              ),
-            );
+            // Navigate to restaurant detail route on tap
+            context.go('${NameRouter.detailRestaurants}/${restaurant.id}');
           },
           child: Card(
             margin: const EdgeInsets.only(
@@ -393,7 +476,9 @@ class _RestaurantContentState extends State<RestaurantContent> {
                           IconButton(
                             icon: const Icon(Icons.edit),
                             onPressed: () {
-                              _showEditRestaurantDialog(context, restaurant);
+                              // Navigate to update restaurant route on edit button press
+                              context.go(
+                                  '${NameRouter.restaurants}/${restaurant.id}');
                             },
                           ),
                           IconButton(
@@ -440,516 +525,312 @@ class _RestaurantContentState extends State<RestaurantContent> {
   }
 
   void _showAddRestaurantDialog(BuildContext context) {
-    final nameController = TextEditingController();
-    final addressController = TextEditingController();
-    final descriptionController = TextEditingController();
-    TimeOfDay openTime = const TimeOfDay(hour: 0, minute: 0);
-    TimeOfDay closeTime = const TimeOfDay(hour: 0, minute: 0);
+    // Clear controllers for adding
+    _dialogNameController.clear();
+    _dialogAddressController.clear();
+    _dialogDescriptionController.clear();
+    _dialogOpenTime = const TimeOfDay(hour: 8, minute: 0);
+    _dialogCloseTime = const TimeOfDay(hour: 22, minute: 0);
+    _dialogIsActive = true;
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Container(
-                width: Responsive.isMobile(context)
-                    ? MediaQuery.of(context).size.width * 0.9
-                    : MediaQuery.of(context).size.width *
-                        0.7, // Adjusted width for mobile
-                height: MediaQuery.of(context).size.height * 0.8,
-                padding: const EdgeInsets.all(20), // Adjusted padding
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min, // Use min size
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start, // Align content to start
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Thêm Nhà Hàng Mới',
-                            style: Theme.of(context).textTheme.titleLarge,
+            return AlertDialog(
+              title: const Text('Thêm Nhà hàng'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: _dialogNameController,
+                      decoration:
+                          const InputDecoration(labelText: 'Tên nhà hàng'),
+                    ),
+                    TextField(
+                      controller: _dialogAddressController,
+                      decoration: const InputDecoration(labelText: 'Địa chỉ'),
+                    ),
+                    TextField(
+                      controller: _dialogDescriptionController,
+                      decoration: const InputDecoration(labelText: 'Mô tả'),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Giờ mở cửa'),
+                              TimePickerSpinner(
+                                time: DateTime(0, 0, 0, _dialogOpenTime.hour,
+                                    _dialogOpenTime.minute),
+                                onTimeChange: (time) {
+                                  setState(() {
+                                    _dialogOpenTime = TimeOfDay(
+                                        hour: time.hour, minute: time.minute);
+                                  });
+                                },
+                              ),
+                            ],
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      // Tên nhà hàng
-                      TextField(
-                        controller: nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Tên nhà hàng *',
-                          border: OutlineInputBorder(),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Địa chỉ
-                      TextField(
-                        controller: addressController,
-                        decoration: const InputDecoration(
-                          labelText: 'Địa chỉ *',
-                          border: OutlineInputBorder(),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Giờ đóng cửa'),
+                              TimePickerSpinner(
+                                time: DateTime(0, 0, 0, _dialogCloseTime.hour,
+                                    _dialogCloseTime.minute),
+                                onTimeChange: (time) {
+                                  setState(() {
+                                    _dialogCloseTime = TimeOfDay(
+                                        hour: time.hour, minute: time.minute);
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Mô tả
-                      TextField(
-                        controller: descriptionController,
-                        maxLines: 3,
-                        decoration: const InputDecoration(
-                          labelText: 'Mô tả',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Ảnh
-                      Row(
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: () async {
-                              FilePickerResult? result =
-                                  await FilePicker.platform.pickFiles(
-                                type: FileType.image,
-                                withData: true,
-                              );
-                              if (result != null &&
-                                  result.files.single.bytes != null) {
-                                setState(() {
-                                  imageBytes = result.files.single.bytes;
-                                });
-                              }
-                            },
-                            icon: const Icon(Icons.image),
-                            label: const Text('Chọn ảnh'),
-                          ),
-                          const SizedBox(width: 12),
-                          imageBytes != null
-                              ? Image.memory(
-                                  imageBytes!,
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
-                                )
-                              : const Text('Chưa chọn ảnh'),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      // Giờ mở cửa
-                      const Text('Giờ mở cửa',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      TimePickerSpinner(
-                        is24HourMode: true,
-                        normalTextStyle: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white60), // Adjusted style
-                        highlightedTextStyle: const TextStyle(
-                            fontSize: 22,
-                            color: Colors.blueAccent), // Adjusted style
-                        spacing: 30,
-                        itemHeight: 40,
-                        isForce2Digits: true,
-                        time: DateTime(0, 0, 0, openTime.hour,
-                            openTime.minute), // Corrected time initialization
-                        onTimeChange: (time) {
-                          setState(() {
-                            openTime =
-                                TimeOfDay(hour: time.hour, minute: time.minute);
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      // Giờ đóng cửa
-                      const Text('Giờ đóng cửa',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      TimePickerSpinner(
-                        is24HourMode: true,
-                        normalTextStyle: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white60), // Adjusted style
-                        highlightedTextStyle: const TextStyle(
-                            fontSize: 22,
-                            color: Colors.blueAccent), // Adjusted style
-                        spacing: 30,
-                        itemHeight: 40,
-                        isForce2Digits: true,
-                        time: DateTime(0, 0, 0, closeTime.hour,
-                            closeTime.minute), // Corrected time initialization
-                        onTimeChange: (time) {
-                          setState(() {
-                            closeTime =
-                                TimeOfDay(hour: time.hour, minute: time.minute);
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Hủy'),
-                          ),
-                          const SizedBox(width: 12),
-                          ElevatedButton(
-                            onPressed: () {
-                              _addRestaurant(
-                                context,
-                                nameController.text,
-                                addressController.text,
-                                descriptionController.text,
-                                imageBytes,
-                                openTime.format(
-                                    context), // Pass formatted time string
-                                closeTime.format(
-                                    context), // Pass formatted time string
-                              );
-                            },
-                            child: const Text('Thêm nhà hàng'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SwitchListTile(
+                      title: const Text('Trạng thái hoạt động'),
+                      value: _dialogIsActive,
+                      onChanged: (value) {
+                        setState(() {
+                          _dialogIsActive = value;
+                        });
+                      },
+                    ),
+                  ],
                 ),
               ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Hủy'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    context.go(NameRouter.restaurants);
+                  },
+                ),
+                ElevatedButton(
+                  child: const Text('Thêm'),
+                  onPressed: () async {
+                    if (_dialogNameController.text.isEmpty ||
+                        _dialogAddressController.text.isEmpty ||
+                        _dialogDescriptionController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Vui lòng điền đầy đủ thông tin'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    final viewModel = context.read<RestaurantViewModel>();
+                    final newRestaurant = RestaurantModel(
+                      id: '', // Will be generated by Firebase
+                      name: _dialogNameController.text,
+                      description: _dialogDescriptionController.text,
+                      address: _dialogAddressController.text,
+                      location: GeoPoint(0, 0), // Default location
+                      operatingHours: {
+                        'openTime':
+                            '${_dialogOpenTime.hour}:${_dialogOpenTime.minute}',
+                        'closeTime':
+                            '${_dialogCloseTime.hour}:${_dialogCloseTime.minute}',
+                      },
+                      rating: 0.0,
+                      images: {
+                        'main': '',
+                        'gallery': [],
+                      },
+                      status: 'closed',
+                      minOrderAmount: 0.0,
+                      createdAt: DateTime.now(),
+                      categories: [],
+                      metadata: {
+                        'isActive': _dialogIsActive,
+                        'isVerified': false,
+                        'lastUpdated': DateTime.now(),
+                      },
+                    );
+
+                    await viewModel.addRestaurant(newRestaurant);
+                    Navigator.of(context).pop();
+                    context.go(NameRouter.restaurants);
+                  },
+                ),
+              ],
             );
           },
         );
       },
     );
-  }
-
-  void _addRestaurant(
-    BuildContext context,
-    String name,
-    String address,
-    String description,
-    Uint8List? imageBytes,
-    String openTime,
-    String closeTime,
-  ) async {
-    if (name.isEmpty || address.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Vui lòng điền đầy đủ thông tin bắt buộc')),
-      );
-      return;
-    }
-
-    final viewModel = Provider.of<RestaurantViewModel>(context, listen: false);
-    String imageUrl = '';
-    // Nếu bạn muốn upload ảnh lên server, hãy upload ở đây và lấy URL
-    // imageUrl = await uploadImageToServer(imageBytes);
-
-    final newRestaurant = RestaurantModel(
-      id: '',
-      name: name,
-      description: description,
-      address: address,
-      location: const GeoPoint(0, 0),
-      operatingHours: {
-        'openTime': openTime,
-        'closeTime': closeTime,
-      },
-      rating: 0.0,
-      images: {
-        'main': imageUrl,
-        'gallery': [],
-      },
-      status: 'open',
-      minOrderAmount: 0.0,
-      createdAt: DateTime.now(),
-      categories: [],
-      metadata: {
-        'isActive': true,
-        'isVerified': false,
-        'lastUpdated': Timestamp.now(),
-      },
-    );
-
-    try {
-      await viewModel.addRestaurant(newRestaurant);
-      await viewModel.loadRestaurants();
-      if (context.mounted) {
-        Navigator.pop(context);
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Thêm nhà hàng thành công')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: ${e.toString()}')),
-      );
-    }
   }
 
   void _showEditRestaurantDialog(
       BuildContext context, RestaurantModel restaurant) {
-    final nameController = TextEditingController(text: restaurant.name);
-    final addressController = TextEditingController(text: restaurant.address);
-    final descriptionController =
-        TextEditingController(text: restaurant.description);
-    TimeOfDay openTime =
-        _parseTimeOfDay(restaurant.operatingHours['openTime'] ?? '00:00');
-    TimeOfDay closeTime =
-        _parseTimeOfDay(restaurant.operatingHours['closeTime'] ?? '00:00');
+    // Initialize controllers with restaurant data
+    _dialogNameController.text = restaurant.name;
+    _dialogAddressController.text = restaurant.address;
+    _dialogDescriptionController.text = restaurant.description;
+
+    // Parse time from operating hours
+    final openTimeParts =
+        restaurant.operatingHours['openTime']?.split(':') ?? ['00', '00'];
+    final closeTimeParts =
+        restaurant.operatingHours['closeTime']?.split(':') ?? ['00', '00'];
+    _dialogOpenTime = TimeOfDay(
+      hour: int.parse(openTimeParts[0]),
+      minute: int.parse(openTimeParts[1]),
+    );
+    _dialogCloseTime = TimeOfDay(
+      hour: int.parse(closeTimeParts[0]),
+      minute: int.parse(closeTimeParts[1]),
+    );
+    _dialogIsActive = restaurant.metadata['isActive'] == true;
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: SizedBox(
-                height: Responsive.isMobile(context)
-                    ? MediaQuery.of(context).size.height * 0.7
-                    : MediaQuery.of(context).size.height *
-                        0.6, // Adjusted height for mobile
-                width: Responsive.isMobile(context)
-                    ? MediaQuery.of(context).size.width * 0.9
-                    : MediaQuery.of(context).size.width *
-                        0.5, // Adjusted width for mobile
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min, // Use min size
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start, // Align content to start
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Chỉnh sửa Nhà Hàng',
-                            style: Theme.of(context).textTheme.titleLarge,
+            return AlertDialog(
+              title: const Text('Chỉnh sửa Nhà hàng'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: _dialogNameController,
+                      decoration:
+                          const InputDecoration(labelText: 'Tên nhà hàng'),
+                    ),
+                    TextField(
+                      controller: _dialogAddressController,
+                      decoration: const InputDecoration(labelText: 'Địa chỉ'),
+                    ),
+                    TextField(
+                      controller: _dialogDescriptionController,
+                      decoration: const InputDecoration(labelText: 'Mô tả'),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Giờ mở cửa'),
+                              TimePickerSpinner(
+                                time: DateTime(0, 0, 0, _dialogOpenTime.hour,
+                                    _dialogOpenTime.minute),
+                                onTimeChange: (time) {
+                                  setState(() {
+                                    _dialogOpenTime = TimeOfDay(
+                                        hour: time.hour, minute: time.minute);
+                                  });
+                                },
+                              ),
+                            ],
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      // Tên nhà hàng
-                      TextField(
-                        controller: nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Tên nhà hàng *',
-                          border: OutlineInputBorder(),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Địa chỉ
-                      TextField(
-                        controller: addressController,
-                        decoration: const InputDecoration(
-                          labelText: 'Địa chỉ *',
-                          border: OutlineInputBorder(),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Giờ đóng cửa'),
+                              TimePickerSpinner(
+                                time: DateTime(0, 0, 0, _dialogCloseTime.hour,
+                                    _dialogCloseTime.minute),
+                                onTimeChange: (time) {
+                                  setState(() {
+                                    _dialogCloseTime = TimeOfDay(
+                                        hour: time.hour, minute: time.minute);
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Mô tả
-                      TextField(
-                        controller: descriptionController,
-                        maxLines: 3,
-                        decoration: const InputDecoration(
-                          labelText: 'Mô tả',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Ảnh
-                      Row(
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: () async {
-                              FilePickerResult? result =
-                                  await FilePicker.platform.pickFiles(
-                                type: FileType.image,
-                                withData: true,
-                              );
-                              if (result != null &&
-                                  result.files.single.bytes != null) {
-                                setState(() {
-                                  imageBytes = result.files.single.bytes;
-                                });
-                              }
-                            },
-                            icon: const Icon(Icons.image),
-                            label: const Text('Chọn ảnh'),
-                          ),
-                          const SizedBox(width: 12),
-                          imageBytes != null
-                              ? Image.memory(
-                                  imageBytes!,
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
-                                )
-                              : const Text('Chưa chọn ảnh'),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      // Giờ mở cửa
-                      const Text('Giờ mở cửa',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      TimePickerSpinner(
-                        is24HourMode: true,
-                        normalTextStyle: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white60), // Adjusted style
-                        highlightedTextStyle: const TextStyle(
-                            fontSize: 22,
-                            color: Colors.blueAccent), // Adjusted style
-                        spacing: 30,
-                        itemHeight: 40,
-                        isForce2Digits: true,
-                        time: DateTime(0, 0, 0, openTime.hour,
-                            openTime.minute), // Corrected time initialization
-                        onTimeChange: (time) {
-                          setState(() {
-                            openTime =
-                                TimeOfDay(hour: time.hour, minute: time.minute);
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      // Giờ đóng cửa
-                      const Text('Giờ đóng cửa',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      TimePickerSpinner(
-                        is24HourMode: true,
-                        normalTextStyle: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white60), // Adjusted style
-                        highlightedTextStyle: const TextStyle(
-                            fontSize: 22,
-                            color: Colors.blueAccent), // Adjusted style
-                        spacing: 30,
-                        itemHeight: 40,
-                        isForce2Digits: true,
-                        time: DateTime(0, 0, 0, closeTime.hour,
-                            closeTime.minute), // Corrected time initialization
-                        onTimeChange: (time) {
-                          setState(() {
-                            closeTime =
-                                TimeOfDay(hour: time.hour, minute: time.minute);
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Hủy'),
-                          ),
-                          const SizedBox(width: 12),
-                          ElevatedButton(
-                            onPressed: () {
-                              _updateRestaurant(
-                                context,
-                                restaurant,
-                                nameController.text,
-                                addressController.text,
-                                descriptionController.text,
-                                imageBytes,
-                                restaurant.images['main'],
-                                openTime.format(
-                                    context), // Pass formatted time string
-                                closeTime.format(
-                                    context), // Pass formatted time string
-                              );
-                            },
-                            child: const Text('Cập nhật nhà hàng'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SwitchListTile(
+                      title: const Text('Trạng thái hoạt động'),
+                      value: _dialogIsActive,
+                      onChanged: (value) {
+                        setState(() {
+                          _dialogIsActive = value;
+                        });
+                      },
+                    ),
+                  ],
                 ),
               ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Hủy'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    context.go(NameRouter.restaurants);
+                  },
+                ),
+                ElevatedButton(
+                  child: const Text('Lưu'),
+                  onPressed: () async {
+                    if (_dialogNameController.text.isEmpty ||
+                        _dialogAddressController.text.isEmpty ||
+                        _dialogDescriptionController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Vui lòng điền đầy đủ thông tin'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    final viewModel = context.read<RestaurantViewModel>();
+                    final updatedRestaurant = restaurant.copyWith(
+                      name: _dialogNameController.text,
+                      description: _dialogDescriptionController.text,
+                      address: _dialogAddressController.text,
+                      operatingHours: {
+                        'openTime':
+                            '${_dialogOpenTime.hour}:${_dialogOpenTime.minute}',
+                        'closeTime':
+                            '${_dialogCloseTime.hour}:${_dialogCloseTime.minute}',
+                      },
+                      metadata: {
+                        ...restaurant.metadata,
+                        'isActive': _dialogIsActive,
+                        'lastUpdated': DateTime.now(),
+                      },
+                    );
+
+                    await viewModel.updateRestaurant(updatedRestaurant);
+                    Navigator.of(context).pop();
+                    context.go(NameRouter.restaurants);
+                  },
+                ),
+              ],
             );
           },
         );
       },
     );
-  }
-
-  TimeOfDay _parseTimeOfDay(String time) {
-    final parts = time.split(":");
-    // Add basic error handling for parsing
-    try {
-      return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
-    } catch (e) {
-      // Print error and return a default value
-      debugPrint('Error parsing time string: $time, $e');
-      return TimeOfDay.now(); // Or TimeOfDay(0, 0) as a default
-    }
-  }
-
-  void _updateRestaurant(
-    BuildContext context,
-    RestaurantModel oldRestaurant,
-    String name,
-    String address,
-    String description,
-    Uint8List? imageBytes,
-    String? imageUrl,
-    String openTime,
-    String closeTime,
-  ) async {
-    if (name.isEmpty || address.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Vui lòng điền đầy đủ thông tin bắt buộc')),
-      );
-      return;
-    }
-
-    final viewModel = Provider.of<RestaurantViewModel>(context, listen: false);
-    String mainImage = imageUrl ?? oldRestaurant.mainImage;
-    // Nếu bạn muốn upload ảnh lên server, hãy upload ở đây và lấy URL
-    // mainImage = await uploadImageToServer(imageBytes);
-
-    final updatedRestaurant = oldRestaurant.copyWith(
-      name: name,
-      address: address,
-      description: description,
-      images: {
-        ...oldRestaurant.images,
-        'main': mainImage,
-      },
-      operatingHours: {
-        'openTime': openTime,
-        'closeTime': closeTime,
-      },
-    );
-
-    try {
-      await viewModel.updateRestaurant(updatedRestaurant);
-      await viewModel.loadRestaurants();
-      if (context.mounted) {
-        Navigator.pop(context);
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cập nhật nhà hàng thành công')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: ${e.toString()}')),
-      );
-    }
   }
 }

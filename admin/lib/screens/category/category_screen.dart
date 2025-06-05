@@ -4,9 +4,23 @@ import 'package:admin/viewmodels/category_viewmodel.dart';
 import 'package:admin/models/category_model.dart';
 import 'package:admin/reponsive.dart';
 import 'package:admin/screens/main/components/side_menu.dart';
+import 'package:go_router/go_router.dart';
+import 'package:admin/routes/name_router.dart';
+import 'package:collection/collection.dart';
 
 class CategoryScreen extends StatelessWidget {
-  const CategoryScreen({super.key});
+  final bool showAddDialog;
+  final bool showUpdateDialog;
+  final String? categoryId;
+  final String? searchQuery;
+
+  const CategoryScreen({
+    super.key,
+    this.showAddDialog = false,
+    this.showUpdateDialog = false,
+    this.categoryId,
+    this.searchQuery,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -36,12 +50,17 @@ class CategoryScreen extends StatelessWidget {
         children: [
           if (Responsive.isDesktop(context))
             const Expanded(flex: 1, child: SideMenu()),
-          const Expanded(
+          Expanded(
             flex: 5,
             child: SafeArea(
               child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: CategoryContent(),
+                padding: const EdgeInsets.all(16.0),
+                child: CategoryContent(
+                  showAddDialog: showAddDialog,
+                  showUpdateDialog: showUpdateDialog,
+                  categoryId: categoryId,
+                  searchQuery: searchQuery,
+                ),
               ),
             ),
           ),
@@ -52,7 +71,18 @@ class CategoryScreen extends StatelessWidget {
 }
 
 class CategoryContent extends StatefulWidget {
-  const CategoryContent({super.key});
+  final bool showAddDialog;
+  final bool showUpdateDialog;
+  final String? categoryId;
+  final String? searchQuery;
+
+  const CategoryContent({
+    super.key,
+    this.showAddDialog = false,
+    this.showUpdateDialog = false,
+    this.categoryId,
+    this.searchQuery,
+  });
 
   @override
   State<CategoryContent> createState() => _CategoryContentState();
@@ -64,9 +94,45 @@ class _CategoryContentState extends State<CategoryContent> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CategoryViewModel>().loadCategories();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final viewModel = context.read<CategoryViewModel>();
+      await viewModel.loadCategories();
+
+      if (widget.showAddDialog) {
+        _showCategoryDialog(context);
+      }
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant CategoryContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.showUpdateDialog &&
+        widget.categoryId != null &&
+        widget.categoryId != oldWidget.categoryId) {
+      final viewModel = context.read<CategoryViewModel>();
+      final categoryToUpdate = viewModel.categories.firstWhereOrNull(
+        (category) => category.id == widget.categoryId,
+      );
+      if (categoryToUpdate != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showCategoryDialog(context, categoryToUpdate);
+        });
+      } else {
+        print('Error: Category with ID ${widget.categoryId} not found.');
+        if (mounted) {
+          context.go(NameRouter.categories);
+        }
+      }
+    } else if (oldWidget.showUpdateDialog && !widget.showUpdateDialog) {
+      final currentUri = GoRouterState.of(context).uri;
+      if (currentUri.pathSegments.isNotEmpty &&
+          currentUri.pathSegments.last != 'categories') {
+        if (mounted) {
+          context.go(NameRouter.categories);
+        }
+      }
+    }
   }
 
   @override
@@ -92,7 +158,7 @@ class _CategoryContentState extends State<CategoryContent> {
             if (!Responsive.isMobile(context)) const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () {
-                _showCategoryDialog(context);
+                context.go(NameRouter.categories + '/add');
               },
               icon: const Icon(Icons.add),
               label: const Text('Thêm Danh mục'),
@@ -224,7 +290,7 @@ class _CategoryContentState extends State<CategoryContent> {
                       IconButton(
                         icon: const Icon(Icons.edit),
                         onPressed: () {
-                          _showCategoryDialog(context, category);
+                          context.go('${NameRouter.categories}/${category.id}');
                         },
                       ),
                       IconButton(
@@ -354,7 +420,8 @@ class _CategoryContentState extends State<CategoryContent> {
                               IconButton(
                                 icon: const Icon(Icons.edit),
                                 onPressed: () {
-                                  _showCategoryDialog(context, category);
+                                  context.go(
+                                      '${NameRouter.categories}/${category.id}');
                                 },
                               ),
                               IconButton(
@@ -496,26 +563,24 @@ class _CategoryContentState extends State<CategoryContent> {
 
                           try {
                             if (category == null) {
+                              await viewModel.addCategory(newCategory);
                             } else {
                               await viewModel.updateCategory(
-                                  category.id, newCategory);
-                              debugPrint(
-                                  'Updated category: ${newCategory.name}');
+                                  newCategory.id, newCategory);
                             }
-                            await viewModel.loadCategories();
                             if (context.mounted) {
                               Navigator.pop(context);
+                              context.go(NameRouter.categories);
                             }
                           } catch (e) {
-                            debugPrint('Dialog action error: $e');
                             setState(() {
-                              errorText = e.toString();
+                              errorText = 'Lỗi: ${e.toString()}';
                             });
                           }
                         },
-                  child: viewModel.isLoading
-                      ? const CircularProgressIndicator()
-                      : Text(category == null ? 'Thêm' : 'Lưu'),
+                  child: Text(viewModel.isLoading
+                      ? 'Đang xử lý...'
+                      : (category == null ? 'Thêm' : 'Lưu')),
                 ),
               ],
             );

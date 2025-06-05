@@ -10,6 +10,8 @@ import 'package:admin/screens/shipper/shipper_screen.dart';
 import 'package:admin/screens/users/users_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
+import 'package:admin/routes/name_router.dart';
 
 class SideMenu extends StatelessWidget {
   const SideMenu({Key? key}) : super(key: key);
@@ -23,83 +25,91 @@ class SideMenu extends StatelessWidget {
           DrawerListTile(
             title: "Dashboard",
             svgSrc: "assets/icons/menu_dashboard.svg",
-            press: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MainScreen(),
-                )),
+            press: () {
+              context.go(NameRouter.dashboard);
+              if (Scaffold.of(context).isDrawerOpen) {
+                Navigator.pop(context);
+              }
+            },
           ),
           DrawerListTile(
             title: "Category",
             svgSrc: "assets/icons/menu_tran.svg",
-            press: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const CategoryScreen(),
-              ),
-            ),
+            press: () {
+              context.go(NameRouter.categories);
+              if (Scaffold.of(context).isDrawerOpen) {
+                Navigator.pop(context);
+              }
+            },
           ),
           DrawerListTile(
             title: "Restaurant",
             svgSrc: "assets/icons/menu_task.svg",
-            press: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const RestaurantScreen(),
-              ),
-            ),
+            press: () {
+              context.go(NameRouter.restaurants);
+              if (Scaffold.of(context).isDrawerOpen) {
+                Navigator.pop(context);
+              }
+            },
           ),
           DrawerListTile(
             title: "Shipper",
             svgSrc: "assets/icons/menu_doc.svg",
-            press: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ShipperScreen(),
-              ),
-            ),
+            press: () {
+              context.go(NameRouter.shippers);
+              if (Scaffold.of(context).isDrawerOpen) {
+                Navigator.pop(context);
+              }
+            },
           ),
           DrawerListTile(
             title: "User",
             svgSrc: "assets/icons/menu_store.svg",
-            press: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const UsersScreen()),
-            ),
+            press: () {
+              context.go(NameRouter.users);
+              if (Scaffold.of(context).isDrawerOpen) {
+                Navigator.pop(context);
+              }
+            },
           ),
           DrawerListTile(
             title: "Notifications",
             svgSrc: "assets/icons/menu_notification.svg",
-            press: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const NotificationScreen(),
-              ),
-            ),
+            press: () {
+              context.go(NameRouter.notifications);
+              if (Scaffold.of(context).isDrawerOpen) {
+                Navigator.pop(context);
+              }
+            },
           ),
           DrawerListTile(
             title: "Banner",
             svgSrc: "assets/icons/menu_profile.svg",
-            press: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const BannerScreen(),
-                )),
+            press: () {
+              context.go(NameRouter.banner);
+              if (Scaffold.of(context).isDrawerOpen) {
+                Navigator.pop(context);
+              }
+            },
           ),
           DrawerListTile(
             title: "Settings",
             svgSrc: "assets/icons/menu_setting.svg",
-            press: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const SettingScreen(),
-              ),
-            ),
+            press: () {
+              context.go(NameRouter.settings);
+              if (Scaffold.of(context).isDrawerOpen) {
+                Navigator.pop(context);
+              }
+            },
           ),
           DrawerListTile(
             title: "Logout",
             svgSrc: "assets/icons/menu_setting.svg",
-            press: () {},
+            press: () {
+              if (Scaffold.of(context).isDrawerOpen) {
+                Navigator.pop(context);
+              }
+            },
           ),
         ],
       ),
@@ -110,7 +120,6 @@ class SideMenu extends StatelessWidget {
 class DrawerListTile extends StatelessWidget {
   const DrawerListTile({
     Key? key,
-    // For selecting those three line once press "Command+D"
     required this.title,
     required this.svgSrc,
     required this.press,

@@ -30,4 +30,20 @@ class BannerModel {
       link: map['link'] ?? "",
     );
   }
+
+  BannerModel copyWith({
+    String? id,
+    String? title,
+    String? subTitle,
+    String? image,
+    String? link,
+  }) {
+    return BannerModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      subTitle: subTitle ?? this.subTitle,
+      image: image ?? this.image,
+      link: link ?? this.link,
+    );
+  }
 }

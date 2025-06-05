@@ -2,16 +2,16 @@ import 'package:admin/viewmodels/order_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class OrderByRestaurantScreem extends StatefulWidget {
+class OrderByRestaurantScreen extends StatefulWidget {
   final String restaurantId;
-  const OrderByRestaurantScreem({super.key, required this.restaurantId});
+  const OrderByRestaurantScreen({super.key, required this.restaurantId});
 
   @override
-  State<OrderByRestaurantScreem> createState() =>
-      _OrderByRestaurantScreemState();
+  State<OrderByRestaurantScreen> createState() =>
+      _OrderByRestaurantScreenState();
 }
 
-class _OrderByRestaurantScreemState extends State<OrderByRestaurantScreem> {
+class _OrderByRestaurantScreenState extends State<OrderByRestaurantScreen> {
   @override
   void initState() {
     super.initState();

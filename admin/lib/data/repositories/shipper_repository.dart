@@ -20,6 +20,10 @@ class ShipperRepository {
     await _firestore.collection('shippers').doc(id).update(shipper.toMap());
   }
 
+  Future<void> addShipper(ShipperModel shipper) async {
+    await _firestore.collection('shippers').add(shipper.toMap());
+  }
+
   Future<void> deleteShipper(String id) async {
     await _firestore.collection('shippers').doc(id).delete();
   }

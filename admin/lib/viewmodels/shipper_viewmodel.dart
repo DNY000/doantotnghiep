@@ -43,6 +43,20 @@ class ShipperViewModel extends ChangeNotifier {
     }
   }
 
+  // Thêm shipper mới
+  Future<void> addShipper(ShipperModel shipper) async {
+    _setLoading(true);
+    try {
+      await _repository.addShipper(shipper);
+      await loadShippers(); // Refresh list after adding
+      _error = null;
+    } catch (e) {
+      _error = 'Không thể thêm shipper: $e';
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // Cập nhật thông tin shipper
   Future<void> updateShipper(String id, ShipperModel shipper) async {
     _setLoading(true);

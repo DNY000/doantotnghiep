@@ -5,9 +5,23 @@ import 'package:admin/models/user_model.dart';
 import 'package:admin/reponsive.dart';
 import 'package:admin/screens/main/components/side_menu.dart';
 import 'package:admin/ultils/const/enum.dart';
+import 'package:go_router/go_router.dart';
+import 'package:admin/routes/name_router.dart';
+import 'package:collection/collection.dart'; // Import collection for firstWhereOrNull
 
 class UsersScreen extends StatelessWidget {
-  const UsersScreen({super.key});
+  final bool showAddDialog;
+  final bool showUpdateDialog;
+  final String? userId;
+  final String? searchQuery;
+
+  const UsersScreen({
+    super.key,
+    this.showAddDialog = false,
+    this.showUpdateDialog = false,
+    this.userId,
+    this.searchQuery,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -39,12 +53,17 @@ class UsersScreen extends StatelessWidget {
         children: [
           if (Responsive.isDesktop(context))
             const Expanded(flex: 1, child: SideMenu()),
-          const Expanded(
+          Expanded(
             flex: 5,
             child: SafeArea(
               child: Padding(
                 padding: EdgeInsets.all(16.0),
-                child: UsersContent(),
+                child: UsersContent(
+                  showAddDialog: showAddDialog,
+                  showUpdateDialog: showUpdateDialog,
+                  userId: userId,
+                  searchQuery: searchQuery,
+                ),
               ),
             ),
           ),
@@ -55,7 +74,18 @@ class UsersScreen extends StatelessWidget {
 }
 
 class UsersContent extends StatefulWidget {
-  const UsersContent({super.key});
+  final bool showAddDialog;
+  final bool showUpdateDialog;
+  final String? userId;
+  final String? searchQuery;
+
+  const UsersContent({
+    super.key,
+    this.showAddDialog = false,
+    this.showUpdateDialog = false,
+    this.userId,
+    this.searchQuery,
+  });
 
   @override
   State<UsersContent> createState() => _UsersContentState();
@@ -64,17 +94,226 @@ class UsersContent extends StatefulWidget {
 class _UsersContentState extends State<UsersContent> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedRole = 'all';
+  // Add controllers for user add/edit form fields
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _passwordController =
+      TextEditingController(); // Assuming password for add (for Firebase Auth)
+  final TextEditingController _avatarUrlController = TextEditingController();
+  Role _selectedAddRole = Role.user; // Default role for add
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => context.read<UserViewModel>().getAllUsers());
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final viewModel = context.read<UserViewModel>();
+      await viewModel.getAllUsers();
+
+      // Check for showAddDialog in initState for initial route load
+      if (widget.showAddDialog) {
+        _showUserDialog(context);
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant UsersContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Logic for showing update dialog
+    if (widget.showUpdateDialog &&
+        widget.userId != null &&
+        widget.userId != oldWidget.userId) {
+      final viewModel = context.read<UserViewModel>();
+      final userToUpdate = viewModel.users.firstWhereOrNull(
+        (user) => user.id == widget.userId,
+      );
+      if (userToUpdate != null) {
+        // Ensure the state is ready before showing dialog
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showUserDialog(context, userToUpdate);
+        });
+      } else {
+        print('Error: User with ID ${widget.userId} not found.');
+        // Optionally navigate back if user not found
+        if (mounted) {
+          context.go(NameRouter.users);
+        }
+      }
+    } else if (oldWidget.showUpdateDialog && !widget.showUpdateDialog) {
+      // If navigating away from update route (e.g. dialog is closed)
+      // Ensure we are back on the base users route
+      final currentUri = GoRouterState.of(context).uri;
+      if (currentUri.pathSegments.isNotEmpty &&
+          currentUri.pathSegments.last != 'users') {
+        if (mounted) {
+          context.go(NameRouter.users);
+        }
+      }
+    }
+
+    // Logic for showing add dialog when navigating from another route to /users/add
+    if (widget.showAddDialog && !oldWidget.showAddDialog) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showUserDialog(context);
+      });
+    }
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _avatarUrlController.dispose();
     super.dispose();
+  }
+
+  // Method to show add/edit user dialog
+  void _showUserDialog(BuildContext context, [UserModel? user]) {
+    final isEditing = user != null;
+    // Initialize controllers with user data if editing
+    if (isEditing) {
+      _nameController.text = user.name;
+      _emailController.text = user.email ?? ''; // Handle null email
+      _phoneController.text = user.phoneNumber;
+      _avatarUrlController.text = user.avatarUrl; // avatarUrl is String
+      _selectedAddRole = user.role;
+      _passwordController.clear(); // Don't pre-fill password for security
+    } else {
+      // Clear controllers for adding
+      _nameController.clear();
+      _emailController.clear();
+      _phoneController.clear();
+      _passwordController.clear();
+      _avatarUrlController.clear();
+      _selectedAddRole = Role.user; // Reset to default
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent dismissing by tapping outside
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(isEditing ? 'Chỉnh sửa Người dùng' : 'Thêm Người dùng'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(labelText: 'Tên người dùng'),
+                ),
+                TextField(
+                  controller: _emailController,
+                  decoration: InputDecoration(labelText: 'Email'),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                TextField(
+                  controller: _phoneController,
+                  decoration: InputDecoration(labelText: 'Số điện thoại'),
+                  keyboardType: TextInputType.phone,
+                ),
+                if (!isEditing) // Only show password field when adding
+                  TextField(
+                    controller: _passwordController,
+                    decoration: InputDecoration(labelText: 'Mật khẩu'),
+                    obscureText: true,
+                  ),
+                TextField(
+                  controller: _avatarUrlController,
+                  decoration: InputDecoration(labelText: 'URL Ảnh đại diện'),
+                  keyboardType: TextInputType.url,
+                ),
+                DropdownButtonFormField<Role>(
+                  value: _selectedAddRole,
+                  decoration: InputDecoration(labelText: 'Vai trò'),
+                  items: Role.values.map((role) {
+                    return DropdownMenuItem(
+                      value: role,
+                      child: Text(role.name),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedAddRole = value;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Hủy'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Navigate back to the base route after closing dialog
+                context.go(NameRouter.users);
+              },
+            ),
+            ElevatedButton(
+              child: Text(isEditing ? 'Lưu' : 'Thêm'),
+              onPressed: () async {
+                final viewModel = context.read<UserViewModel>();
+                if (isEditing) {
+                  final updatedUser = user!.copyWith(
+                    name: _nameController.text,
+                    email: _emailController.text.isEmpty
+                        ? null
+                        : _emailController.text, // Allow null email
+                    phoneNumber: _phoneController.text,
+                    avatarUrl: _avatarUrlController.text, // avatarUrl is String
+                    role: _selectedAddRole,
+                    lastUpdated: DateTime.now(),
+                  );
+                  await viewModel.updateUser(updatedUser);
+                } else {
+                  // Basic validation for add
+                  if (_nameController.text.isEmpty ||
+                      _phoneController.text.isEmpty ||
+                      _passwordController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text(
+                              'Vui lòng điền đầy đủ thông tin (Tên, Số điện thoại, Mật khẩu)')),
+                    );
+                    return;
+                  }
+                  final newUser = UserModel(
+                    id: '', // ID will be generated by Firebase
+                    name: _nameController.text,
+                    email: _emailController.text.isEmpty
+                        ? null
+                        : _emailController.text,
+                    phoneNumber: _phoneController.text,
+                    avatarUrl: _avatarUrlController.text,
+                    addresses: [], // Added required addresses parameter
+                    role: _selectedAddRole, // Added missing role parameter
+                    createdAt: DateTime.now(),
+                    dateOfBirth:
+                        DateTime.now(), // Assuming default date of birth
+                    lastUpdated: DateTime.now(),
+                  );
+                  // Call a separate method to add user with email/password via Firebase Auth
+                  // await viewModel.addUserWithEmailAndPassword(newUser, _passwordController.text);
+                  // For now, we'll just add the user model without password
+                  await viewModel.addUser(newUser);
+                }
+                Navigator.of(context).pop();
+                // Navigate back to the base route after closing dialog
+                context.go(NameRouter.users);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -93,7 +332,10 @@ class _UsersContentState extends State<UsersContent> {
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
             ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                // Navigate to add user route which will trigger dialog
+                context.go(NameRouter.users + '/add');
+              },
               icon: const Icon(Icons.add),
               label: const Text('Thêm Người dùng'),
               style: ElevatedButton.styleFrom(
@@ -191,6 +433,9 @@ class _UsersContentState extends State<UsersContent> {
                       user.email?.toLowerCase().contains(searchLower) == true ||
                       user.phoneNumber.toLowerCase().contains(searchLower);
                 }).toList();
+
+                // TODO: Optionally navigate to search results route here
+                // context.go('${NameRouter.searchUsers}/${_searchController.text}');
               }
 
               // Apply role filter
@@ -229,48 +474,36 @@ class _UsersContentState extends State<UsersContent> {
         ],
         rows: users.map((user) {
           return DataRow(
+            onSelectChanged: (selected) {
+              if (selected == true) {
+                // Navigate to update user route which will trigger dialog
+                context.go('${NameRouter.users}/${user.id}');
+              }
+            },
             cells: [
               DataCell(
                 CircleAvatar(
                   backgroundImage: user.avatarUrl.isNotEmpty
                       ? NetworkImage(user.avatarUrl)
                       : null,
-                  child: user.avatarUrl.isEmpty
-                      ? Text(
-                          user.name.isNotEmpty
-                              ? user.name[0].toUpperCase()
-                              : '?',
-                          style: const TextStyle(fontSize: 24),
-                        )
-                      : null,
+                  child:
+                      user.avatarUrl.isEmpty ? const Icon(Icons.person) : null,
                 ),
               ),
               DataCell(Text(user.name)),
-              DataCell(Text(user.email ?? '')),
+              DataCell(Text(user.email ?? 'N/A')),
               DataCell(Text(user.phoneNumber)),
-              DataCell(
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: user.role == Role.admin ? Colors.blue : Colors.green,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    user.role == Role.admin ? 'Admin' : 'Người dùng',
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
+              DataCell(Text(user.role.name)),
               DataCell(
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.edit),
-                      onPressed: () {},
+                      onPressed: () {
+                        // Navigate to update user route
+                        context.go('${NameRouter.users}/${user.id}');
+                      },
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete),
@@ -280,8 +513,7 @@ class _UsersContentState extends State<UsersContent> {
                           builder: (context) => AlertDialog(
                             title: const Text('Xác nhận xóa'),
                             content: Text(
-                              'Bạn có chắc muốn xóa người dùng ${user.name}?',
-                            ),
+                                'Bạn có chắc muốn xóa người dùng ${user.name}?'),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context, false),
@@ -297,7 +529,6 @@ class _UsersContentState extends State<UsersContent> {
 
                         if (confirmed == true) {
                           await viewModel.deleteUser(user.id);
-                          await viewModel.getAllUsers();
                         }
                       },
                     ),
@@ -312,113 +543,58 @@ class _UsersContentState extends State<UsersContent> {
   }
 
   Widget _buildMobileView(List<UserModel> users, UserViewModel viewModel) {
+    // Implement mobile view similar to desktop view but perhaps using ListTile or Card
     return ListView.builder(
       itemCount: users.length,
       itemBuilder: (context, index) {
         final user = users[index];
         return Card(
-          margin: const EdgeInsets.only(bottom: 16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundImage: user.avatarUrl.isNotEmpty
+                  ? NetworkImage(user.avatarUrl)
+                  : null,
+              child: user.avatarUrl.isEmpty ? const Icon(Icons.person) : null,
+            ),
+            title: Text(user.name),
+            subtitle: Text('${user.email ?? 'N/A'} - ${user.phoneNumber}'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundImage: user.avatarUrl.isNotEmpty
-                          ? NetworkImage(user.avatarUrl)
-                          : null,
-                      child: user.avatarUrl.isEmpty
-                          ? Text(
-                              user.name.isNotEmpty
-                                  ? user.name[0].toUpperCase()
-                                  : '?',
-                              style: const TextStyle(fontSize: 24),
-                            )
-                          : null,
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user.name,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {
+                    // Navigate to update user route
+                    context.go('${NameRouter.users}/${user.id}');
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Xác nhận xóa'),
+                        content: Text(
+                            'Bạn có chắc muốn xóa người dùng ${user.name}?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Hủy'),
                           ),
-                          const SizedBox(height: 4),
-                          Text('Email: ${user.email ?? "N/A"}'),
-                          Text('SĐT: ${user.phoneNumber}'),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text('Xóa'),
+                          ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: user.role == Role.admin
-                            ? Colors.blue
-                            : Colors.green,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        user.role == Role.admin ? 'Admin' : 'Người dùng',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () {},
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
-                            final confirmed = await showDialog<bool>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Xác nhận xóa'),
-                                content: Text(
-                                  'Bạn có chắc muốn xóa người dùng ${user.name}?',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(context, false),
-                                    child: const Text('Hủy'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(context, true),
-                                    child: const Text('Xóa'),
-                                  ),
-                                ],
-                              ),
-                            );
+                    );
 
-                            if (confirmed == true) {
-                              await viewModel.deleteUser(user.id);
-                              await viewModel.getAllUsers();
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
+                    if (confirmed == true) {
+                      await viewModel.deleteUser(user.id);
+                    }
+                  },
                 ),
               ],
             ),

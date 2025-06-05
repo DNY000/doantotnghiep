@@ -6,19 +6,17 @@ class RestaurantModel {
   final String name;
   final String description;
   final String address;
-  final GeoPoint
-      location; // Sử dụng GeoPoint thay vì latitude/longitude riêng lẻ
-  final Map<String, String>
-      operatingHours; // Cấu trúc rõ ràng cho giờ hoạt động
+  final GeoPoint location;
+  final Map<String, String> operatingHours;
   final double rating;
-  final Map<String, dynamic> images; // Cấu trúc rõ ràng cho hình ảnh
+  final Map<String, dynamic> images;
   final String status;
   final double minOrderAmount;
   final DateTime createdAt;
   final List<String> categories;
-  final Map<String, dynamic> metadata; // Thêm metadata cho thông tin phụ
+  final Map<String, dynamic> metadata;
 
-  const RestaurantModel({
+  RestaurantModel({
     required this.id,
     required this.name,
     required this.description,

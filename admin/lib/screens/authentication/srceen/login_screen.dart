@@ -121,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 24),
                   TextButton(
                     onPressed: () {
-                      context.go(NameRouter.register);
+                      context.go(NameRouter.dashboard);
                     },
                     child: const Text('Chưa có tài khoản? Đăng ký ngay'),
                   ),
