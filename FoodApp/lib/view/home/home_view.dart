@@ -46,33 +46,70 @@ class _HomeViewContentState extends State<_HomeViewContent>
     super.initState();
     context.read<HomeViewModel>().initTabController(this);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<FoodViewModel>().loadFoods();
-      context.read<CategoryViewModel>().loadCategories();
-      context.read<RestaurantViewModel>().getNewRestaurants();
-      context.read<UserViewModel>().loadCurrentUser();
-      final userId = context.read<UserViewModel>().currentUser?.id ?? '';
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        // Load user data first
+        await context.read<UserViewModel>().loadCurrentUser();
 
-      context.read<NotificationViewModel>().getUnreadNotificationsCount(userId);
-      context.read<NotificationViewModel>().countNotification;
+        // After user data is loaded, get userId and load notifications
+        final userId = context.read<UserViewModel>().currentUser?.id;
+        if (userId != null && userId.isNotEmpty) {
+          await context
+              .read<NotificationViewModel>()
+              .getUnreadNotificationsCount(userId);
+        }
+
+        // Load other data
+        await Future.wait([
+          context.read<FoodViewModel>().loadFoods(),
+          context.read<CategoryViewModel>().loadCategories(),
+          context.read<RestaurantViewModel>().getNewRestaurants(),
+        ]);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Có lỗi xảy ra: ${e.toString()}'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
     });
 
     _loadCurrentAddress();
   }
 
+  @override
+  void dispose() {
+    // context.read<NotificationViewModel>().removeListener(() {});
+    super.dispose();
+  }
+
   Future<void> _loadCurrentAddress() async {
-    final position = await LocationService.getCurrentLocation(context);
-    if (position != null) {
-      final address = await LocationService.getAddressFromPosition(position);
+    try {
+      final position = await LocationService.getCurrentLocation(context);
+      if (position != null) {
+        final address = await LocationService.getAddressFromPosition(position);
+        if (mounted) {
+          setState(() {
+            _currentAddress = address ?? 'Không xác định';
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _currentAddress = 'Không xác định';
+          });
+        }
+      }
+    } catch (e) {
       if (mounted) {
         setState(() {
-          _currentAddress = address ?? 'Không xác định';
+          _currentAddress = 'Không xác định';
         });
       }
-    } else {
-      setState(() {
-        _currentAddress = 'Không xác định';
-      });
     }
   }
 
@@ -125,29 +162,46 @@ class _HomeViewContentState extends State<_HomeViewContent>
                             selector: (p0, p1) => p1.countNotification,
                             builder:
                                 (BuildContext context, value, Widget? child) {
-                              return IconButton(
-                                icon: Badge(
-                                  label: Text(
-                                    '$value',
-                                    style: const TextStyle(
-                                        color: Colors.white, fontSize: 10),
-                                  ),
-                                  child: Icon(
-                                    Icons.notifications_outlined,
-                                    size: 24,
-                                    color: TColor.text,
-                                  ),
-                                ),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const NotificationsView(),
+                              return Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 8),
+                                  child: IconButton(
+                                    icon: Badge(
+                                      label: Text(
+                                        '$value',
+                                        style: const TextStyle(
+                                            color: Colors.white, fontSize: 10),
+                                      ),
+                                      child: Icon(
+                                        Icons.notifications_outlined,
+                                        size: 24,
+                                        color: TColor.text,
+                                      ),
                                     ),
-                                  );
-                                },
-                              );
+                                    onPressed: () async {
+                                      // Refresh notification count before navigating
+                                      final userId = context
+                                          .read<UserViewModel>()
+                                          .currentUser
+                                          ?.id;
+                                      if (userId != null && userId.isNotEmpty) {
+                                        await context
+                                            .read<NotificationViewModel>()
+                                            .getUnreadNotificationsCount(
+                                                userId);
+                                      }
+
+                                      if (context.mounted) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const NotificationsView(),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  ));
                             },
                           ),
                         ],

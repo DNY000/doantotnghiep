@@ -39,10 +39,10 @@ class FoodRepository {
       final snapshot = await query.get();
       return snapshot.docs
           .map(
-            (doc) => FoodModel.fromMap({
-              'id': doc.id,
-              ...doc.data() as Map<String, dynamic>,
-            }),
+            (doc) => FoodModel.fromMap(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            ),
           )
           .toList();
     } catch (e) {
@@ -64,7 +64,7 @@ class FoodRepository {
           .get();
 
       return snapshot.docs
-          .map((doc) => FoodModel.fromMap({'id': doc.id, ...doc.data()}))
+          .map((doc) => FoodModel.fromMap(doc.data(), doc.id))
           .toList();
     } catch (e) {
       throw Exception('Không thể lấy danh sách món ăn theo category: $e');
@@ -72,34 +72,20 @@ class FoodRepository {
   }
 
   // Lấy món ăn của nhà hàng
-  Future<List<FoodModel>> getFoodsByRestaurant(
-    String restaurantId, {
-    String? category,
-    bool? isAvailable,
-    int limit = 10,
-  }) async {
+  Future<List<FoodModel>> getFoodsByRestaurant(String restaurantId) async {
     try {
       Query query = _firestore
           .collection(_collection)
           .where('restaurantId', isEqualTo: restaurantId);
 
-      if (category != null) {
-        query = query.where('category', isEqualTo: category);
-      }
-
-      if (isAvailable != null) {
-        query = query.where('isAvailable', isEqualTo: isAvailable);
-      }
-
-      query = query.limit(limit);
       final snapshot = await query.get();
 
       return snapshot.docs
           .map(
-            (doc) => FoodModel.fromMap({
-              'id': doc.id,
-              ...doc.data() as Map<String, dynamic>,
-            }),
+            (doc) => FoodModel.fromMap(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            ),
           )
           .toList();
     } catch (e) {
@@ -125,10 +111,10 @@ class FoodRepository {
       // Lọc dữ liệu ở phía client
       final foods = snapshot.docs
           .map(
-            (doc) => FoodModel.fromMap({
-              'id': doc.id,
-              ...doc.data() as Map<String, dynamic>,
-            }),
+            (doc) => FoodModel.fromMap(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            ),
           )
           .where((food) => food.rating >= minRating)
           .where((food) => !onlyAvailable || food.isAvailable)
@@ -156,7 +142,7 @@ class FoodRepository {
           .get();
 
       return snapshot.docs
-          .map((doc) => FoodModel.fromMap({'id': doc.id, ...doc.data()}))
+          .map((doc) => FoodModel.fromMap(doc.data(), doc.id))
           .toList();
     } catch (e) {
       throw Exception('Không thể lấy danh sách món ăn đề xuất: $e');
@@ -177,7 +163,8 @@ class FoodRepository {
 
       // Filter foods based on name or description containing the query
       final foods = snapshot.docs
-          .map((doc) => FoodModel.fromMap({...doc.data(), 'id': doc.id}))
+          .map((doc) =>
+              FoodModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
           .where(
             (food) =>
                 food.name.toLowerCase().contains(lowercaseQuery) ||
@@ -195,11 +182,17 @@ class FoodRepository {
   // Lấy chi tiết món ăn
   Future<FoodModel> getFoodById(String foodId) async {
     try {
-      final doc = await _firestore.collection(_collection).doc(foodId).get();
-      if (!doc.exists) {
-        throw Exception('Không tìm thấy món ăn');
+      final querySnapshot = await _firestore
+          .collection(_collection)
+          .where('id', isEqualTo: foodId)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        throw Exception('Không tìm thấy món ăn với ID: $foodId');
       }
-      return FoodModel.fromMap({'id': doc.id, ...doc.data()!});
+
+      final doc = querySnapshot.docs.first;
+      return FoodModel.fromMap(doc.data(), doc.id);
     } catch (e) {
       throw Exception('Không thể lấy thông tin món ăn: $e');
     }
@@ -238,7 +231,10 @@ class FoodRepository {
           .limit(limit)
           .get();
 
-      return snapshot.docs.map((doc) => FoodModel.fromMap(doc.data())).toList();
+      return snapshot.docs
+          .map((doc) =>
+              FoodModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .toList();
     } catch (e) {
       print('Error getting top selling foods: $e');
       return [];

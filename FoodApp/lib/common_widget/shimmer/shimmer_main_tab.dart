@@ -22,7 +22,9 @@ class ShimmerHomeView extends StatelessWidget {
   }
 
   Widget _buildHeaderShimmer() {
-    return TShimmer.color3(
+    return TShimmer(
+      baseColor: Colors.grey[200]!,
+      highlightColor: Colors.grey[100]!,
       child: const Padding(
         padding: EdgeInsets.fromLTRB(16, 40, 16, 10),
         child: Row(
@@ -52,7 +54,9 @@ class ShimmerHomeView extends StatelessWidget {
   }
 
   Widget _buildSearchBarShimmer() {
-    return TShimmer.color3(
+    return TShimmer(
+      baseColor: Colors.grey[200]!,
+      highlightColor: Colors.grey[100]!,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Container(
@@ -67,7 +71,9 @@ class ShimmerHomeView extends StatelessWidget {
   }
 
   Widget _buildCategoriesShimmer() {
-    return TShimmer.color3(
+    return TShimmer(
+      baseColor: Colors.grey[200]!,
+      highlightColor: Colors.grey[100]!,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -120,7 +126,9 @@ class ShimmerHomeView extends StatelessWidget {
   }
 
   Widget _buildPopularRestaurantsShimmer() {
-    return TShimmer.color3(
+    return TShimmer(
+      baseColor: Colors.grey[200]!,
+      highlightColor: Colors.grey[100]!,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -200,7 +208,9 @@ class ShimmerHomeView extends StatelessWidget {
   }
 
   Widget _buildRecommendedFoodsShimmer() {
-    return TShimmer.color3(
+    return TShimmer(
+      baseColor: Colors.grey[200]!,
+      highlightColor: Colors.grey[100]!,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -308,7 +318,9 @@ class ShimmerOrderView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TShimmer.color3(
+    return TShimmer(
+      baseColor: Colors.grey[200]!,
+      highlightColor: Colors.grey[100]!,
       child: Column(
         children: [
           _buildTabs(),
@@ -465,7 +477,9 @@ class ShimmerFavoritesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TShimmer.color3(
+    return TShimmer(
+      baseColor: Colors.grey[200]!,
+      highlightColor: Colors.grey[100]!,
       child: Column(
         children: [
           _buildHeader(),
@@ -573,7 +587,9 @@ class ShimmerNotificationsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TShimmer.color3(
+    return TShimmer(
+      baseColor: Colors.grey[200]!,
+      highlightColor: Colors.grey[100]!,
       child: Column(
         children: [
           _buildHeader(),
@@ -663,7 +679,9 @@ class ShimmerProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TShimmer.color3(
+    return TShimmer(
+      baseColor: Colors.grey[200]!,
+      highlightColor: Colors.grey[100]!,
       child: Column(
         children: [
           _buildProfileHeader(),

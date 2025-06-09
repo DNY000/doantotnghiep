@@ -62,8 +62,8 @@ class UserModel {
     String lastName = parts.length > 1 ? parts.last.toLowerCase() : '';
 
     String camelCaseUserName =
-        lastName.isEmpty ? firstName : '$firstName.$lastName';
-    return 'cwt_$camelCaseUserName';
+        lastName.isEmpty ? firstName : '\$firstName.\$lastName';
+    return 'cwt_\$camelCaseUserName';
   }
 
   factory UserModel.fromMap(Map<String, dynamic> map, String id) {
@@ -75,7 +75,7 @@ class UserModel {
         addressList.add(
           AddressModel.fromMap(
             addressesData[i] as Map<String, dynamic>,
-            '${id}_address_$i',
+            '\${id}_address_\$i',
           ),
         );
       }

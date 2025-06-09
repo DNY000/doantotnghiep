@@ -1,3 +1,4 @@
+import 'package:admin/screens/authentication/srceen/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -95,14 +96,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                        content: Text('Đăng nhập thành công!')),
+                                      content: Text('Đăng nhập thành công!'),
+                                      backgroundColor: Colors.green,
+                                    ),
                                   );
                                 }
                               } else {
                                 // Thất bại hoặc lỗi
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(result)),
+                                    SnackBar(
+                                      content: Text(result),
+                                      backgroundColor: Colors.red,
+                                    ),
                                   );
                                 }
                               }
@@ -121,7 +127,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 24),
                   TextButton(
                     onPressed: () {
-                      context.go(NameRouter.dashboard);
+                      // context.go(NameRouter.register);
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const RegisterScreen(),
+                          ));
                     },
                     child: const Text('Chưa có tài khoản? Đăng ký ngay'),
                   ),

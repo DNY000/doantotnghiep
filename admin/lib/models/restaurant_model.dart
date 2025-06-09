@@ -101,6 +101,7 @@ class RestaurantModel {
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'name': name,
       'description': description,
       'address': address,

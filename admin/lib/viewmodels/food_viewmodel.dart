@@ -53,19 +53,11 @@ class FoodViewModel extends ChangeNotifier {
   }
 
   // Lấy món ăn của nhà hàng
-  Future<List<FoodModel>> getFoodsByRestaurant(
-    String restaurantId, {
-    String? category,
-    bool? isAvailable,
-    int limit = 10,
-  }) async {
+  Future<List<FoodModel>> getFoodsByRestaurant(String restaurantId) async {
     try {
       _setLoading(true);
       final foods = await _repository.getFoodsByRestaurant(
         restaurantId,
-        category: category,
-        isAvailable: isAvailable,
-        limit: limit,
       );
       _error = null;
       return foods;
@@ -176,7 +168,9 @@ class FoodViewModel extends ChangeNotifier {
     try {
       _setLoading(true);
       _foods = await _repository.getFoodsByRestaurant(restaurantId);
+
       _error = null;
+      notifyListeners();
     } catch (e) {
       _error = 'Không thể tải danh sách món ăn: $e';
       _foods = [];
@@ -292,6 +286,23 @@ class FoodViewModel extends ChangeNotifier {
       _error = e.toString();
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<FoodModel?> getFoodById(String foodId) async {
+    try {
+      _setLoading(true);
+      final food = await _repository.getFoodById(foodId);
+      _error = null;
+      return food;
+    } catch (e) {
+      _error = 'Không thể lấy thông tin món ăn: $e';
+      if (kDebugMode) {
+        print(_error!);
+      }
+      return null;
+    } finally {
+      _setLoading(false);
     }
   }
 }

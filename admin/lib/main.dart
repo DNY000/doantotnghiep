@@ -17,6 +17,7 @@ import 'package:admin/data/repositories/shipper_repository.dart';
 import 'package:admin/viewmodels/restaurant_viewmodel.dart';
 import 'package:admin/data/repositories/restaurant_repository.dart';
 import 'package:admin/routes/page_router.dart'; // hoặc name_router.dart
+import 'package:admin/ultils/local_storage/storage_utilly.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -28,6 +29,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await TLocalStorage.init('admin_storage'); // Initialize TLocalStorage here
   // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   runApp(
