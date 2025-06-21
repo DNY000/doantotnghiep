@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:foodapp/view/profile/widget/edit_user_view.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
@@ -254,7 +255,8 @@ class _InformationUserViewState extends State<InformationUserView> {
                         _buildInfoRow(
                           icon: CupertinoIcons.calendar,
                           label: 'Ngày sinh',
-                          value: user.dateOfBirth.toString(),
+                          value:
+                              DateFormat('dd/MM/yyyy').format(user.dateOfBirth),
                         ),
                         const Divider(),
                         _buildInfoRow(
@@ -315,12 +317,6 @@ class _InformationUserViewState extends State<InformationUserView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black,
-            offset: Offset(0, 3),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

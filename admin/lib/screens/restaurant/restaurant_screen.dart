@@ -313,25 +313,12 @@ class _RestaurantContentState extends State<RestaurantContent> {
               DataCell(Text(restaurant.name)),
               DataCell(Text(restaurant.address)),
               DataCell(
-                Container(
-                  margin: const EdgeInsets.symmetric(
-                    vertical: 8,
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 4,
-                      horizontal:
-                          8), // Adjusted horizontal padding for better look
-                  decoration: BoxDecoration(
-                    color: restaurant.isActive ? Colors.green : Colors.grey,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    restaurant.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12), // Adjusted font size slightly
-                    textAlign: TextAlign.center,
-                  ),
+                Text(
+                  restaurant.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động',
+                  style: TextStyle(
+                      color: restaurant.isActive ? Colors.green : Colors.red,
+                      fontSize: 12), // Adjusted font size slightly
+                  textAlign: TextAlign.center,
                 ),
               ),
               DataCell(

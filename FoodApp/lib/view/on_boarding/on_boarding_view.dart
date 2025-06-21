@@ -24,22 +24,19 @@ class _OnBoardingViewState extends State<OnBoardingView>
 
   final List<Map<String, String>> infoArr = [
     {
-      "title": "Get all the healthy recipes\nthat you need",
-      "sub_title":
-          "Whether you are losing or gaining, we\nhave all the recipes you'll need.",
+      "title": "Món ăn đa dạng",
+      "sub_title": "Vô vàn món ăn hấp dẫn chờ bạn khám phá",
       "image": "assets/images/food/ganran_on.png" // Placeholder image
     },
     {
-      "title": "Get the exact nutrition\nvalue of everything you eat",
-      "sub_title":
-          "We are updating our food database every\nminute to help you track your calories.",
+      "title": "Giao hàng nhanh chóng",
+      "sub_title": "Vừa đặt đơn đã có hàng ngay",
       "image": "assets/images/onboarding/giaohang1.png" // Placeholder image
     },
     {
-      "title": "Get daily calorie targets\nbased on your body weight",
-      "sub_title":
-          "Set your target weight and select your\nmonthly schedule, and we'll do the rest.",
-      "image": "assets/images/onboarding/o1.png" // Placeholder image
+      "title": "Ưu đãi hấp dẫn",
+      "sub_title": "Trải nghiệm ngay",
+      "image": "assets/images/onboarding/uudai1.png" // Placeholder image
     },
   ];
 
@@ -69,21 +66,21 @@ class _OnBoardingViewState extends State<OnBoardingView>
     // Check if it's the first time or not, then forward animation.
     isFirstTime = storage.readData<bool>("isFirstTime") ?? true;
 
-    if (!isFirstTime) {
-      // If not first time, navigate directly to login after a small delay
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          FlutterNativeSplash.remove();
-          context.go('/login');
-        }
-      });
-    } else {
-      // If it's the first time, start animation and remove splash after a delay
-      _animationController.forward();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        FlutterNativeSplash.remove();
-      });
-    }
+    // if (!isFirstTime) {
+    //   // If not first time, navigate directly to login after a small delay
+    //   WidgetsBinding.instance.addPostFrameCallback((_) {
+    //     if (mounted) {
+    //       FlutterNativeSplash.remove();
+    //       context.go('/login');
+    //     }
+    //   });
+    // } else {
+    //   _animationController.forward();
+    //   WidgetsBinding.instance.addPostFrameCallback((_) {
+    //     FlutterNativeSplash.remove();
+    //   });
+    // }
+    FlutterNativeSplash.remove();
   }
 
   @override
@@ -98,7 +95,7 @@ class _OnBoardingViewState extends State<OnBoardingView>
     final media = MediaQuery.of(context).size;
     const primaryOrange = Color(0xFFFF8C00);
     const lightOrange = Color(0xFFFFAB40);
-    const yellowBackground = Color(0xFFFFF2CC); // A light yellow from the image
+    const yellowBackground = Color(0xFFFFF2CC);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -130,18 +127,18 @@ class _OnBoardingViewState extends State<OnBoardingView>
                   alignment: Alignment.topRight,
                   child: TextButton(
                     onPressed: () {
-                      storage.saveData(
-                          "isFirstTime", false); // Mark as not first time
-                      if (context.mounted) {
-                        context.go('/login'); // Navigate to login
-                      }
+                      pageController.animateToPage(
+                        infoArr.length - 1,
+                        duration: const Duration(milliseconds: 500),
+                        curve: Curves.easeInOut,
+                      );
                     },
                     child: const Padding(
                       padding: EdgeInsets.all(16.0),
                       child: Text(
                         "Bỏ qua",
                         style: TextStyle(
-                          color: Colors.black54, // Changed color
+                          color: Colors.black54,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -171,14 +168,11 @@ class _OnBoardingViewState extends State<OnBoardingView>
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Expanded(
-                                  // Allow image to take available space
                                   child: Padding(
                                     padding:
                                         const EdgeInsets.only(bottom: 20.0),
                                     child: Image.asset(
                                       iObj["image"]!,
-                                      // width: media.width * 0.8, // Adjusted width
-                                      // height: media.width * 0.8, // Adjusted height
                                       fit: BoxFit.contain,
                                     ),
                                   ),
@@ -190,7 +184,7 @@ class _OnBoardingViewState extends State<OnBoardingView>
                                     iObj["title"]!,
                                     style: const TextStyle(
                                       color: Colors.black,
-                                      fontSize: 24, // Adjusted font size
+                                      fontSize: 24,
                                       fontWeight: FontWeight.bold,
                                       height: 1.2,
                                     ),
@@ -211,7 +205,7 @@ class _OnBoardingViewState extends State<OnBoardingView>
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 40), // Space before dots
+                                const SizedBox(height: 40),
                               ],
                             ),
                           );
@@ -273,7 +267,7 @@ class _OnBoardingViewState extends State<OnBoardingView>
                             child: const Icon(
                               Icons.arrow_forward,
                               color: Colors.white,
-                              size: 30.0, // Adjust size as needed
+                              size: 30.0,
                             ),
                           ),
                         )
@@ -283,7 +277,7 @@ class _OnBoardingViewState extends State<OnBoardingView>
                           child: SizedBox(
                             width: double.infinity,
                             child: RoundButton(
-                              title: "GET STARTED",
+                              title: "BẮT ĐẦU NGAY",
                               backgroundColor: primaryOrange,
                               onPressed: () {
                                 storage.saveData("isFirstTime", false);

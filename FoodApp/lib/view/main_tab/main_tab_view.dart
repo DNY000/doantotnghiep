@@ -35,7 +35,10 @@ class _MainTabViewState extends State<MainTabView>
     super.initState();
     _tabController = TabController(length: _pages.length, vsync: this);
     _tabController.addListener(_handleTabChange);
-
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<OrderViewModel>(context,
+          listen: false); // hoặc gọi hàm nào đó ở đây
+    });
     // Ensure system UI is properly configured for bottom navigation bar
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,

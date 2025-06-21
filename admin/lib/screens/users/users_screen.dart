@@ -1,3 +1,4 @@
+import 'package:admin/ultils/extension.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:admin/viewmodels/user_viewmodel.dart';
@@ -110,7 +111,6 @@ class _UsersContentState extends State<UsersContent> {
       final viewModel = context.read<UserViewModel>();
       await viewModel.getAllUsers();
 
-      // Check for showAddDialog in initState for initial route load
       if (widget.showAddDialog) {
         _showUserDialog(context);
       }
@@ -130,13 +130,10 @@ class _UsersContentState extends State<UsersContent> {
         (user) => user.id == widget.userId,
       );
       if (userToUpdate != null) {
-        // Ensure the state is ready before showing dialog
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _showUserDialog(context, userToUpdate);
         });
       } else {
-        print('Error: User with ID ${widget.userId} not found.');
-        // Optionally navigate back if user not found
         if (mounted) {
           context.go(NameRouter.users);
         }
@@ -205,32 +202,34 @@ class _UsersContentState extends State<UsersContent> {
               children: [
                 TextField(
                   controller: _nameController,
-                  decoration: InputDecoration(labelText: 'Tên người dùng'),
+                  decoration:
+                      const InputDecoration(labelText: 'Tên người dùng'),
                 ),
                 TextField(
                   controller: _emailController,
-                  decoration: InputDecoration(labelText: 'Email'),
+                  decoration: const InputDecoration(labelText: 'Email'),
                   keyboardType: TextInputType.emailAddress,
                 ),
                 TextField(
                   controller: _phoneController,
-                  decoration: InputDecoration(labelText: 'Số điện thoại'),
+                  decoration: const InputDecoration(labelText: 'Số điện thoại'),
                   keyboardType: TextInputType.phone,
                 ),
                 if (!isEditing) // Only show password field when adding
                   TextField(
                     controller: _passwordController,
-                    decoration: InputDecoration(labelText: 'Mật khẩu'),
+                    decoration: const InputDecoration(labelText: 'Mật khẩu'),
                     obscureText: true,
                   ),
                 TextField(
                   controller: _avatarUrlController,
-                  decoration: InputDecoration(labelText: 'URL Ảnh đại diện'),
+                  decoration:
+                      const InputDecoration(labelText: 'URL Ảnh đại diện'),
                   keyboardType: TextInputType.url,
                 ),
                 DropdownButtonFormField<Role>(
                   value: _selectedAddRole,
-                  decoration: InputDecoration(labelText: 'Vai trò'),
+                  decoration: const InputDecoration(labelText: 'Vai trò'),
                   items: Role.values.map((role) {
                     return DropdownMenuItem(
                       value: role,
@@ -279,7 +278,7 @@ class _UsersContentState extends State<UsersContent> {
                       _phoneController.text.isEmpty ||
                       _passwordController.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                           content: Text(
                               'Vui lòng điền đầy đủ thông tin (Tên, Số điện thoại, Mật khẩu)')),
                     );
@@ -334,7 +333,7 @@ class _UsersContentState extends State<UsersContent> {
             ElevatedButton.icon(
               onPressed: () {
                 // Navigate to add user route which will trigger dialog
-                context.go(NameRouter.users + '/add');
+                context.go('${NameRouter.users}/add');
               },
               icon: const Icon(Icons.add),
               label: const Text('Thêm Người dùng'),
@@ -353,7 +352,7 @@ class _UsersContentState extends State<UsersContent> {
         Row(
           children: [
             Expanded(
-              flex: 2,
+              flex: 3,
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
@@ -433,8 +432,6 @@ class _UsersContentState extends State<UsersContent> {
                       user.email?.toLowerCase().contains(searchLower) == true ||
                       user.phoneNumber.toLowerCase().contains(searchLower);
                 }).toList();
-
-                // TODO: Optionally navigate to search results route here
                 // context.go('${NameRouter.searchUsers}/${_searchController.text}');
               }
 
@@ -481,15 +478,12 @@ class _UsersContentState extends State<UsersContent> {
               }
             },
             cells: [
-              DataCell(
-                CircleAvatar(
-                  backgroundImage: user.avatarUrl.isNotEmpty
-                      ? NetworkImage(user.avatarUrl)
-                      : null,
-                  child:
-                      user.avatarUrl.isEmpty ? const Icon(Icons.person) : null,
-                ),
-              ),
+              DataCell(CircleAvatar(
+                backgroundImage: user.avatarUrl.toAvatarImage(),
+                child: user.avatarUrl.toAvatarImage() == null
+                    ? const Icon(Icons.person)
+                    : null,
+              )),
               DataCell(Text(user.name)),
               DataCell(Text(user.email ?? 'N/A')),
               DataCell(Text(user.phoneNumber)),

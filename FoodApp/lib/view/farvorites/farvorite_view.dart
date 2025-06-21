@@ -36,11 +36,12 @@ class _FarvoriteViewState extends State<FarvoriteView> {
           ),
         ),
         centerTitle: true,
-        leading: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back)),
-        backgroundColor: Colors.white,
-        elevation: 0,
+        //   leading: IconButton(
+        //       onPressed: () => Navigator.pop(context),
+        //       icon: const Icon(Icons.arrow_back)),
+        //   backgroundColor: Colors.white,
+        //   elevation: 0,
+        //
       ),
       body: favoriteViewModel.isLoading
           ? const Center(child: CircularProgressIndicator())

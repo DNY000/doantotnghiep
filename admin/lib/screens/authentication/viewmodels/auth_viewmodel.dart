@@ -5,22 +5,26 @@ import 'package:admin/routes/name_router.dart';
 import 'package:admin/ultils/const/enum.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
 import 'package:go_router/go_router.dart';
+import 'package:admin/routes/seller_router.dart';
+import 'package:admin/ultils/local_storage/storage_utilly.dart';
 
 class AuthViewModel extends ChangeNotifier {
-  final AuthService _authService = AuthService();
+  UserModel? _usermode;
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
-
   bool _isLoading = false;
   bool get isLoading => _isLoading;
-
   bool _obscurePassword = true;
   bool get obscurePassword => _obscurePassword;
+
+  AuthViewModel() {
+    // _initLocalStorage();
+  }
+
   void togglePasswordVisibility() {
     _obscurePassword = !_obscurePassword;
     notifyListeners();
@@ -33,8 +37,7 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Get current user
-  User? get currentUser => _authService.currentUser;
+  UserModel? get currentUser => _usermode;
 
   // Sign in with email and password
   Future<String?> signInWithEmailAndPassword(BuildContext context) async {
@@ -46,19 +49,51 @@ class AuthViewModel extends ChangeNotifier {
         return 'Vui lòng nhập đầy đủ thông tin';
       }
 
-      final userCredential = await _authService.signInWithEmailAndPassword(
-        emailController.text.trim(),
-        passwordController.text,
+      final userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text,
       );
 
       if (userCredential.user != null) {
-        GoRouter.of(context).go(NameRouter.dashboard);
-        return null; // Thành công
+        final currentUser = userCredential.user;
+        final userRepository = UserRepository();
+        final userModel = await userRepository.getUserById(currentUser!.uid);
+        _usermode = userModel;
+        notifyListeners();
+        if (userModel != null && userModel.role == Role.sellers) {
+          // Check if restaurant info is completed
+          final isRestaurantInfoCompleted = await TLocalStorage.instance()
+              .readData('restaurant_info_completed_${currentUser.uid}');
+
+          if (isRestaurantInfoCompleted == true) {
+            GoRouter.of(context).go(SellerRouter.dashboard);
+          } else {
+            GoRouter.of(context).go(SellerRouter.registerRestaurant);
+          }
+        } else {
+          // For non-seller roles or if userModel is null, go to admin dashboard
+          GoRouter.of(context).go(NameRouter.dashboard);
+        }
+        return null; // Success
       } else {
         return 'Đăng nhập thất bại';
       }
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'user-not-found':
+          return 'Không tìm thấy tài khoản với email này';
+        case 'wrong-password':
+          return 'Mật khẩu không chính xác';
+        case 'invalid-email':
+          return 'Email không hợp lệ';
+        case 'user-disabled':
+          return 'Tài khoản đã bị vô hiệu hóa';
+        default:
+          return 'Đăng nhập thất bại: ${e.message}';
+      }
     } catch (e) {
-      return e.toString();
+      return 'Có lỗi xảy ra: ${e.toString()}';
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -66,7 +101,7 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   // Register with email and password
-  Future<void> registerWithEmailAndPassword(BuildContext context) async {
+  Future<String?> registerWithEmailAndPassword(BuildContext context) async {
     try {
       _isLoading = true;
       notifyListeners();
@@ -75,18 +110,23 @@ class AuthViewModel extends ChangeNotifier {
           emailController.text.isEmpty ||
           passwordController.text.isEmpty ||
           confirmPasswordController.text.isEmpty) {
-        throw Exception('Vui lòng nhập đầy đủ thông tin');
+        return 'Vui lòng nhập đầy đủ thông tin';
       }
 
       if (passwordController.text != confirmPasswordController.text) {
-        throw Exception('Mật khẩu không khớp');
+        return 'Mật khẩu không khớp';
       }
 
-      final userCredential = await _authService.registerWithEmailAndPassword(
-        emailController.text.trim(),
-        passwordController.text,
-        usernameController.text.trim(),
+      if (passwordController.text.length < 6) {
+        return 'Mật khẩu phải có ít nhất 6 ký tự';
+      }
+
+      final userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text,
       );
+
       if (userCredential.user != null) {
         final user = UserModel(
           id: userCredential.user!.uid,
@@ -97,19 +137,41 @@ class AuthViewModel extends ChangeNotifier {
           dateOfBirth: null,
           gender: '',
           favorites: [],
-          role: Role.admin,
+          role: Role.sellers,
           phoneNumber: '',
           profilePicture: '',
           token: userCredential.user!.uid,
           addresses: [],
         );
+
         await UserRepository().saveUser(user);
-        GoRouter.of(context).go(NameRouter.dashboard);
+
+        // Save the restaurant info completion flag as false
+        await TLocalStorage.instance().saveData(
+          'restaurant_info_completed_${userCredential.user!.uid}',
+          false,
+        );
+
+        GoRouter.of(context).go(NameRouter.login);
+        return null; // Success
       } else {
-        throw Exception('Đăng ký thất bại');
+        return 'Đăng ký thất bại';
+      }
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'email-already-in-use':
+          return 'Email đã được sử dụng';
+        case 'invalid-email':
+          return 'Email không hợp lệ';
+        case 'operation-not-allowed':
+          return 'Đăng ký tài khoản đã bị vô hiệu hóa';
+        case 'weak-password':
+          return 'Mật khẩu quá yếu';
+        default:
+          return 'Đăng ký thất bại: ${e.message}';
       }
     } catch (e) {
-      rethrow;
+      return 'Có lỗi xảy ra: ${e.toString()}';
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -121,7 +183,7 @@ class AuthViewModel extends ChangeNotifier {
     try {
       _isLoading = true;
       notifyListeners();
-      await _authService.signOut();
+      await FirebaseAuth.instance.signOut();
       navigatorKey.currentState?.pushReplacementNamed(NameRouter.login);
     } catch (e) {
       rethrow;

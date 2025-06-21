@@ -31,7 +31,7 @@ class RoundButton extends StatelessWidget {
           //         begin: Alignment.topCenter,
           //         end: Alignment.bottomCenter,
           //       ),
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(12),
           color: backgroundColor ?? TColor.color3,
           boxShadow: const [
             BoxShadow(

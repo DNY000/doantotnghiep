@@ -4,6 +4,7 @@ import 'package:foodapp/data/models/order_model.dart';
 import 'package:foodapp/ultils/const/enum.dart';
 import 'package:foodapp/view/order/order_screen.dart';
 import 'package:foodapp/viewmodels/user_viewmodel.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:foodapp/viewmodels/order_viewmodel.dart';
 import 'package:foodapp/ultils/const/color_extension.dart';
@@ -83,15 +84,6 @@ class _OrderViewState extends State<OrderView>
           ),
         ),
         centerTitle: true,
-        leading: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {},
-          ),
-        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: TColor.color3,
@@ -125,6 +117,7 @@ class _OrderViewState extends State<OrderView>
     final ongoingOrders = orderViewModel.orders
         .where((order) => order.status != OrderState.delivered)
         .toList();
+    Future.delayed(Duration(seconds: 3));
     if (ongoingOrders.isEmpty) {
       return SingleChildScrollView(
         child: Column(
@@ -238,7 +231,7 @@ class _OrderViewState extends State<OrderView>
         );
       },
       child: Card(
-        margin: const EdgeInsets.only(bottom: 8),
+        margin: const EdgeInsets.only(bottom: 8, left: 12, right: 12, top: 8),
         color: Colors.white,
         elevation: 1,
         child: Padding(
@@ -259,7 +252,7 @@ class _OrderViewState extends State<OrderView>
                   _buildStatusChip(order.status),
                 ],
               ),
-              const Divider(),
+              // const Divider(height: 1),
               Row(
                 // mainAxisSize: MainAxisSize.min,
                 children: [
@@ -283,9 +276,11 @@ class _OrderViewState extends State<OrderView>
                               color: Colors.grey[300],
                               child: const Icon(Icons.fastfood),
                             )),
+                  const SizedBox(width: 24),
                   Expanded(
                       flex: 5,
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             "Món: $itemsDescription",
@@ -312,18 +307,16 @@ class _OrderViewState extends State<OrderView>
                       ))
                 ],
               ),
-              const SizedBox(height: 12),
-              if (order.status == OrderState.delivered ||
-                  order.status.toString().toLowerCase() == "delivered")
-                OutlinedButton(
-                  onPressed: () {
-                    // Xử lý đánh giá đơn hàng
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: TColor.color3,
-                  ),
-                  child: const Text("Đánh giá đơn hàng"),
-                ),
+              // const SizedBox(height: 12),
+              // if (order.status == OrderState.delivered ||
+              //     order.status.toString().toLowerCase() == "delivered")
+              //   TextButton(
+              //     onPressed: () {
+              //       // Xử lý đánh giá đơn hàng
+              //     },
+              //     child: const Text("Đánh giá đơn hàng",
+              //         style: TextStyle(color: Colors.black)),
+              //   ),
             ],
           ),
         ),

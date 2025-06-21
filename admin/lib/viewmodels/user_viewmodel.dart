@@ -2,12 +2,14 @@ import 'package:admin/data/repositories/user_repository.dart';
 import 'package:admin/models/user_model.dart';
 import 'package:admin/ultils/const/enum.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 
 class UserViewModel extends ChangeNotifier {
   final UserRepository _userRepository = UserRepository();
   List<UserModel> _users = [];
   bool _isLoading = false;
   String? _error;
+  UserModel? _currentUser;
 
   // Thống kê số user đăng ký mới theo tuần hoặc tháng
   List<int> _userRegistrationStats = [];
@@ -16,11 +18,12 @@ class UserViewModel extends ChangeNotifier {
   bool get isStatsLoading => _isStatsLoading;
   String? _statsError;
   String? get statsError => _statsError;
-
+  //  String role="";
   // Getters
   List<UserModel> get users => _users;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  UserModel? get currentUser => _currentUser;
 
   // Get all users
   Future<void> getAllUsers() async {
@@ -132,8 +135,13 @@ class UserViewModel extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      final user = await _userRepository.getUserById(userId);
-      return user;
+      _currentUser = await _userRepository.getUserById(userId);
+      if (_currentUser != null && _currentUser!.role == Role.sellers) {
+        // Optionally fetch and set restaurantId if not directly available in UserModel
+        // For now, assuming it's loaded with the UserModel
+      }
+      notifyListeners();
+      return _currentUser;
     } catch (e) {
       _error = e.toString();
       if (kDebugMode) {

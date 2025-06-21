@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:foodapp/data/models/restaurant_model.dart';
 import 'package:foodapp/view/restaurant/review_user.dart';
@@ -30,6 +31,20 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
         context.read<RestaurantViewModel>().updateUserLocation();
       }
     });
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.black, // Làm status bar trong suốt
+        statusBarIconBrightness:
+            Brightness.light, // icon tối (hoặc light nếu muốn icon trắng)
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle.light); // hoặc style bạn muốn
+    super.dispose();
   }
 
   Future<void> _initializeData() async {
@@ -173,146 +188,149 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
   Widget build(BuildContext context) {
     var media = MediaQuery.of(context).size;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            expandedHeight: media.width * 0.4,
-            floating: false,
-            pinned: true,
-            centerTitle: false,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Image.asset(
-                widget.restaurant.mainImage,
-                fit: BoxFit.cover,
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              expandedHeight: media.width * 0.4,
+              floating: false,
+              pinned: true,
+              centerTitle: false,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Image.asset(
+                  widget.restaurant.mainImage,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
               ),
             ),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: double.infinity,
-                  color: Colors.white,
-                  padding: const EdgeInsets.all(15),
-                  child: Text(
-                    widget.restaurant.name,
-                    style: TextStyle(
-                      color: TColor.text,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 0,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    color: Colors.white,
+                    padding: const EdgeInsets.all(15),
+                    child: Text(
+                      widget.restaurant.name,
+                      style: TextStyle(
+                        color: TColor.text,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
-                ),
-                Container(
-                  width: double.infinity,
-                  color: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ReviewUser(
-                                  foodId: widget.restaurant.id,
-                                  restaurantId: widget.restaurant.id,
+                  Container(
+                    width: double.infinity,
+                    color: Colors.white,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 15, vertical: 0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ReviewUser(
+                                    foodId: widget.restaurant.id,
+                                    restaurantId: widget.restaurant.id,
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                          child: Row(
-                            children: [
-                              RatingBar.builder(
-                                initialRating: widget.restaurant.rating,
-                                minRating: 1,
-                                direction: Axis.horizontal,
-                                allowHalfRating: true,
-                                itemCount: 5,
-                                itemSize: 20,
-                                ignoreGestures: true,
-                                itemBuilder: (context, _) => Icon(
-                                  Icons.star,
-                                  color: TColor.color3,
+                              );
+                            },
+                            child: Row(
+                              children: [
+                                RatingBar.builder(
+                                  initialRating: widget.restaurant.rating,
+                                  minRating: 1,
+                                  direction: Axis.horizontal,
+                                  allowHalfRating: true,
+                                  itemCount: 5,
+                                  itemSize: 20,
+                                  ignoreGestures: true,
+                                  itemBuilder: (context, _) => Icon(
+                                    Icons.star,
+                                    color: TColor.color3,
+                                  ),
+                                  onRatingUpdate: (rating) {},
                                 ),
-                                onRatingUpdate: (rating) {},
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                widget.restaurant.rating.toString(),
-                                style: TextStyle(
-                                  color: TColor.gray,
-                                  fontSize: 16,
+                                const SizedBox(width: 8),
+                                Text(
+                                  widget.restaurant.rating.toString(),
+                                  style: TextStyle(
+                                    color: TColor.gray,
+                                    fontSize: 16,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      Container(
-                        height: 24,
-                        width: 1,
-                        color: TColor.gray,
-                      ),
-                      Expanded(
-                        child: Consumer<RestaurantViewModel>(
-                          builder: (context, viewModel, child) {
-                            if (viewModel.userLocation == null) {
-                              return const Text('Đang lấy vị trí...');
-                            }
-                            final distance =
-                                viewModel.calculateDistanceToRestaurant(
-                                    widget.restaurant);
-                            return Padding(
-                              padding: const EdgeInsets.only(left: 15),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.location_on,
-                                    color: TColor.gray,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    viewModel.formatDistance(distance),
-                                    style: TextStyle(
-                                      color: TColor.gray,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
+                        Container(
+                          height: 24,
+                          width: 1,
+                          color: TColor.gray,
                         ),
-                      ),
-                    ],
+                        Expanded(
+                          child: Consumer<RestaurantViewModel>(
+                            builder: (context, viewModel, child) {
+                              if (viewModel.userLocation == null) {
+                                return const Text('Đang lấy vị trí...');
+                              }
+                              final distance =
+                                  viewModel.calculateDistanceToRestaurant(
+                                      widget.restaurant);
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 15),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.location_on,
+                                      color: TColor.gray,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      viewModel.formatDistance(distance),
+                                      style: TextStyle(
+                                        color: TColor.gray,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                _buildPopularFoods(),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.6,
-                  child: RestaurantFoodsScreen(
-                    categories: widget.restaurant.categories,
-                    restaurantId: widget.restaurant.id,
+                  _buildPopularFoods(),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.65,
+                    child: RestaurantFoodsScreen(
+                      categories: widget.restaurant.categories,
+                      restaurantId: widget.restaurant.id,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

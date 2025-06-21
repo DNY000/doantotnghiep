@@ -138,11 +138,37 @@ class LoginViewModel extends ChangeNotifier {
         return;
       }
 
+      _isLoading = true;
+      notifyListeners();
+
+      // Kiểm tra token Google trước
+      final googleToken = _localStorage.readData<String>("tokenGoogle");
+      if (googleToken != null && googleToken.isNotEmpty) {
+        try {
+          // Thử đăng nhập bằng Google token
+          final userCredential = await _authenticationRepository
+              .signInWithGoogleToken(googleToken);
+          if (userCredential != null) {
+            await _userViewModel.loadCurrentUser();
+            if (_navigationCallback != null) {
+              _navigationCallback!('/main_tab');
+            }
+            _isLoading = false;
+            notifyListeners();
+            return;
+          }
+        } catch (e) {
+          // Nếu đăng nhập bằng Google token thất bại, xóa token
+          await _localStorage.removeData("tokenGoogle");
+          _error = e.toString();
+          notifyListeners();
+        }
+      }
+
+      // Nếu không có token Google hoặc đăng nhập thất bại, thử đăng nhập bằng email/password
       final email = _localStorage.readData<String>(KEY_USER_EMAIL);
       final password = _localStorage.readData<String>(KEY_PASSWORD_USER);
       final shouldAutoLogin = _localStorage.readData<bool>("AUTO_LOGIN");
-
-      // Kiểm tra null safety tốt hơn
       _autoLogin = shouldAutoLogin ?? false;
 
       if (email != null && password != null && _autoLogin) {
@@ -150,20 +176,28 @@ class LoginViewModel extends ChangeNotifier {
         txtPassword.text = password;
         await loginWithEmailAndPassword();
       }
+
+      _isLoading = false;
+      notifyListeners();
     } on TFirebaseAuthException catch (e) {
       _error = e.message;
+      _isLoading = false;
       notifyListeners();
     } on TFirebaseException catch (e) {
       _error = e.message;
+      _isLoading = false;
       notifyListeners();
     } on TPlatformException catch (e) {
       _error = e.message;
+      _isLoading = false;
       notifyListeners();
     } on TFormatException catch (e) {
       _error = e.message;
+      _isLoading = false;
       notifyListeners();
     } catch (e) {
       _error = e.toString();
+      _isLoading = false;
       notifyListeners();
     }
   }
@@ -205,6 +239,8 @@ class LoginViewModel extends ChangeNotifier {
             dateOfBirth: DateTime.now(),
           );
           await _userViewModel.saveUser(userModel);
+          // Lưu token Google
+          await _localStorage.saveData("tokenGoogle", userCredential.user!.uid);
         } else {
           // Nếu đã tồn tại, chỉ cập nhật thông tin cơ bản
           final updatedUser = existingUser.copyWith(
@@ -215,6 +251,8 @@ class LoginViewModel extends ChangeNotifier {
             email: userCredential.user?.email ?? existingUser.email,
           );
           await _userViewModel.updateUser(updatedUser);
+          // Cập nhật token Google
+          await _localStorage.saveData("tokenGoogle", userCredential.user!.uid);
         }
 
         _isLoading = false;
@@ -345,6 +383,8 @@ class LoginViewModel extends ChangeNotifier {
 
       await _authenticationRepository.logout();
       await _localStorage.saveData("AUTO_LOGIN", false);
+      // Xóa token Google khi đăng xuất
+      await _localStorage.removeData("tokenGoogle");
       clearControllers();
       _error = '';
 

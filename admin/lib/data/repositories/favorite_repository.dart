@@ -11,13 +11,14 @@ class FavoriteRepository {
 
       if (favoriteIds.isEmpty) return [];
 
-      final foods =
-          await _firestore
-              .collection('foods')
-              .where(FieldPath.documentId, whereIn: favoriteIds)
-              .get();
+      final foods = await _firestore
+          .collection('foods')
+          .where(FieldPath.documentId, whereIn: favoriteIds)
+          .get();
 
-      return foods.docs.map((doc) => FoodModel.fromMap(doc.data())).toList();
+      return foods.docs
+          .map((doc) => FoodModel.fromMap(doc.data()!, doc.id))
+          .toList();
     } catch (e) {
       throw Exception('Failed to get favorites: $e');
     }
@@ -47,7 +48,7 @@ class FavoriteRepository {
     try {
       final doc = await _firestore.collection('foods').doc(foodId).get();
       if (doc.exists) {
-        return FoodModel.fromMap(doc.data()!);
+        return FoodModel.fromMap(doc.data()!, doc.id);
       }
       return null;
     } catch (e) {

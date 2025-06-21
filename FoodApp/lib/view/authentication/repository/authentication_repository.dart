@@ -390,4 +390,56 @@ class AuthenticationRepository {
       throw TPlatformException('unknown');
     }
   }
+
+  Future<UserCredential?> signInWithGoogleToken(String token) async {
+    try {
+      // Lấy thông tin người dùng từ Firestore trước
+      final userDoc = await _firestore.collection('users').doc(token).get();
+
+      if (!userDoc.exists) {
+        throw TFirebaseException('user-not-found');
+      }
+
+      // Thử đăng nhập bằng Google
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+      if (googleUser == null) {
+        throw TFirebaseException('google-sign-in-cancelled');
+      }
+
+      // Lấy thông tin xác thực từ Google
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      // Tạo credential từ thông tin xác thực
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Đăng nhập vào Firebase với credential
+      final userCredential = await _auth.signInWithCredential(credential);
+
+      // Cập nhật thông tin người dùng trong Firestore
+      final existingUser = UserModel.fromMap(userDoc.data()!, userDoc.id);
+      final updatedUser = existingUser.copyWith(
+        name: userCredential.user?.displayName ?? existingUser.name,
+        avatarUrl: userCredential.user?.photoURL ?? existingUser.avatarUrl,
+        profilePicture:
+            userCredential.user?.photoURL ?? existingUser.profilePicture,
+        email: userCredential.user?.email ?? existingUser.email,
+      );
+
+      await _firestore
+          .collection('users')
+          .doc(updatedUser.id)
+          .update(updatedUser.toMap());
+
+      return userCredential;
+    } on FirebaseAuthException catch (e) {
+      throw TFirebaseException(e.code);
+    } catch (e) {
+      throw TFormatException('Lỗi khi đăng nhập bằng Google token: $e');
+    }
+  }
 }

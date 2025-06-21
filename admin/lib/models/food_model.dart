@@ -32,9 +32,9 @@ class FoodModel {
     required this.createdAt,
   });
 
-  factory FoodModel.fromMap(Map<String, dynamic> map) {
+  factory FoodModel.fromMap(Map<String, dynamic> map, String docId) {
     return FoodModel(
-      id: map['id'] ?? "",
+      id: docId,
       name: map['name'] ?? "",
       description: map['description'] ?? "",
       price: (map['price'] as num).toDouble(),

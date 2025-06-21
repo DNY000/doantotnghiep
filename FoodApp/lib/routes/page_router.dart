@@ -1,6 +1,7 @@
 import 'package:foodapp/data/models/food_model.dart';
 import 'package:foodapp/data/models/restaurant_model.dart';
 import 'package:foodapp/routes/name_router.dart';
+import 'package:foodapp/ultils/local_storage/storage_utilly.dart';
 import 'package:foodapp/view/authentication/screen/login_view.dart';
 import 'package:foodapp/view/authentication/screen/signup_view.dart';
 import 'package:foodapp/view/authentication/screen/forgot_password_view.dart';
@@ -14,6 +15,10 @@ import 'package:foodapp/view/restaurant/single_food_detail.dart';
 import 'package:go_router/go_router.dart';
 import 'package:foodapp/main.dart';
 
+final TLocalStorage storage = TLocalStorage.instance();
+
+final isFirstTime = storage.readData<bool>("isFirstTime") ?? true;
+
 final GoRouter goRouter = GoRouter(
     navigatorKey: navigatorKey,
     //     redirect: (context, state) {
@@ -25,7 +30,7 @@ final GoRouter goRouter = GoRouter(
     // if (loggedIn && isLogin) return '/';
     // return null;
     // },
-    initialLocation: NameRouter.onboarding,
+    initialLocation: isFirstTime ? NameRouter.onboarding : NameRouter.login,
     routes: [
       // Màn hình onboarding
       GoRoute(
