@@ -61,19 +61,20 @@ class _SideMenuState extends State<SideMenu> {
                   color: Colors.blue,
                 ),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Image.asset(
                       "assets/images/logo.png",
-                      height: 50,
+                      // height: 50,
                     ),
-                    Text(
-                      user?.role.name == 'admin' ? "admin" : "sellers",
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
+                    // Text(
+                    //   user?.role.name == 'admin' ? "admin" : "sellers",
+                    //   style: const TextStyle(
+                    //     color: Colors.white70,
+                    //     fontSize: 14,
+                    //   ),
+                    // ),
                   ],
                 ),
               ),

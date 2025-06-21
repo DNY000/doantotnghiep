@@ -120,6 +120,9 @@ class _SingleFoodDetailState extends State<SingleFoodDetail> {
             height: double.infinity,
             fit: BoxFit.cover,
           ),
+          Container(
+            decoration: BoxDecoration(color: Colors.black.withOpacity(0.4)),
+          ),
           _buildBackButton(),
           _buildFavoriteButton(),
         ],

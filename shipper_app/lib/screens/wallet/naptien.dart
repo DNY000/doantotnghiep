@@ -184,33 +184,34 @@ class _DepositScreenState extends State<DepositScreen> {
         return;
       }
 
-      await _vnpayService.processDeposit(
-        context: context,
-        shipperId: widget.shipperId,
-        amount: amount,
-        onComplete: (success, responseCode, message) {
-          if (!mounted) return;
+      // await _vnpayService.processDeposit(
+      //   userId: widget.shipperId,
+      //   context: context,
+      //   shipperId: widget.shipperId,
+      //   amount: amount,
+      //   onComplete: (success, responseCode, message) {
+      //     if (!mounted) return;
 
-          setState(() {
-            _isLoading = false;
-            _showResponseMessage = true;
-            _isSuccess = success;
-            _responseMessage =
-                success
-                    ? 'Nạp tiền thành công!'
-                    : _getErrorMessage(responseCode);
-            _isProcessing = false;
+      //     setState(() {
+      //       _isLoading = false;
+      //       _showResponseMessage = true;
+      //       _isSuccess = success;
+      //       _responseMessage =
+      //           success
+      //               ? 'Nạp tiền thành công!'
+      //               : _getErrorMessage(responseCode);
+      //       _isProcessing = false;
 
-            if (success) {
-              _loadWalletBalance(); // Cập nhật số dư sau khi nạp tiền thành công
-              Future.delayed(const Duration(seconds: 2), () {
-                if (!mounted) return;
-                Navigator.pop(context, true);
-              });
-            }
-          });
-        },
-      );
+      //       if (success) {
+      //         _loadWalletBalance(); // Cập nhật số dư sau khi nạp tiền thành công
+      //         Future.delayed(const Duration(seconds: 2), () {
+      //           if (!mounted) return;
+      //           Navigator.pop(context, true);
+      //         });
+      //       }
+      //     });
+      //   },
+      // );
     } catch (e) {
       if (!mounted) return;
       setState(() {

@@ -102,12 +102,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-
-    // Khi app quay trở lại foreground, kiểm tra lại kết nối
     if (state == AppLifecycleState.resumed) {
-      // Delay một chút để đảm bảo kết nối ổn định
       Future.delayed(const Duration(milliseconds: 300), () {
-        // Trigger kiểm tra kết nối bằng cách gọi connectivity check
         Connectivity().checkConnectivity();
       });
     }

@@ -277,7 +277,7 @@ class _OnBoardingViewState extends State<OnBoardingView>
                           child: SizedBox(
                             width: double.infinity,
                             child: RoundButton(
-                              title: "GET STARTED",
+                              title: "BẮT ĐẦU NGAY",
                               backgroundColor: primaryOrange,
                               onPressed: () {
                                 storage.saveData("isFirstTime", false);
